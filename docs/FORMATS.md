@@ -36,10 +36,24 @@ with one engine out.
 
 Grid: row 0 = north (+y), col 0 = west (−x); `x = (col − (W−1)/2)·mpp`, `y = ((H−1)/2 − row)·mpp`.
 
-## `data/light/<region>_<date>.npz` — `contracts/light.py`
+## `data/light/<region>_<date>.npz` — `contracts/light.py: LightField` (v2)
 Same grid as the tile. `times_utc` [T] (in header), `et_s` [T] float64 (strictly increasing),
 `sun_fraction` [T,H,W] 0..1 (finite solar disk), `sun_elev_deg` and `earth_elev_deg` [T,H,W]
 above the **local** horizon (terrain + curvature, no refraction).
+**v2 additions (optional on load; v1 files without them still load):** `sun_az_deg`, `earth_az_deg` **[T]**
+(tile centre, not per cell): compass degrees, 0 = north, clockwise, 0..360, tile ENU frame (row 0 = north).
+`<date>` = **window start, UTC, `YYYY-MM-DD`** (00:00:00Z), never a lunar-day id. Standard axis: 1 h cadence,
+709 samples (708 h, one synodic month, both ends inclusive); `is_standard_axis(et_s)` checks it (not enforced on load).
+One tile per site: region id = site id in `sites/sites.json` (`sites[].region` must equal the tile/light region).
+A full 400x400x709 field is ~0.45 GB per variable: pen drive / 4090 only, never git.
+
+## `data/light/<region>_<date>_points.npz` — `contracts/light.py: PointSeries`
+Small per-site series for the Navigator and Vizard. `cells` [K,2] int (row, col; candidate cell first, then up to 8
+neighbours, K <= 9), `times_utc` [T], `et_s` [T], `sun_fraction`/`sun_elev_deg`/`earth_elev_deg` [T,K],
+`sun_az_deg`/`earth_az_deg` [T] (as above), `horizon_elev_deg` [K,360] (index = azimuth degree, 0 = north,
+clockwise; from the same LOLA ray-cast as KAN-23), header with Meta. `PointSeries.from_field(lf, cells, horizon)`
+cuts one out of a v2 field; `contracts.paths.points_path(region, date)` gives the filename.
+A GENERATED stand-in is allowed in exactly this format (`Meta.provenance = "generated"`).
 
 ## `sites/sites.json` — `contracts/sites.py`
 `{"schema_version": 1, "sites": [{id, name, lat_deg, lon_deg, source, provenance, notes, region}]}`.
