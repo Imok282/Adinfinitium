@@ -22,7 +22,10 @@ How to read the numbers (all honest by construction):
 from __future__ import annotations
 
 import argparse
+import os
+import pickle
 import time
+from pathlib import Path
 
 import jax
 import numpy as np
@@ -47,6 +50,37 @@ from sim_jax.terrain import flat_terrain, terrain_from_tile
 from swarm.fitness import shaped_fitness
 from swarm.pilot import PilotConfig, make_pilot_policy
 from swarm.problem import LanderProblem, mission_keys, pilot_metrics
+
+# Arguments that define WHAT is being evolved. A resumed run must match them exactly; the rest
+# (--generations, --champion-every, --eval-missions, --topk, --val-missions) may change.
+IDENTITY = ("pop", "missions", "mode", "residual_scale", "region", "flat", "no_failures", "seed",
+            "init_weight_std", "weight_mutate_power", "max_nodes", "max_conns", "species_size",
+            "survival_threshold", "compatibility_threshold")
+CHECKPOINT = "checkpoint.pkl"
+
+
+def save_checkpoint(out: Path, state, gen_done: int, best_held_out: float, args) -> None:
+    """Whole TensorNEAT state (population, species, RNG, generation counter), written atomically
+    AFTER the generation's json/npz files, so a crash never leaves a checkpoint ahead of the logs."""
+    payload = {"state": jax.device_get(state), "gen_done": gen_done, "best_held_out": best_held_out,
+               "identity": {k: getattr(args, k) for k in IDENTITY}}
+    tmp = out / (CHECKPOINT + ".tmp")
+    with open(tmp, "wb") as f:
+        pickle.dump(payload, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, out / CHECKPOINT)
+
+
+def load_checkpoint(out: Path, args) -> dict:
+    with open(out / CHECKPOINT, "rb") as f:
+        ck = pickle.load(f)  # our own file, written by save_checkpoint
+    diff = {k: (ck["identity"].get(k), getattr(args, k)) for k in IDENTITY
+            if ck["identity"].get(k) != getattr(args, k)}
+    if diff:
+        raise SystemExit("--resume: arguments differ from the checkpointed run "
+                         f"(checkpoint, now): {diff}. Use the original arguments or a new --run.")
+    return ck
 
 
 def build(args):
@@ -170,6 +204,9 @@ def main(argv=None) -> None:
     ap.add_argument("--compatibility-threshold", type=float, default=2.0)
     ap.add_argument("--pop-batch", type=int, default=None, help="evaluate the population in batches (GPU memory)")
     ap.add_argument("--champion-every", type=int, default=10)
+    ap.add_argument("--resume", action="store_true",
+                    help="continue from runs/<run>/checkpoint.pkl (starts fresh if there is none); "
+                         "--generations is the TOTAL to reach")
     a = ap.parse_args(argv)
 
     print("JAX devices:", jax.devices())
@@ -179,6 +216,16 @@ def main(argv=None) -> None:
     eval_genome, eval_classic, fly_one, rerank = make_eval_fns(cfg, env, gp, pilot, algo)
     out = run_dir(a.run)
     out.mkdir(parents=True, exist_ok=True)
+    start_gen, best_held_out = 0, -1.0
+    if (out / CHECKPOINT).exists():
+        if not a.resume:
+            raise SystemExit(f"{out / CHECKPOINT} exists: pass --resume to continue that run, "
+                             "or choose a new --run (refusing to overwrite it)")
+        ck = load_checkpoint(out, a)
+        state, start_gen, best_held_out = ck["state"], ck["gen_done"] + 1, ck["best_held_out"]
+        print(f"resuming run '{a.run}' from generation {start_gen} (target {a.generations})")
+    elif a.resume:
+        print(f"--resume: no checkpoint in {out}, starting fresh")
     meta = Meta(provenance=Provenance.MODELLED, source=f"sim_jax 3-DOF + TensorNEAT on {source}",
                 frame="tile ENU", created_by="swarm.run_swarm",
                 units={"thrust_n": "N", "pos_m": "m", "vel_m_s": "m/s"})
@@ -192,8 +239,7 @@ def main(argv=None) -> None:
     step = jax.jit(pipe.step)
     val_base = jax.random.PRNGKey(a.seed + 777)           # validation: re-ranks the top-K champions
     eval_base = jax.random.PRNGKey(a.seed + 12345)        # held-out report set: never used for selection
-    best_held_out = -1.0
-    for gen in range(a.generations):
+    for gen in range(start_gen, a.generations):
         t0 = time.time()
         state_before = state
         state, pop, fit = step(state)
@@ -243,6 +289,7 @@ def main(argv=None) -> None:
                                   a.region, FAILURE_REASONS[int(np.asarray(m_champ["outcome"])[j])], meta)
             write_json(champ, out / gen_name("champion", gen, "json"))
         best_held_out = max(best_held_out, held)
+        save_checkpoint(out, state, gen, best_held_out, a)
 
         print(f"gen {gen:3d} | {wall:6.1f}s | pop>0 {log.population_success_rate:6.1%} | "
               f"champion held-out {held:6.1%} vs classic {scl['success_rate']:6.1%} | "

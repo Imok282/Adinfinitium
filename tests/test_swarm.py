@@ -77,3 +77,34 @@ def test_swarm_end_to_end_writes_valid_contract_files(tmp_path, monkeypatch):
     assert c.controls and c.controls[0].t_s == pytest.approx(0.1)
     assert len(c.initial_state["pos_m"]) == 3
     assert (tmp_path / "t" / "genome_000.npz").exists()
+
+
+@pytest.mark.slow
+def test_resume_continues_a_crashed_run_identically(tmp_path, monkeypatch):
+    """1 generation, 'crash', --resume to 2  ==  2 generations straight through."""
+    pytest.importorskip("tensorneat")
+    import json
+
+    from swarm.run_swarm import main
+
+    base = ["--pop", "8", "--missions", "1", "--eval-missions", "8", "--topk", "2", "--val-missions", "4",
+            "--flat", "--max-nodes", "24", "--max-conns", "64"]
+    monkeypatch.setenv("ADI_RUNS", str(tmp_path))
+    main([*base, "--generations", "2", "--run", "straight"])
+    main([*base, "--generations", "1", "--run", "crashed"])
+    first = (tmp_path / "crashed" / "generation_000.json").read_text()
+
+    with pytest.raises(SystemExit, match="--resume"):                 # won't silently clobber a run
+        main([*base, "--generations", "2", "--run", "crashed"])
+    with pytest.raises(SystemExit, match="differ"):                   # can't resume with other settings
+        main([*base[:1], "16", *base[2:], "--generations", "2", "--run", "crashed", "--resume"])
+
+    main([*base, "--generations", "2", "--run", "crashed", "--resume"])
+    assert (tmp_path / "crashed" / "generation_000.json").read_text() == first    # history untouched
+    a = json.loads((tmp_path / "straight" / "generation_001.json").read_text())
+    b = json.loads((tmp_path / "crashed" / "generation_001.json").read_text())
+    for k in ("champion_genome", "success_rate", "classic_success_rate", "population_success_rate"):
+        assert a[k] == b[k], k
+
+    main([*base, "--generations", "2", "--run", "fresh", "--resume"])  # no checkpoint -> starts fresh
+    assert (tmp_path / "fresh" / "generation_001.json").exists()

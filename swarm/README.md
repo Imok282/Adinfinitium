@@ -17,6 +17,13 @@ make swarm-smoke                                  # laptop, ~1 min
 python -m swarm.run_swarm --pop 10000 --generations 300 --run overnight1   # 4090 (make swarm)
 ```
 
+**Crash recovery:** every generation ends by writing `runs/<run>/checkpoint.pkl` (full population, species, RNG;
+atomic, written after that generation's json/npz). Re-run the SAME command with `--resume` to continue from the
+last finished generation; `--generations` is the total to reach. With no checkpoint, `--resume` just starts fresh,
+so one command works for the first launch and every restart. Without `--resume`, an existing checkpoint is never
+overwritten, and a resume with different pop/mode/seed/etc. is refused. Tested: a resumed run reproduces the
+uninterrupted run exactly (`pytest -m slow`, ~90 s).
+
 Files: `pilot.py` (net output -> thrust; **residual on classic guidance** or from scratch), `fitness.py`
 (shaped selection fitness vs the gated mission score), `problem.py` (TensorNEAT `BaseProblem`; every
 individual flies the same missions in a generation), `run_swarm.py` (loop, logs, champion export).
