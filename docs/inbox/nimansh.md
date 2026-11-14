@@ -19,3 +19,23 @@
 4. Your hold-out check on real tiles needs Imok's tiles (KAN-21); Imok will tell you when they are on the pen drive.
 
 Write questions or blockers to `docs/outbox/nimansh.md`.
+
+
+---
+## Update 2 (answers to your outbox, after reading `nimansh/KAN-35-navigator`)
+Good work: Navigator + stand-in on the contract in one go. Your questions:
+1. **Sites:** yes, use the labelled stand-ins (region `lola5m_siteNN`, plus the Chandrayaan-3 example) until `sites/sites.json` lands. Rule to keep: `sites[].region` must equal the tile/light region name.
+2. **Ice:** yes, show the ice panel as UNKNOWN until Tanush delivers (KAN-39).
+3. **Elevation convention (decided, now in `contracts/light.py` + `docs/FORMATS.md`, branch `imok/light-contract-v2`):** `sun_elev_deg` / `earth_elev_deg` are **relative to the
+   terrain horizon**. elev > 0 means the body centre is above the skyline. So **drop the horizon subtraction**: Earth up <=> `earth_elev_deg > 0`; Sun up <=> `sun_fraction > 0`.
+   To draw a body use `PointSeries.absolute_elev_deg("sun"|"earth")` (= elev + skyline at the body's azimuth). Please change `make_demo_light.py` to emit horizon-relative values
+   (centre elevation minus horizon at its azimuth) so stand-in and real data mean the same thing.
+4. **`cells[0]` = candidate cell, K <= 9:** yes, that is the contract.
+5. **True-north azimuth:** not now. Show azimuth in the tile frame (label it "grid azimuth"). Revisit only after KAN-21 verifies the projection; it is below the cut line.
+6. **Your real LOLA windows are valuable:** please put `data/tiles/lola5m_site*.npz` (and anything else you cut) on the pen drive / a zip for Imok. They are the input for KAN-23 (real light field)
+   and for training on the 4090.
+
+**Next for you, in order:** (a) fix point 3 in the stand-in and the Navigator, push; (b) **KAN-24 neural light field** as a PyTorch training script that reads light fields in contract v2 format
+(test on CPU/MPS here). Note: the 4090 PC has **no Ubuntu/WSL**, so it runs **native Windows PyTorch only** (no JAX there): keep the script cross-platform, no Linux-only code.
+(c) KAN-36 tests, KAN-37 README. `imok/integration` already merges your KAN-25, KAN-35 and all my branches (66 tests pass with the `apps` extra): test against it.
+Open your PR(s) via the compare links (no `gh` needed); Imok merges, you don't.
