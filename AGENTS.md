@@ -3,7 +3,7 @@
 Adinfinitium — NASA Space Apps 2026, *Lunar Landing Site Navigator*. An autonomous lander + rover
 that land where and when a mission survives, tested by an evolving 10,000-mission swarm.
 
-Read first: `docs/SYSTEM_DESIGN.md` (how the parts fit) and the folder `README.md` you are working in.
+Read first: **`docs/STATUS.md`** (where we are, what's next), `docs/SYSTEM_DESIGN.md` (how the parts fit) and the folder `README.md` you are working in.
 Your task text is in Jira (project KAN); the key is in your branch name.
 
 ## Hard rules
