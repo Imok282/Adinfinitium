@@ -1,0 +1,67 @@
+{
+  "provenance": "modelled",
+  "note": "illustrative to-scale models, not flight CAD; no agency logos",
+  "units": "metres",
+  "models": {
+    "lander": {
+      "parts": 32,
+      "triangles": 1556,
+      "min_m": [
+        -1.79,
+        -1.79,
+        -1.45
+      ],
+      "max_m": [
+        1.79,
+        1.79,
+        0.888
+      ],
+      "size_m": [
+        3.58,
+        3.58,
+        2.338
+      ],
+      "frame": "Z up, body frame (lander thrust +z)",
+      "files": [
+        "lander.obj",
+        "lander.mtl",
+        "lander.glb",
+        "lander_preview.png"
+      ],
+      "from_config": {
+        "engines": 5,
+        "attitude_thrusters": 8,
+        "deck_panel_area_m2": 4.0
+      }
+    },
+    "rover": {
+      "parts": 17,
+      "triangles": 1252,
+      "min_m": [
+        -0.45,
+        -0.38,
+        -0.2
+      ],
+      "max_m": [
+        0.45,
+        0.38,
+        0.225
+      ],
+      "size_m": [
+        0.9,
+        0.76,
+        0.425
+      ],
+      "frame": "x forward, y left, z up, ground at z=-0.2",
+      "files": [
+        "rover.obj",
+        "rover.mtl",
+        "rover.glb",
+        "rover_preview.png"
+      ],
+      "from_config": {
+        "mass_kg": 25.0
+      }
+    }
+  }
+}

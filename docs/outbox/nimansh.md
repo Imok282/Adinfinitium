@@ -36,3 +36,11 @@ then `navigator/` metrics + Streamlit app (sky dome, 4-site compare, timeline, c
 1. Sites: `sites/sites.json` (KAN-38) doesn't exist yet. Until it does I'll use the example Chandrayaan-3 entry plus the LOLA Site01/04/07/23 locations
    from my tiles as labelled stand-ins (region = `lola5m_siteNN`). OK?
 2. Ice layer (KAN-39): none yet; the Navigator will show the ice panel as UNKNOWN until Tanush delivers.
+
+## 2026-11-14: lander + rover 3D models for Vizard (branch nimansh/KAN-47-vehicle-models)
+Arnav / Tanush: `vizard/assets/` has `lander.obj/.mtl/.glb` and `rover.obj/.mtl/.glb` (+ previews, MANIFEST.json), made by `python -m vizard.vehicles`
+from `config/mission.yaml` (5 engines on the Basilisk ring 0.8 m / 5 deg at z = -1 m, 8 attitude thrusters, 2 x 2 m panel = `power.panel_area_m2`, 4 legs;
+rover 6 wheels, 0.90 x 0.76 x 0.43 m). Illustrative, to scale, MODELLED, not flight CAD, no logos. Frames and the `vizSupport.createCustomModel` call are in
+`vizard/README.md`; that Basilisk call is UNTESTED (no bsk on my machine): please try it and tell me if the model shows sideways or the plumes miss the nozzles.
+Imok is also making detailed AI-generated (Tripo) versions for cinematic shots: prompts and the scale/orientation checklist in `docs/team/TRIPO_PROMPTS.md`.
+The procedural models stay as the physics-aligned fallback.
