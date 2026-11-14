@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adinfinitium"
+version = "0.1.0"
+description = "Autonomous lunar lander + rover that land where and when a mission survives — NASA Space Apps 2026"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "numpy>=1.26",
+  "pydantic>=2.5",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+# 4090 venv ~/venvs/adi-jax:   pip install -e ".[sim]"  then  pip install -U "jax[cuda13]" (fallback cuda12)
+sim = ["jax>=0.4.30"]
+swarm = ["jax>=0.4.30", "tensorneat"]
+# 4090 venv ~/venvs/adi-torch: pip install -e ".[worldmodel]"
+worldmodel = ["torch>=2.3", "scipy>=1.11", "spiceypy>=6"]
+apps = ["streamlit>=1.35", "plotly>=5.20", "pandas>=2.1"]
+dev = ["pytest>=8", "jax>=0.4.30", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+include = ["contracts*", "data_tools*", "worldmodel*", "sim_jax*", "swarm*", "basilisk_mods*",
+           "navigator*", "mission_control*", "brain_window*", "vizard*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"

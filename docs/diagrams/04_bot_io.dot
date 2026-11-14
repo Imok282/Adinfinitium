@@ -1,0 +1,28 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.3; nodesep=0.25; ranksep=0.8;
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#555555", penwidth=0.8];
+  edge [color="#888888", arrowsize=0.6];
+  label="Lander pilot: what it senses → what it controls"; labelloc=t; fontsize=16; fontname="DejaVu Sans";
+  subgraph cluster_in { label="Inputs (modelled on Chandrayaan-3's sensor suite)"; style="rounded,dashed"; color="#999999"; fontname="DejaVu Sans";
+    i1 [label="Inertial unit + accelerometers", fillcolor="#E1F5EE"];
+    i2 [label="Ka-band radar altimeter", fillcolor="#E1F5EE"];
+    i3 [label="Laser altimeter / LIDAR", fillcolor="#E1F5EE"];
+    i4 [label="Laser Doppler velocimeter", fillcolor="#E1F5EE"];
+    i5 [label="Position camera\n(match to orbital map)", fillcolor="#E1F5EE"];
+    i6 [label="Hazard camera\n(rocks, slope, shadow)", fillcolor="#E1F5EE"];
+    i7 [label="Horizontal velocity camera", fillcolor="#E1F5EE"];
+    i8 [label="Star tracker + sun sensor", fillcolor="#E1F5EE"];
+    i9 [label="Fuel + engine health", fillcolor="#E1F5EE"];
+    i10 [label="Sun, Earth, target direction", fillcolor="#E1F5EE"];
+    i11 [label="Touchdown + inclinometer", fillcolor="#E1F5EE"];
+  }
+  brain [label="Evolved NEAT brain\n(noise + failures injected)", fillcolor="#EEEDFE", fontsize=12];
+  subgraph cluster_out { label="Outputs"; style="rounded,dashed"; color="#999999"; fontname="DejaVu Sans";
+    a1 [label="Throttle × 5 engines\n(4 outer + 1 centre)", fillcolor="#FAEEDA"];
+    a2 [label="Attitude thrusters /\nreaction wheels", fillcolor="#FAEEDA"];
+    a3 [label="Re-target decision\n(new landing point)", fillcolor="#FAEEDA"];
+    a4 [label="Abort / retry", fillcolor="#FAEEDA"];
+  }
+  {i1 i2 i3 i4 i5 i6 i7 i8 i9 i10 i11} -> brain;
+  brain -> {a1 a2 a3 a4};
+}

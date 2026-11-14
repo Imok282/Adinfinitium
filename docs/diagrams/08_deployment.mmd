@@ -1,0 +1,33 @@
+flowchart TB
+  classDef m fill:#f4f4f5,stroke:#52525b
+  classDef g fill:#ecfdf5,stroke:#059669
+  classDef d fill:#fff7ed,stroke:#ea580c
+
+  subgraph L[4 laptops — Claude Code / Codex / Codebuff]
+    I[Imok]:::m
+    N[Nimansh]:::m
+    T[Tanush]:::m
+    A[Arnav]:::m
+  end
+
+  GH[(GitHub<br/>Imok282/Adinfinitium<br/>branches → PR → main<br/>CI: contracts + pytest)]:::g
+  PD[[Pen drive · exFAT<br/>LOLA tiles · SPICE kernels<br/>checkpoints · runs/]]:::d
+
+  subgraph P[RTX 4090 PC — Windows 11 + WSL2 Ubuntu 24.04 — NO Claude]
+    J[~/venvs/adi-jax<br/>jax cuda13→12 · TensorNEAT<br/>sim_jax · swarm]:::m
+    TO[~/venvs/adi-torch<br/>torch · spiceypy<br/>worldmodel training]:::m
+    BS[Basilisk bsk + Vizard]:::m
+    DA[(~/adi-data)]:::d
+    RU[(~/adi-runs)]:::d
+    TX[tmux: overnight jobs]:::m
+  end
+
+  I & N & T & A -- git push --> GH
+  GH -- git pull --> P
+  PD <--> DA
+  RU --> PD
+  PD --> I & T & A
+  J --> RU
+  TO --> DA
+  TX --- J & TO
+  RU -- Streamlit :8501-8503 over LAN --> L
