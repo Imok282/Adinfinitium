@@ -39,8 +39,16 @@ OBS_NAMES = (
     "hazard_below", "slope_below_12", "camera_ok",
     "time_frac",
 )
-OBS_DIM = len(OBS_NAMES)
+OBS_DIM = len(OBS_NAMES)   # base observation; indices 0..12 NEVER change (classic guidance + Basilisk rely on them)
 ACT_DIM = 3
+
+# Optional hazard look-ahead (EnvParams.lookahead, default OFF): appended AFTER the base vector.
+# 8 compass directions (ENU) at `lookahead_m` from the point below the lander; each value is
+# max(hazard, slope/limit) in 0..1 at that ring point, zeroed when the camera is blind (same
+# rule as hazard_below). Lets a pilot see WHERE the safe ground is, not only what is below it.
+LOOKAHEAD_DIRS = (("n", 0.0, 1.0), ("ne", 1.0, 1.0), ("e", 1.0, 0.0), ("se", 1.0, -1.0),
+                  ("s", 0.0, -1.0), ("sw", -1.0, -1.0), ("w", -1.0, 0.0), ("nw", -1.0, 1.0))
+LOOKAHEAD_NAMES = tuple(f"ring_unsafe_{n}" for n, _, _ in LOOKAHEAD_DIRS)
 
 
 class EnvParams(NamedTuple):
@@ -72,6 +80,12 @@ class EnvParams(NamedTuple):
     noise_vel: float
     noise_pos: float
     target_xy: tuple[float, float] = (0.0, 0.0)
+    lookahead: bool = False       # append LOOKAHEAD_NAMES to the observation (default off)
+    lookahead_m: float = 30.0     # ring radius for the look-ahead
+
+    @property
+    def obs_dim(self) -> int:
+        return OBS_DIM + (len(LOOKAHEAD_NAMES) if self.lookahead else 0)
 
     @property
     def n_steps(self) -> int:
@@ -83,7 +97,8 @@ class EnvParams(NamedTuple):
 
 
 def make_params(cfg: MissionConfig, terrain: tr.TerrainJ, target_xy=(0.0, 0.0),
-                failures: bool = True, noise: bool = True) -> EnvParams:
+                failures: bool = True, noise: bool = True, lookahead: bool = False,
+                lookahead_m: float = 30.0) -> EnvParams:
     s = cfg.scenarios.terminal
     L = cfg.lander
     f = cfg.failures
@@ -105,6 +120,7 @@ def make_params(cfg: MissionConfig, terrain: tr.TerrainJ, target_xy=(0.0, 0.0),
         nav_drift=f.nav_drift_m_s, p_camera_blind=k * f.camera_blind_prob,
         noise_alt=m * n.altimeter_m, noise_vel=m * n.velocimeter_m_s, noise_pos=m * n.position_m,
         target_xy=tuple(float(v) for v in target_xy),
+        lookahead=lookahead, lookahead_m=lookahead_m,
     )
 
 
@@ -189,7 +205,20 @@ class LanderEnv:
             haz, slp / 12.0, cam,
             s.t / p.max_time,
         ])
+        if p.lookahead:
+            obs = jnp.concatenate([obs, self.lookahead_ring(s)])
         return obs.astype(jnp.float32)
+
+    def lookahead_ring(self, s: EnvState):
+        """[8] unsafe-ness (0..1) of the ground at lookahead_m in each compass direction."""
+        p = self.params
+        d = jnp.array([[dx, dy] for _, dx, dy in LOOKAHEAD_DIRS], jnp.float32)
+        d = d / jnp.linalg.norm(d, axis=1, keepdims=True) * p.lookahead_m
+        x, y = s.pos[0] + d[:, 0], s.pos[1] + d[:, 1]
+        haz = jax.vmap(lambda a, b: tr.hazard_at(p.terrain, a, b))(x, y)
+        slp = jax.vmap(lambda a, b: tr.slope_at(p.terrain, a, b))(x, y)
+        unsafe = jnp.maximum(haz, jnp.clip(slp / p.td_max_slope, 0.0, 1.0))
+        return unsafe * s.camera_ok.astype(jnp.float32)
 
     # --------------------------------------------------------------- thrust
     def apply_limits(self, s: EnvState, action):

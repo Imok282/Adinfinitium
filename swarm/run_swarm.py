@@ -57,7 +57,7 @@ from worldmodel.exams import EXAM_BY_NAME, make_exam_envs
 
 # Arguments that define WHAT is being evolved. A resumed run must match them exactly; the rest
 # (--generations, --champion-every, --eval-missions, --topk, --val-missions) may change.
-IDENTITY = ("pop", "missions", "mode", "residual_scale", "region", "flat", "no_failures", "seed",
+IDENTITY = ("pop", "lookahead", "missions", "mode", "residual_scale", "region", "flat", "no_failures", "seed",
             "init_weight_std", "weight_mutate_power", "max_nodes", "max_conns", "species_size",
             "survival_threshold", "compatibility_threshold", "exams", "exam_targets", "exam_missions")
 TRAIN_SEED_SHIFT = 1000   # training exams use tile seeds + 1000: same stress, different terrain/targets
@@ -88,7 +88,7 @@ def load_checkpoint(out: Path, args) -> dict:
     return ck
 
 
-def exam_suites(cfg, names: list[str], n_targets: int):
+def exam_suites(cfg, names: list[str], n_targets: int, lookahead: bool = False):
     """(train, held_out). train = [(env, gp)] on tiles seeded +1000; held_out = [(exam_name, env, gp)]
     on the exam's own tiles. Same stress, different terrain and targets, so the exam score is not
     a memorised answer."""
@@ -97,12 +97,13 @@ def exam_suites(cfg, names: list[str], n_targets: int):
     def gp_of(p):
         return guidance_params_from_env(p, t.hover_gate_altitude_m, t.final_descent_speed_m_s)
 
+    ov = {"lookahead": True} if lookahead else None   # exam envs must give the pilot the same observation
     train, held = [], []
     for name in names:
         exam = EXAM_BY_NAME[name]
         shifted = dataclasses.replace(exam, tile_seeds=tuple(x + TRAIN_SEED_SHIFT for x in exam.tile_seeds))
-        train += [(e, gp_of(p)) for _, e, p in make_exam_envs(shifted, cfg, n_targets)]
-        held += [(name, e, gp_of(p)) for _, e, p in make_exam_envs(exam, cfg, n_targets)]
+        train += [(e, gp_of(p)) for _, e, p in make_exam_envs(shifted, cfg, n_targets, ov)]
+        held += [(name, e, gp_of(p)) for _, e, p in make_exam_envs(exam, cfg, n_targets, ov)]
     return train, held
 
 
@@ -119,16 +120,16 @@ def build(args):
     else:
         tile = load_tile(tile_path(args.region))
         terrain, source = terrain_from_tile(tile), f"{args.region} [{tile.meta.provenance.banner}]"
-    p = make_params(cfg, terrain, failures=not args.no_failures)
+    p = make_params(cfg, terrain, failures=not args.no_failures, lookahead=args.lookahead)
     env = LanderEnv(p)
     gp = guidance_params_from_env(p, cfg.scenarios.terminal.hover_gate_altitude_m,
                                   cfg.scenarios.terminal.final_descent_speed_m_s)
-    pilot = PilotConfig(mode=args.mode, residual_scale=args.residual_scale)
+    pilot = PilotConfig(mode=args.mode, residual_scale=args.residual_scale, lookahead=args.lookahead)
     names = [n for n in args.exams.split(",") if n]
     unknown = [n for n in names if n not in EXAM_BY_NAME]
     if unknown:
         raise SystemExit(f"unknown exam(s) {unknown}; choose from {sorted(EXAM_BY_NAME)}")
-    train_suite, held_suite = exam_suites(cfg, names, args.exam_targets)
+    train_suite, held_suite = exam_suites(cfg, names, args.exam_targets, lookahead=args.lookahead)
     problem = LanderProblem(env, gp, cfg, pilot, missions_per_ind=args.missions, seed=args.seed,
                             extra_suite=tuple(train_suite), missions_per_extra=args.exam_missions)
     genome = DefaultGenome(
@@ -258,6 +259,7 @@ def main(argv=None) -> None:
     ap.add_argument("--val-missions", type=int, default=128)
     ap.add_argument("--mode", choices=["residual", "scratch"], default="residual")
     ap.add_argument("--residual-scale", type=float, default=0.3)
+    ap.add_argument("--lookahead", action="store_true", help="pilot also sees the 8-direction hazard ring")
     ap.add_argument("--region", default="demo_craters")
     ap.add_argument("--flat", action="store_true")
     ap.add_argument("--no-failures", action="store_true")
@@ -304,7 +306,7 @@ def main(argv=None) -> None:
     meta = Meta(provenance=Provenance.MODELLED, source=f"sim_jax 3-DOF + TensorNEAT on {source}",
                 frame="tile ENU", created_by="swarm.run_swarm",
                 units={"thrust_n": "N", "pos_m": "m", "vel_m_s": "m/s"})
-    strategy = {"algorithm": "TensorNEAT", "pilot_mode": a.mode, "residual_scale": a.residual_scale,
+    strategy = {"algorithm": "TensorNEAT", "pilot_mode": a.mode, "lookahead": a.lookahead, "residual_scale": a.residual_scale,
                 "missions_per_ind": a.missions, "topk": a.topk, "val_missions": a.val_missions, "species_size": a.species_size,
                 "survival_threshold": a.survival_threshold,
                 "compatibility_threshold": a.compatibility_threshold, "seed": a.seed,

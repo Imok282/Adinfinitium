@@ -21,16 +21,18 @@ from typing import NamedTuple
 import jax.numpy as jnp
 
 from sim_jax.guidance import GuidanceParams, classic_policy
-from sim_jax.lander_env import ACT_DIM, OBS_DIM
+from sim_jax.lander_env import ACT_DIM, LOOKAHEAD_NAMES, OBS_DIM
 
 
 class PilotConfig(NamedTuple):
     mode: str = "residual"           # "residual" | "scratch"
     residual_scale: float = 0.3      # max correction, fraction of max total thrust per axis
+    lookahead: bool = False          # env observes the 8-direction hazard ring (EnvParams.lookahead)
 
     @property
     def n_inputs(self) -> int:
-        return OBS_DIM + (ACT_DIM if self.mode == "residual" else 0)
+        obs = OBS_DIM + (len(LOOKAHEAD_NAMES) if self.lookahead else 0)
+        return obs + (ACT_DIM if self.mode == "residual" else 0)
 
     @property
     def n_outputs(self) -> int:

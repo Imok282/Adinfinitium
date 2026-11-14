@@ -115,3 +115,41 @@ def test_mass_flow_matches_rocket_equation(flat_env):
     _, s2, _, _, _ = flat_env.step(jax.random.PRNGKey(1), s, full)
     expected = p.max_total_thrust / (p.isp * p.g0) * p.dt
     assert float(s.mass - s2.mass) == pytest.approx(expected, rel=1e-3)  # float32 mass ~900 kg
+
+
+# ---- opt-in hazard look-ahead (KAN-100) ------------------------------------------------------
+def _ring_env(lookahead, camera_ok=True):
+    import dataclasses  # noqa: F401
+    t = flat_terrain(101, 10.0)
+    haz = np.zeros((101, 101), np.float32)
+    haz[50, 56:61] = 1.0        # hazard 60..100 m EAST of the centre (row 50 = y 0)
+    t = t._replace(hazard=jnp.asarray(haz))
+    p = make_params(CFG, t, failures=False, noise=False, lookahead=lookahead, lookahead_m=70.0)
+    return LanderEnv(p)
+
+
+def test_lookahead_off_keeps_observation_identical():
+    off, on = _ring_env(False), _ring_env(True)
+    key = jax.random.PRNGKey(3)
+    (o0, _), (o1, _) = off.reset(key), on.reset(key)
+    assert o0.shape == (OBS_DIM,) and o1.shape == (OBS_DIM + 8,) and on.params.obs_dim == OBS_DIM + 8
+    np.testing.assert_array_equal(np.asarray(o1[:OBS_DIM]), np.asarray(o0))   # indices 0..12 unchanged
+
+
+def test_lookahead_ring_points_at_the_hazard_and_respects_blind_camera():
+    env = _ring_env(True)
+    _, s = env.reset(jax.random.PRNGKey(0))
+    s = s._replace(pos=s.pos.at[0].set(0.0).at[1].set(0.0))
+    ring = np.asarray(env.lookahead_ring(s))
+    assert ring[2] == 1.0 and ring.sum() == 1.0        # only "e" (index 2) sees the hazard
+    blind = np.asarray(env.lookahead_ring(s._replace(camera_ok=jnp.asarray(False))))
+    assert blind.sum() == 0.0
+
+
+def test_classic_guidance_ignores_the_look_ahead():
+    off, on = _ring_env(False), _ring_env(True)
+    gp = guidance_params_from_env(off.params, 30.0, 1.0)
+    key = jax.random.PRNGKey(5)
+    _, m0, _ = rollout(off, classic_policy, gp, key, 16)
+    _, m1, _ = rollout(on, classic_policy, gp, key, 16)
+    np.testing.assert_array_equal(np.asarray(m0["outcome"]), np.asarray(m1["outcome"]))
