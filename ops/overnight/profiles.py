@@ -131,20 +131,20 @@ def macmini() -> Profile:
 
 
 def brain4090() -> Profile:
-    """4090 PC, 2 hours max (Imok): the pilot brain trains on the GPU WHILE the planner's outcome labels are simulated on the CPU cores (3 processes),
-    then both exams run and a demo plan is written. Uses the seed data in the package (no NASA download). Test site: Site23 (Site42 tiles not in the seed)."""
+    """4090 PC, 2 hours (Imok): MANY simulations in parallel instead of a longer run. The pilot flies 2048 landers per batch on the GPU while
+    7 label simulators (one per terrain site, 8 months x 20 landing cells each) run at the same time; then the exams, the planner and a demo plan.
+    Uses the seed data in the package (no NASA download). Test site: Site23 (Site42 tiles are not in the seed)."""
     dates = ["2027-01-01", "2027-02-15", "2027-03-01", "2027-04-15", "2027-06-01", "2027-07-15", "2027-09-01", "2027-12-01"]
-    labels = ["worldmodel.planner.labels_run", "--cells", "20", "--n-land", "48", "--n-rover", "32", "--dates", *dates]   # runner adds --max-minutes (scaled)
+    labels = ["worldmodel.planner.labels_run", "--cells", "20", "--n-land", "48", "--n-rover", "32", "--threads", "2", "--dates", *dates]
+    sites = ["Site11", "Site23", "Site01", "Site04", "Site06", "Site07", "Site20"]
     return Profile("brain4090", [
         Stage("env_check", [["ops.overnight.env_check", "--need-cuda"]], 2),
-        Stage("brain", [["worldmodel.lander.train", "--arch", "former", "--d", "384", "--layers", "8", "--heads", "8", "--envs", "512", "--horizon", "96",
-                         "--updates", "20000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
-                        [*labels, "--sites", "Site11", "Site23", "Site01"],
-                        [*labels, "--sites", "Site04", "Site06"],
-                        [*labels, "--sites", "Site07", "Site20"]], 100, parallel=4, train=True,
-              note="pilot (GPU, ~15 M vision transformer, residual on ZEM/ZEV) in parallel with 3 CPU label simulators; the pilot sizes itself to the budget"),
+        Stage("brain", [["worldmodel.lander.train", "--arch", "former", "--d", "384", "--layers", "8", "--heads", "8", "--envs", "2048", "--horizon", "64",
+                         "--minibatches", "16", "--updates", "20000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
+                        *[[*labels, "--sites", s] for s in sites]], 100, parallel=8, train=True,
+              note="pilot (GPU, ~15 M vision transformer, 2048 landers per batch) in parallel with 7 label simulators (one per site)"),
         Stage("lander_eval", [["worldmodel.lander.evaluate", "--name", "lander_pilot", "--n", "1024", "--seeds", "3"]], 10),
-        Stage("planner", [["worldmodel.planner.train", "--epochs", "400"]], 4),
+        Stage("planner", [["worldmodel.planner.train", "--epochs", "400"]], 5),
         Stage("planner_eval", [["worldmodel.planner.evaluate"]], 2),
         Stage("plan_demo", [["worldmodel.planner.plan", "--region", "lola5m_site23", "--date", "2027-03-01", "--run", "demo"]], 2),
     ])

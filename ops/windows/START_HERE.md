@@ -1,6 +1,6 @@
 # START HERE: 4090 PC, 2-hour run of the pilot brain + mission planner (Adinfinitium)
 
-> **One command, about 4 hours of training (+10-20 min first-time setup), unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`  (`-BudgetScale 1.0` = about 2 hours)
+> **One command, about 2 hours of training (+10-20 min first-time setup), unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`  (`-BudgetScale 2.0` = about 4 hours)
 > It sets up the PC (first time only), trains the two models, runs their held-out exams, verifies, freezes (SHA-256) and zips the results.
 > **After the freeze nothing changes:** no re-training, no tuning, no edits. This is written for whoever operates the PC: a person, or an agent with remote hands.
 
@@ -18,7 +18,7 @@
 | **pilot brain** `lander_pilot` | lands the 1.5 t, 5-engine lander: a vision transformer that sees the sensors + a camera image of the ground and adds a correction (residual) to classic ZEM/ZEV guidance. Untrained it flies exactly like the backup | ~15 M | classic ZEM/ZEV guidance (already ~95-98 % success with engine-out, navigation drift and blind-camera failures injected) |
 | **meta layer** `planner_set` (+ `planner_logistic` baseline) | picks the landing cell and hour with the best simulated chance of the full mission (land, rover reaches the ice edge, rover returns); writes the plan + decision log | ~0.6 M (data are small: a bigger net would memorise) | the exact Navigator ranking |
 
-How the time is used (default long run): the pilot trains on the GPU for ~3 h **while** 3 processes simulate the planner's labels (8 months x 20 landing cells per site) (lander flights + rover drives per landing cell); then the exams (~20 min), the planner training (~8 min) and a demo plan.
+How the time is used: the pilot trains on the GPU for ~90 min with 2048 landers per batch **while** 7 processes (one per terrain site) simulate the planner's labels (8 months x 20 landing cells per site) (lander flights + rover drives per landing cell); then the exams (~10 min), the planner training (~5 min) and a demo plan.
 
 ## 3. Steps
 1. Copy `adinfinitium_4090_package.zip` to the PC (pen drive), right-click, Extract All, open PowerShell in the extracted `adinfinitium` folder.
@@ -40,7 +40,8 @@ How the time is used (default long run): the pilot trains on the GPU for ~3 h **
 | symptom | do |
 |---|---|
 | `No CUDA build of PyTorch can see the GPU` | update the NVIDIA driver, reboot, re-run |
-| `CUDA out of memory` in the `brain` stage | edit `ops\overnight\profiles.py` (brain4090): `--envs 512` -> `256`, re-run (it resumes); note it |
+| `CUDA out of memory` in the `brain` stage | edit `ops\overnight\profiles.py` (brain4090): `--envs 2048` -> `1024`, re-run (it resumes); note it |
+| PC RAM runs out (everything freezes, `MemoryError`) | in `profiles.py` (brain4090) set `parallel=8` -> `parallel=5`, re-run (it resumes); note it |
 | a label process fails | the others continue; the planner trains on what exists; note which sites are missing |
 | PowerShell blocks scripts | use the exact `powershell -ExecutionPolicy Bypass -File ...` form |
 | the PC slept | re-run; it resumes. The script sets "never sleep on AC power" |

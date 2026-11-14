@@ -1,7 +1,7 @@
 # ONE command for the 4090: setup if needed -> pilot brain + planner -> exams -> verify -> freeze -> results zip. Safe to re-run: it resumes.
-#   powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1                      # long: ~4 h of training (default, chosen by Imok)
-#   powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1 -BudgetScale 1.0     # ~2 h
-param([double]$BudgetScale = 2.0)
+#   powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1                      # ~2 h, many simulations in parallel (default)
+#   powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1 -BudgetScale 2.0     # ~4 h
+param([double]$BudgetScale = 1.0)
 Set-Location (Join-Path $PSScriptRoot "..\..")
 New-Item -ItemType Directory -Force runs | Out-Null
 Start-Transcript -Path "runs\run_brain.log" -Append

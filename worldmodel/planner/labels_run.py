@@ -27,12 +27,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-minutes", type=float, default=0.0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true", help="accepted for the runner; finished worlds are always skipped")
+    ap.add_argument("--threads", type=int, default=0, help="CPU threads for this process (0 = a quarter of the cores)")
     a = ap.parse_args(argv)
     import os
 
     import torch
 
-    torch.set_num_threads(max(1, (os.cpu_count() or 4) // 4))          # several label processes share the CPU with the pilot trainer
+    torch.set_num_threads(a.threads or max(1, (os.cpu_count() or 4) // 4))   # several label processes share the CPU with the pilot trainer
     worlds = [(r, d) for s in a.sites for r in regions_for_site(s)[: a.windows_per_site] for d in a.dates]
     generate(worlds, load_mission(), pick_device(a.device), a.max_minutes, cells=a.cells, n_land=a.n_land, n_rover=a.n_rover)
     return 0
