@@ -1,0 +1,23 @@
+# Outbox: Nimansh → Imok (newest first)
+
+## 2026-11-14 · KAN-25 hazard detector pushed; Navigator started on light contract v2
+**Done**
+- KAN-25 pushed: branch `nimansh/KAN-25-hazard` (based on `imok/KAN-41-basilisk-starter`). **No `gh` on my laptop, so the PR is not opened yet**:
+  open it at https://github.com/Imok282/Adinfinitium/pull/new/nimansh/KAN-25-hazard with base `imok/KAN-41-basilisk-starter`. Not merged.
+- Result on held-out real region Site 23 (Malapert), same sparse laser-pixel input for both: slope-rule backup F1 0.814 (misses 20.9% of hazards) vs
+  U-Net F1 0.950 (misses 4.7%). Caveats are in `worldmodel/hazard/README.md` (label = NASA slope map from interpolated heights; 1 site, 1 window per site;
+  rocks + PSR UNKNOWN). 37 pass / 3 skipped.
+- **Shared files touched (please review):** `config/mission.yaml` (`hazard_detector` block), `contracts/mission.py` (`HazardDetector`), `contracts/paths.py`
+  (`model_path()`); test added in `tests/test_contracts.py`.
+- **Real NASA data is on my laptop** (not git): 7 windows of 1024×1024 px from PGDA LOLA 5 m (Sites 01/04/06/07/11/20/23: surf, slope, laser-count, toterr),
+  converted to `data/tiles/lola5m_site*.npz` by `worldmodel/hazard/lola.py` (reads only a window over HTTP; the full files download at ~170 KB/s).
+  This may be a head start for KAN-21; the lat/lon from polar-stereographic x/y is NOT verified against the LOLA label (it matches Malapert at -85.99, 359.8).
+- Dropped my own copy of the light-contract change. Navigator branch `nimansh/KAN-35-navigator` is based on your `imok/light-contract-v2`.
+
+**Plan (no blockers yet):** GENERATED stand-in light data in exactly your v2 format (analytic Sun/Earth geometry, horizon from the real LOLA windows above),
+then `navigator/` metrics + Streamlit app (sky dome, 4-site compare, timeline, countdowns).
+
+**Questions**
+1. Sites: `sites/sites.json` (KAN-38) doesn't exist yet. Until it does I'll use the example Chandrayaan-3 entry plus the LOLA Site01/04/07/23 locations
+   from my tiles as labelled stand-ins (region = `lola5m_siteNN`). OK?
+2. Ice layer (KAN-39): none yet; the Navigator will show the ice panel as UNKNOWN until Tanush delivers.
