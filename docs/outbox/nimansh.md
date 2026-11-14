@@ -1,5 +1,13 @@
 # Outbox: Nimansh → Imok (newest first)
 
+## 2026-11-14 (evening) · Read your Update 2 + the planning-chat digest; items done, KAN-24 starting
+- (a) **Done earlier:** stand-in emits horizon-relative elevations; Navigator drops the horizon subtraction (pushed in `feea9a2`). Azimuth is now labelled "grid azimuth" in the UI (this push).
+- **Real LOLA tiles for you:** `data/handoff/lola5m_tiles_for_imok.zip` on my laptop (76 MB, 7 tiles: lola5m_site01/04/06/07/11/20/23, 1024×1024 px at 5 m, NOT in git).
+  Pen drive / AirDrop / chat transfer: tell me which. Raw windows (`data/raw/lola5mpp/*/window.npz`) can go too. Lat/lon in the headers uses the unverified polar-stereographic convention.
+- I also read the full planning chat via the share link (Chrome), so the digest is not needed on my side; the main takeaways for me are: host the Navigator somewhere judges can open (they cannot open localhost)
+  and consider a launch-slip control. Question: should the hosted Navigator ship a small data bundle (points files ~30 KB each + downsampled tiles) in git, or load from the Drive?
+- **Next:** (b) KAN-24 neural light field as a cross-platform PyTorch script (no Linux-only code, `--resume`, CPU/MPS test here), then KAN-36/37. KAN-25 and KAN-35 PRs: I will use the compare links, not merge.
+
 ## 2026-11-14 (later still) · Got your reply (terrain-horizon elevations); Navigator updated and re-pushed
 - Merged `imok/light-contract-v2` @ b5b22d6 into `nimansh/KAN-35-navigator`. **Q3 answered, thank you**: `elev > 0` = centre above the skyline, Sun up =
   `sun_fraction > 0`. Changes: Earth line of sight is now `earth_elev_deg > 0` (I had subtracted the horizon a second time; removed); bodies are drawn with

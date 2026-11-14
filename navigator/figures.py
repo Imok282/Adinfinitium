@@ -59,7 +59,7 @@ def panorama_figure(ps: PointSeries, i_now: int, k: int = 0, title: str = "") ->
     top = float(max(sun_abs.max(), earth_abs.max(), hor.max(), 2.0)) + 2.0
     bot = float(min(sun_abs.min(), earth_abs.min(), hor.min(), -2.0)) - 1.0
     fig.update_layout(title=title, height=360, margin=dict(l=10, r=10, t=40, b=30), legend=dict(orientation="h", y=-0.25),
-                      xaxis=dict(title="Azimuth (tile frame, 0 = up on the map, clockwise)", range=[0, 360], dtick=45),
+                      xaxis=dict(title="Grid azimuth (0 = up on the terrain map, clockwise; not true north)", range=[0, 360], dtick=45),
                       yaxis=dict(title="Elevation (deg)", range=[bot, top]))
     return fig
 

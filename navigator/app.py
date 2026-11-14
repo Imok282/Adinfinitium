@@ -171,7 +171,7 @@ with tab_sky:
             time.sleep(0.05)
     if explainer:
         st.caption("Grey = terrain skyline seen from the site. At the poles the Sun never climbs high: it circles near the horizon, "
-                   "so a hill can hide it for days. Azimuth is in the terrain-tile frame (0° = top of the terrain map), not true north.")
+                   "so a hill can hide it for days. Grid azimuth: 0° = top of the terrain map, clockwise; it is not true north.")
 
 # ---------------------------------------------------------------------------------------------- Terrain & ice
 with tab_terrain:
