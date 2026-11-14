@@ -53,3 +53,11 @@ then `navigator/` metrics + Streamlit app (sky dome, 4-site compare, timeline, c
 1. Sites: `sites/sites.json` (KAN-38) doesn't exist yet. Until it does I'll use the example Chandrayaan-3 entry plus the LOLA Site01/04/07/23 locations
    from my tiles as labelled stand-ins (region = `lola5m_siteNN`). OK?
 2. Ice layer (KAN-39): none yet; the Navigator will show the ice panel as UNKNOWN until Tanush delivers.
+
+## 2026-11-14 evening: overnight kit, pilot brain, mission planner (branch nimansh/KAN-45-rover-brain)
+- `ops/`: one-command runner with failure ledger, report, verify, freeze, bundles for the Mac mini and the 4090 (see docs/team/MASTER_PLAN.md section 0).
+- Pilot brain `worldmodel/lander/` (PyTorch twin of sim_jax, parity-tested; residual vision-transformer pilot; held-out exam vs ZEM/ZEV).
+  Ojas: the JAX swarm stays as is; this gives the 4090 a native PyTorch pilot. Same observation vector and failure vocabulary.
+- Mission planner `worldmodel/planner/` + new contract `contracts/plan.py` (plan_XXX.json) + decision log CSV (t_utc, phase, decision, reason) for the
+  mission-control window. Labels are simulated full missions; the backup is the Navigator ranking.
+- Mac mini is training light / hazard / rover / terrain overnight (Opus session there). 4090: 2-hour pilot + planner run when the PC is free.
