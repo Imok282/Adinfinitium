@@ -17,6 +17,37 @@ make swarm-smoke                                  # laptop, ~1 min
 python -m swarm.run_swarm --pop 10000 --generations 300 --run overnight1   # 4090 (make swarm)
 ```
 
+## The 4090 overnight run (tight_fuel + hazard exams)
+
+`--exams a,b,c` makes selection ALSO fly those `worldmodel.exams` scenarios (each exam env gets equal weight with
+the normal env; `--exam-targets` targets per tile, `--exam-missions` missions per env per individual). The same
+stress is used for training and reporting, but on **different generated terrain**: training tiles are seeded
++1000, the held-out exam tiles are the exam's own. Each `generation_XXX.json` then also has `exam_success_rate`,
+`classic_exam_success_rate` and `exam_breakdown` (per exam, champion vs classic, fresh held-out missions).
+Caveat: the `tight_fuel`/hazard exam tiles share seed 0 with the standard demo tile, so those are *scenario*
+generalisation (new targets, new stress draws), not new terrain; only `unseen_craters` is new terrain, and it is
+never trained on.
+
+**Tonight, works from the pushed `imok/KAN-105-tensorneat` (tight_fuel only; classic = 25.7% there):**
+```bash
+cd ~/adinfinitium && git fetch && git checkout imok/KAN-105-tensorneat && git pull
+source ~/venvs/adi-jax/bin/activate && pip install -e .
+export ADI_RUNS=~/adi-runs
+tmux new -s swarm          # then, inside tmux:
+make swarm                 # = python -m swarm.run_swarm --pop 10000 --generations 300 --run overnight1 \
+                           #     --exams tight_fuel --exam-targets 3 --exam-missions 2 --resume
+```
+Crashed or rebooted? Re-run the identical `make swarm` (checkpoint -> resumes). Watch the first generation's
+time before sleeping: 300 generations must fit the night. If it is too slow, lower `--generations` (the resume
+total) or `--exam-targets`; if the GPU runs out of memory add `SWARM_FLAGS="--pop-batch 2500"`.
+
+**Hazard exams (needs the look-ahead; NOT usable until `imok/KAN-100-lookahead` is reviewed and merged):**
+```bash
+make swarm RUN=overnight2 EXAMS=tight_fuel,nav_drift_near_hazard,combined_stress SWARM_FLAGS=--lookahead
+```
+Without `--lookahead` the pilot only senses the cell below it and cannot divert, so the hazard exams would be
+trained blind. (`--lookahead` is added to `run_swarm` on the KAN-100 branch.)
+
 **Crash recovery:** every generation ends by writing `runs/<run>/checkpoint.pkl` (full population, species, RNG;
 atomic, written after that generation's json/npz). Re-run the SAME command with `--resume` to continue from the
 last finished generation; `--generations` is the total to reach. With no checkpoint, `--resume` just starts fresh,

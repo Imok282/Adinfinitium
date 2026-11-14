@@ -45,9 +45,13 @@ class LanderProblem(BaseProblem):
     jitable = True
 
     def __init__(self, env: LanderEnv, gp: GuidanceParams, mission: MissionConfig,
-                 pilot: PilotConfig, missions_per_ind: int = 4, seed: int = 0):
+                 pilot: PilotConfig, missions_per_ind: int = 4, seed: int = 0,
+                 extra_suite: tuple = (), missions_per_extra: int = 1):
+        """`extra_suite` = ((env, gp), ...): exam scenarios the pilot is ALSO selected on. Each env
+        (the main one and every extra one) gets equal weight in the fitness."""
         super().__init__()
         self.env, self.gp, self.mission, self.pilot = env, gp, mission, pilot
+        self.extra_suite, self.missions_per_extra = tuple(extra_suite), missions_per_extra
         self.missions_per_ind = missions_per_ind
         self.base_key = jax.random.PRNGKey(seed)
 
@@ -65,4 +69,10 @@ class LanderProblem(BaseProblem):
         metrics = pilot_metrics(self.env, self.gp, self.pilot,
                                 lambda p, x: act_func(state, p, x), params, keys)
         fit, _ = shaped_fitness(metrics, self.mission)
-        return jnp.mean(fit)
+        per_env = [jnp.mean(fit)]
+        for i, (env, gp) in enumerate(self.extra_suite):
+            ks = mission_keys(jax.random.fold_in(self.base_key, i + 1), state.generation,
+                              self.missions_per_extra)
+            m = pilot_metrics(env, gp, self.pilot, lambda p, x: act_func(state, p, x), params, ks)
+            per_env.append(jnp.mean(shaped_fitness(m, self.mission)[0]))
+        return jnp.mean(jnp.stack(per_env))

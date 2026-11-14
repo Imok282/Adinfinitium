@@ -108,3 +108,28 @@ def test_resume_continues_a_crashed_run_identically(tmp_path, monkeypatch):
 
     main([*base, "--generations", "2", "--run", "fresh", "--resume"])  # no checkpoint -> starts fresh
     assert (tmp_path / "fresh" / "generation_001.json").exists()
+
+
+def test_exam_suites_train_on_different_terrain_than_held_out():
+    """Training exams use the same stress on tiles seeded +1000, so the exam score isn't memorised."""
+    pytest.importorskip("tensorneat")
+    from swarm.run_swarm import TRAIN_SEED_SHIFT, exam_suites
+    train, held = exam_suites(CFG, ["tight_fuel"], n_targets=1)
+    assert TRAIN_SEED_SHIFT >= 1000 and len(train) == len(held) == 1
+    (tr_env, _), (name, ho_env, _) = train[0], held[0]
+    assert name == "tight_fuel"
+    assert tr_env.params.start_mass == ho_env.params.start_mass == 820.0      # same stress
+    assert not np.array_equal(np.asarray(tr_env.params.terrain.height),       # different terrain
+                              np.asarray(ho_env.params.terrain.height))
+
+
+def test_exam_report_pools_per_exam_then_averages():
+    pytest.importorskip("tensorneat")
+    from swarm.run_swarm import exam_report
+    held = [("a", None, None), ("a", None, None), ("b", None, None)]
+    champ = np.array([[1, 1], [0, 0], [1, 0]], bool)      # a: 2/4, b: 1/2
+    classic = np.array([[0, 0], [0, 0], [1, 1]], bool)    # a: 0,   b: 1
+    r = exam_report(held, champ, classic)
+    assert r["exam_breakdown"]["a"] == {"champion": 0.5, "classic": 0.0}
+    assert r["exam_breakdown"]["b"] == {"champion": 0.5, "classic": 1.0}
+    assert r["exam_success_rate"] == 0.5 and r["classic_exam_success_rate"] == 0.5

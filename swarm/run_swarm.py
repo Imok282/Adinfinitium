@@ -22,12 +22,15 @@ How to read the numbers (all honest by construction):
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import pickle
 import time
+from functools import partial
 from pathlib import Path
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 
 from contracts.mission import load_mission
@@ -50,12 +53,14 @@ from sim_jax.terrain import flat_terrain, terrain_from_tile
 from swarm.fitness import shaped_fitness
 from swarm.pilot import PilotConfig, make_pilot_policy
 from swarm.problem import LanderProblem, mission_keys, pilot_metrics
+from worldmodel.exams import EXAM_BY_NAME, make_exam_envs
 
 # Arguments that define WHAT is being evolved. A resumed run must match them exactly; the rest
 # (--generations, --champion-every, --eval-missions, --topk, --val-missions) may change.
 IDENTITY = ("pop", "missions", "mode", "residual_scale", "region", "flat", "no_failures", "seed",
             "init_weight_std", "weight_mutate_power", "max_nodes", "max_conns", "species_size",
-            "survival_threshold", "compatibility_threshold")
+            "survival_threshold", "compatibility_threshold", "exams", "exam_targets", "exam_missions")
+TRAIN_SEED_SHIFT = 1000   # training exams use tile seeds + 1000: same stress, different terrain/targets
 CHECKPOINT = "checkpoint.pkl"
 
 
@@ -83,6 +88,24 @@ def load_checkpoint(out: Path, args) -> dict:
     return ck
 
 
+def exam_suites(cfg, names: list[str], n_targets: int):
+    """(train, held_out). train = [(env, gp)] on tiles seeded +1000; held_out = [(exam_name, env, gp)]
+    on the exam's own tiles. Same stress, different terrain and targets, so the exam score is not
+    a memorised answer."""
+    t = cfg.scenarios.terminal
+
+    def gp_of(p):
+        return guidance_params_from_env(p, t.hover_gate_altitude_m, t.final_descent_speed_m_s)
+
+    train, held = [], []
+    for name in names:
+        exam = EXAM_BY_NAME[name]
+        shifted = dataclasses.replace(exam, tile_seeds=tuple(x + TRAIN_SEED_SHIFT for x in exam.tile_seeds))
+        train += [(e, gp_of(p)) for _, e, p in make_exam_envs(shifted, cfg, n_targets)]
+        held += [(name, e, gp_of(p)) for _, e, p in make_exam_envs(exam, cfg, n_targets)]
+    return train, held
+
+
 def build(args):
     """Everything needed to evolve: returns (cfg, env, gp, pilot_cfg, problem, pipeline, source)."""
     from tensorneat.algorithm.neat import NEAT
@@ -101,7 +124,13 @@ def build(args):
     gp = guidance_params_from_env(p, cfg.scenarios.terminal.hover_gate_altitude_m,
                                   cfg.scenarios.terminal.final_descent_speed_m_s)
     pilot = PilotConfig(mode=args.mode, residual_scale=args.residual_scale)
-    problem = LanderProblem(env, gp, cfg, pilot, missions_per_ind=args.missions, seed=args.seed)
+    names = [n for n in args.exams.split(",") if n]
+    unknown = [n for n in names if n not in EXAM_BY_NAME]
+    if unknown:
+        raise SystemExit(f"unknown exam(s) {unknown}; choose from {sorted(EXAM_BY_NAME)}")
+    train_suite, held_suite = exam_suites(cfg, names, args.exam_targets)
+    problem = LanderProblem(env, gp, cfg, pilot, missions_per_ind=args.missions, seed=args.seed,
+                            extra_suite=tuple(train_suite), missions_per_extra=args.exam_missions)
     genome = DefaultGenome(
         num_inputs=pilot.n_inputs, num_outputs=pilot.n_outputs,
         max_nodes=args.max_nodes, max_conns=args.max_conns,
@@ -118,7 +147,7 @@ def build(args):
                 pop_batch_size=args.pop_batch)
     pipe = Pipeline(algo, problem, seed=args.seed, generation_limit=args.generations,
                     fitness_target=float("inf"))
-    return cfg, env, gp, pilot, problem, pipe, source
+    return cfg, env, gp, pilot, problem, pipe, source, [(env, gp), *train_suite], held_suite
 
 
 def make_eval_fns(cfg, env, gp, pilot, algo):
@@ -130,16 +159,6 @@ def make_eval_fns(cfg, env, gp, pilot, algo):
         m = pilot_metrics(env, gp, pilot, fwd, params, keys)
         _, mission = shaped_fitness(m, cfg)
         return m, mission
-
-    @jax.jit
-    def rerank(state, genomes, keys):
-        """Mean mission score of each of K candidate genomes on the same validation missions."""
-        def one(g):
-            tr_ = algo.transform(state, g)
-            fwd = lambda p, x: algo.forward(state, p, x)
-            m = pilot_metrics(env, gp, pilot, fwd, tr_, keys)
-            return shaped_fitness(m, cfg)[0].mean()
-        return jax.vmap(one)(genomes)
 
     @jax.jit
     def eval_classic(keys):
@@ -160,7 +179,55 @@ def make_eval_fns(cfg, env, gp, pilot, algo):
         _, _, traj = _episode(env, policy, params, key, True)
         return s0, traj
 
-    return eval_genome, eval_classic, fly_one, rerank
+    return eval_genome, eval_classic, fly_one
+
+
+def make_suite_fns(cfg, pilot, algo, rerank_suite, held_suite):
+    """rerank: K genomes scored on the training-style suite (validation keys).
+    exam_champion / exam_classic: success matrix [E, n] on the HELD-OUT exam envs."""
+
+    @partial(jax.jit, static_argnames="n")
+    def rerank(state, genomes, base_key, gen, n):
+        def one(g):
+            tr_ = algo.transform(state, g)
+            fwd = lambda p, x: algo.forward(state, p, x)
+            fits = []
+            for i, (env, gp) in enumerate(rerank_suite):
+                ks = mission_keys(jax.random.fold_in(base_key, i), gen, n)
+                fits.append(shaped_fitness(pilot_metrics(env, gp, pilot, fwd, tr_, ks), cfg)[0].mean())
+            return jnp.mean(jnp.stack(fits))
+        return jax.vmap(one)(genomes)
+
+    @partial(jax.jit, static_argnames="n")
+    def exam_champion(state, params, base_key, gen, n):
+        fwd = lambda p, x: algo.forward(state, p, x)
+        return jnp.stack([pilot_metrics(env, gp, pilot, fwd, params,
+                                        mission_keys(jax.random.fold_in(base_key, i), gen, n))["success"]
+                          for i, (_, env, gp) in enumerate(held_suite)])
+
+    @partial(jax.jit, static_argnames="n")
+    def exam_classic(base_key, gen, n):
+        rows = []
+        for i, (_, env, gp) in enumerate(held_suite):
+            def one(k, env=env, gp=gp):
+                sf, m0, _ = _episode(env, classic_policy, gp, k, False)
+                return sf, m0
+            sf, m0 = jax.vmap(one)(mission_keys(jax.random.fold_in(base_key, i), gen, n))
+            rows.append(episode_metrics(sf, m0)["success"])
+        return jnp.stack(rows)
+
+    return rerank, exam_champion, exam_classic
+
+
+def exam_report(held_suite, champ_ok, classic_ok) -> dict:
+    """Pool per exam name, then average over exams (same convention as worldmodel.exams)."""
+    names = sorted({n for n, _, _ in held_suite}, key=[n for n, _, _ in held_suite].index)
+    idx = {n: [i for i, (m, _, _) in enumerate(held_suite) if m == n] for n in names}
+    br = {n: {"champion": float(champ_ok[idx[n]].mean()), "classic": float(classic_ok[idx[n]].mean())}
+          for n in names}
+    return {"exam_success_rate": float(np.mean([v["champion"] for v in br.values()])),
+            "classic_exam_success_rate": float(np.mean([v["classic"] for v in br.values()])),
+            "exam_breakdown": br}
 
 
 def champion_file(run, gen, cid, score, fly_out, env, region, outcome_name, meta):
@@ -204,16 +271,24 @@ def main(argv=None) -> None:
     ap.add_argument("--compatibility-threshold", type=float, default=2.0)
     ap.add_argument("--pop-batch", type=int, default=None, help="evaluate the population in batches (GPU memory)")
     ap.add_argument("--champion-every", type=int, default=10)
+    ap.add_argument("--exams", default="",
+                    help="comma list from worldmodel.exams (e.g. tight_fuel,nav_drift_near_hazard,combined_stress): "
+                         "ALSO select on these stress scenarios (tiles seeded +1000) and report held-out "
+                         "exam_success_rate on the exams' own tiles")
+    ap.add_argument("--exam-targets", type=int, default=2, help="targets per exam tile")
+    ap.add_argument("--exam-missions", type=int, default=2, help="missions per exam env per individual")
+    ap.add_argument("--exam-eval-missions", type=int, default=64, help="held-out missions per exam env")
     ap.add_argument("--resume", action="store_true",
                     help="continue from runs/<run>/checkpoint.pkl (starts fresh if there is none); "
                          "--generations is the TOTAL to reach")
     a = ap.parse_args(argv)
 
     print("JAX devices:", jax.devices())
-    cfg, env, gp, pilot, _problem, pipe, source = build(a)
+    cfg, env, gp, pilot, _problem, pipe, source, rerank_suite, held_suite = build(a)
     algo = pipe.algorithm
     state = pipe.setup()
-    eval_genome, eval_classic, fly_one, rerank = make_eval_fns(cfg, env, gp, pilot, algo)
+    eval_genome, eval_classic, fly_one = make_eval_fns(cfg, env, gp, pilot, algo)
+    rerank, exam_champion, exam_classic = make_suite_fns(cfg, pilot, algo, rerank_suite, held_suite)
     out = run_dir(a.run)
     out.mkdir(parents=True, exist_ok=True)
     start_gen, best_held_out = 0, -1.0
@@ -234,10 +309,12 @@ def main(argv=None) -> None:
                 "survival_threshold": a.survival_threshold,
                 "compatibility_threshold": a.compatibility_threshold, "seed": a.seed,
                 "init_weight_std": a.init_weight_std, "weight_mutate_power": a.weight_mutate_power,
+                "exams": a.exams or None, "exam_train_tile_seed_shift": TRAIN_SEED_SHIFT if a.exams else None,
                 "dream_rsi": "not enabled (KAN-106)"}
 
     step = jax.jit(pipe.step)
     val_base = jax.random.PRNGKey(a.seed + 777)           # validation: re-ranks the top-K champions
+    exam_base = jax.random.PRNGKey(a.seed + 424242)       # held-out exam missions
     eval_base = jax.random.PRNGKey(a.seed + 12345)        # held-out report set: never used for selection
     for gen in range(start_gen, a.generations):
         t0 = time.time()
@@ -250,7 +327,7 @@ def main(argv=None) -> None:
         # selection missions mostly picks luck (winner's curse).
         top = np.argsort(-np.where(valid, fit, -np.inf))[:a.topk]
         top_genomes = (pop[0][top], pop[1][top])
-        val_scores = np.asarray(rerank(state_before, top_genomes, mission_keys(val_base, gen, a.val_missions)))
+        val_scores = np.asarray(rerank(state_before, top_genomes, val_base, gen, a.val_missions))
         champ_i = int(top[int(np.argmax(val_scores))])
         genome = (pop[0][champ_i], pop[1][champ_i])
         transformed = algo.transform(state_before, genome)
@@ -259,6 +336,14 @@ def main(argv=None) -> None:
         m_champ, mission_champ = eval_genome(state_before, transformed, keys)
         m_classic, mission_classic = eval_classic(keys)
         sc, scl = summarize(m_champ), summarize(m_classic)
+        exam_extra = {}
+        if held_suite:
+            ex = exam_report(held_suite,
+                             np.asarray(exam_champion(state_before, transformed, exam_base, gen, a.exam_eval_missions)),
+                             np.asarray(exam_classic(exam_base, gen, a.exam_eval_missions)))
+            exam_extra = {"exam_success_rate": ex["exam_success_rate"],
+                          "classic_exam_success_rate": ex["classic_exam_success_rate"],
+                          "exam_breakdown": ex["exam_breakdown"]}
         wall = time.time() - t0
 
         nodes, conns = (np.asarray(x) for x in jax.device_get(genome))
@@ -275,7 +360,7 @@ def main(argv=None) -> None:
             population_success_rate=float((fit[valid] > 0).mean()),
             best_fitness_shaped=float(fit[champ_i]), score_basis="best=mission(gated), mean=shaped",
             classic_best_score=float(mission_classic.mean()), n_eval_missions=a.eval_missions,
-            meta=meta,
+            meta=meta, **exam_extra,
         )
         write_json(log, out / gen_name("generation", gen, "json"))
 
@@ -293,7 +378,9 @@ def main(argv=None) -> None:
 
         print(f"gen {gen:3d} | {wall:6.1f}s | pop>0 {log.population_success_rate:6.1%} | "
               f"champion held-out {held:6.1%} vs classic {scl['success_rate']:6.1%} | "
-              f"fails {sc['failures']}", flush=True)
+              f"fails {sc['failures']}"
+              + (f" | EXAMS {exam_extra['exam_success_rate']:6.1%} vs classic "
+                 f"{exam_extra['classic_exam_success_rate']:6.1%}" if exam_extra else ""), flush=True)
 
 
 if __name__ == "__main__":
