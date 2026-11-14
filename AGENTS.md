@@ -4,6 +4,7 @@ Adinfinitium — NASA Space Apps 2026, *Lunar Landing Site Navigator*. An autono
 that land where and when a mission survives, tested by an evolving 10,000-mission swarm.
 
 Read first: **`docs/STATUS.md`** (where we are, what's next), `docs/SYSTEM_DESIGN.md` (how the parts fit) and the folder `README.md` you are working in.
+At session start also read **`docs/inbox/<your name>.md`** (your brief from the orchestrator) and write replies to `docs/outbox/<your name>.md` (see `docs/inbox/README.md`).
 Task IDs (KAN-n) go in branch names. Task text is in `docs/STATUS.md` and `docs/team/`; don't call Jira/Atlassian tools unless asked.
 
 ## Hard rules
