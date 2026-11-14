@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
-from contracts.light import LightField, load_light, save_light
+from contracts.light import LightField, PointSeries, load_light, load_points, save_light, save_points
 from contracts.mission import load_mission
 from contracts.provenance import Meta, Provenance
 from contracts.runs import (
@@ -39,9 +39,13 @@ def validate(path: Path) -> str:
     if name.endswith(".yaml"):
         load_mission(path)
         return "mission config"
+    if name.endswith("_points.npz") and parent == "light":
+        ps = load_points(path)
+        return f"light point series T={len(ps.times_utc)} K={len(ps.cells)} [{ps.meta.provenance.banner}]"
     if name.endswith(".npz") and parent == "light":
         lf = load_light(path)
-        return f"light field {lf.sun_fraction.shape} [{lf.meta.provenance.banner}]"
+        v = "v2 (azimuth)" if lf.sun_az_deg is not None else "v1 (no azimuth)"
+        return f"light field {lf.sun_fraction.shape} {v} [{lf.meta.provenance.banner}]"
     if name.endswith(".npz"):
         t = load_tile(path)
         return f"tile {t.shape} @ {t.meters_per_pixel} m/px [{t.meta.provenance.banner}]"
@@ -66,10 +70,14 @@ def write_fixtures(d: Path) -> list[Path]:
     tile = save_tile(make_demo_tile(size=32, mpp=5.0, n_craters=4, region="fixture"),
                      d / "tiles" / "fixture.npz")
     T = 2
-    light = save_light(LightField("fixture", "2027-01-01", ["2027-01-01T00:00:00Z", "2027-01-01T01:00:00Z"],
-                                  np.array([0.0, 3600.0]), np.ones((T, 32, 32)) * 0.5,
-                                  np.full((T, 32, 32), 2.0), np.full((T, 32, 32), 5.0), meta),
-                       d / "light" / "fixture_2027-01-01.npz")
+    lf = LightField("fixture", "2027-01-01", ["2027-01-01T00:00:00Z", "2027-01-01T01:00:00Z"],
+                    np.array([0.0, 3600.0]), np.ones((T, 32, 32)) * 0.5,
+                    np.full((T, 32, 32), 2.0), np.full((T, 32, 32), 5.0), meta,
+                    sun_az_deg=np.array([10.0, 20.0]), earth_az_deg=np.array([100.0, 101.0]))
+    light = save_light(lf, d / "light" / "fixture_2027-01-01.npz")
+    cells = np.array([[16, 16], [15, 16], [17, 16]])
+    points = save_points(PointSeries.from_field(lf, cells, np.zeros((3, 360))),
+                         d / "light" / "fixture_2027-01-01_points.npz")
     gen = write_json(GenerationLog(run="fixture", generation=0, population=1, best_score=0.0,
                                    mean_score=0.0, success_rate=1.0, meta=meta),
                      d / "runs" / "generation_000.json")
@@ -84,7 +92,7 @@ def write_fixtures(d: Path) -> list[Path]:
     sites = d / "sites.json"
     sites.write_text('{"schema_version": 1, "sites": [{"id": "fixture", "name": "Fixture", '
                      '"lat_deg": -89.5, "lon_deg": 0.0, "source": "selftest"}]}', encoding="utf-8")
-    return [tile, light, gen, champ, tel, sites]
+    return [tile, light, points, gen, champ, tel, sites]
 
 
 def main(argv: list[str] | None = None) -> int:

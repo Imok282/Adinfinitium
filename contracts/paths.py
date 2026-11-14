@@ -30,6 +30,10 @@ def light_path(region: str, date: str) -> Path:
     return data_root() / "light" / f"{region}_{date}.npz"
 
 
+def points_path(region: str, date: str) -> Path:
+    return data_root() / "light" / f"{region}_{date}_points.npz"
+
+
 def run_dir(run: str) -> Path:
     return runs_root() / run
 
