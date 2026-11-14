@@ -1,6 +1,6 @@
-# START HERE: 4090 PC, 2-hour run of the pilot brain + mission planner (Adinfinitium)
+# START HERE: Windows GPU PC run of the pilot brain + mission planner (Adinfinitium)
 
-> **One command, about 2 hours of training (+10-20 min first-time setup), unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`  (`-BudgetScale 2.0` = about 4 hours)
+> **One command, about 3 hours in total on the RTX 3050 + i3 PC (setup included), unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`  (on a 4090/5070: add `-RunProfile brain4090`)
 > It sets up the PC (first time only), trains the two models, runs their held-out exams, verifies, freezes (SHA-256) and zips the results.
 > **After the freeze nothing changes:** no re-training, no tuning, no edits. This is written for whoever operates the PC: a person, or an agent with remote hands.
 
@@ -15,17 +15,17 @@
 ## 2. The two models trained here
 | model | what it does | size | physics backup it must beat (on Site23) |
 |---|---|---|---|
-| **pilot brain** `lander_pilot` | lands the 1.5 t, 5-engine lander: a vision transformer that sees the sensors + a camera image of the ground and adds a correction (residual) to classic ZEM/ZEV guidance. Untrained it flies exactly like the backup | ~15 M | classic ZEM/ZEV guidance (already ~95-98 % success with engine-out, navigation drift and blind-camera failures injected) |
+| **pilot brain** `lander_pilot` | lands the 1.5 t, 5-engine lander: a vision transformer that sees the sensors + a camera image of the ground and adds a correction (residual) to classic ZEM/ZEV guidance. Untrained it flies exactly like the backup | ~5 M on the 3050 PC (~15 M on a 4090) | classic ZEM/ZEV guidance (already ~95-98 % success with engine-out, navigation drift and blind-camera failures injected) |
 | **meta layer** `planner_set` (+ `planner_logistic` baseline) | picks the landing cell and hour with the best simulated chance of the full mission (land, rover reaches the ice edge, rover returns); writes the plan + decision log | ~0.6 M (data are small: a bigger net would memorise) | the exact Navigator ranking |
 
-How the time is used: the pilot trains on the GPU for ~90 min with 2048 landers per batch **while** 7 processes (one per terrain site) simulate the planner's labels (8 months x 20 landing cells per site) (lander flights + rover drives per landing cell); then the exams (~10 min), the planner training (~5 min) and a demo plan.
+How the time is used (3050 + i3 PC): the pilot trains on the GPU for ~2 h with 512 landers per batch **while** 3 processes on the i3 simulate the planner's labels (7 months x 16 landing cells per site) (lander flights + rover drives per landing cell); then the exams (~10 min), the planner training (~5 min) and a demo plan.
 
 ## 3. Steps
 1. Copy `adinfinitium_4090_package.zip` to the PC (pen drive), right-click, Extract All, open PowerShell in the extracted `adinfinitium` folder.
-2. Make sure the NVIDIA driver works: `nvidia-smi` must print the RTX 4090.
+2. Make sure the NVIDIA driver works: `nvidia-smi` must print the GPU (RTX 4090 or RTX 5070; a 50-series card needs a driver from 2025 or later).
 3. Run: `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`. First time it installs Python 3.12 (winget), CUDA PyTorch and the libraries (~10 min, needs internet).
-4. Leave it. Progress: `type runs\overnight\brain_4090\status.json`, logs in `runs\overnight\brain_4090\logs\`. If the PC restarts or the window closes, run the same command again: it resumes.
-5. When it prints `ALL DONE`, bring back `adinfinitium_results_4090.zip` (pen drive) and write down anything that failed.
+4. Leave it. Progress: `type runs\overnight\brain_pc\status.json`, logs in `runs\overnight\brain_pc\logs\`. If the PC restarts or the window closes, run the same command again: it resumes.
+5. When it prints `ALL DONE`, bring back `adinfinitium_results_pc.zip` (pen drive) and write down anything that failed.
 
 ## 4. Verification (the script runs these; you can re-run them)
 ```powershell
@@ -40,7 +40,7 @@ How the time is used: the pilot trains on the GPU for ~90 min with 2048 landers 
 | symptom | do |
 |---|---|
 | `No CUDA build of PyTorch can see the GPU` | update the NVIDIA driver, reboot, re-run |
-| `CUDA out of memory` in the `brain` stage | edit `ops\overnight\profiles.py` (brain4090): `--envs 2048` -> `1024`, re-run (it resumes); note it |
+| `CUDA out of memory` in the `brain` stage | edit `ops\overnight\profiles.py` (brain4090): `--mb-size 1024` -> `512` (and if needed `--envs 2048` -> `1024`), re-run (it resumes); note it |
 | PC RAM runs out (everything freezes, `MemoryError`) | in `profiles.py` (brain4090) set `parallel=8` -> `parallel=5`, re-run (it resumes); note it |
 | a label process fails | the others continue; the planner trains on what exists; note which sites are missing |
 | PowerShell blocks scripts | use the exact `powershell -ExecutionPolicy Bypass -File ...` form |

@@ -131,16 +131,17 @@ def macmini() -> Profile:
 
 
 def brain4090() -> Profile:
-    """4090 PC, 2 hours (Imok): MANY simulations in parallel instead of a longer run. The pilot flies 2048 landers per batch on the GPU while
-    7 label simulators (one per terrain site, 8 months x 20 landing cells each) run at the same time; then the exams, the planner and a demo plan.
+    """4090 / 5070 PC, 2 hours (Imok): MANY simulations in parallel instead of a longer run. The GPU only trains the pilot (2048 landers per rollout,
+    1024-sample bf16 gradient steps: fits a 12 GB RTX 5070 as well as a 24 GB 4090) while 7 label simulators run on the i7 CPU (one per terrain site,
+    8 months x 20 landing cells each); then the exams, the planner and a demo plan.
     Uses the seed data in the package (no NASA download). Test site: Site23 (Site42 tiles are not in the seed)."""
     dates = ["2027-01-01", "2027-02-15", "2027-03-01", "2027-04-15", "2027-06-01", "2027-07-15", "2027-09-01", "2027-12-01"]
-    labels = ["worldmodel.planner.labels_run", "--cells", "20", "--n-land", "48", "--n-rover", "32", "--threads", "2", "--dates", *dates]
+    labels = ["worldmodel.planner.labels_run", "--cells", "20", "--n-land", "48", "--n-rover", "32", "--threads", "2", "--device", "cpu", "--dates", *dates]   # i7 CPU
     sites = ["Site11", "Site23", "Site01", "Site04", "Site06", "Site07", "Site20"]
     return Profile("brain4090", [
         Stage("env_check", [["ops.overnight.env_check", "--need-cuda"]], 2),
         Stage("brain", [["worldmodel.lander.train", "--arch", "former", "--d", "384", "--layers", "8", "--heads", "8", "--envs", "2048", "--horizon", "64",
-                         "--minibatches", "16", "--updates", "20000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
+                         "--mb-size", "1024", "--epochs", "2", "--updates", "20000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
                         *[[*labels, "--sites", s] for s in sites]], 100, parallel=8, train=True,
               note="pilot (GPU, ~15 M vision transformer, 2048 landers per batch) in parallel with 7 label simulators (one per site)"),
         Stage("lander_eval", [["worldmodel.lander.evaluate", "--name", "lander_pilot", "--n", "1024", "--seeds", "3"]], 10),
@@ -150,7 +151,27 @@ def brain4090() -> Profile:
     ])
 
 
-PROFILES = {"smoke": smoke, "real4090": real4090, "colab": colab, "macmini": macmini, "brain4090": brain4090}
+def brain3050() -> Profile:
+    """Small PC (Imok, 14 Nov): RTX 3050 (4-8 GB) + i3-12th gen (4 cores) + 16 GB RAM, about 4 hours available. Sized to FINISH: a ~5 M pilot
+    transformer (512 landers per rollout, 512-sample bf16 steps) on the GPU while 3 single-thread label simulators use the i3; then exams, planner,
+    demo plan. Total ~3 h including setup, leaving margin inside the 4 hours."""
+    dates = ["2027-01-01", "2027-03-01", "2027-04-15", "2027-06-01", "2027-07-15", "2027-09-01", "2027-12-01"]
+    labels = ["worldmodel.planner.labels_run", "--cells", "16", "--n-land", "48", "--n-rover", "32", "--threads", "1", "--device", "cpu", "--dates", *dates]
+    groups = [["Site11", "Site23", "Site01"], ["Site04", "Site06"], ["Site07", "Site20"]]
+    return Profile("brain3050", [
+        Stage("env_check", [["ops.overnight.env_check", "--need-cuda"]], 2),
+        Stage("brain", [["worldmodel.lander.train", "--arch", "former", "--d", "256", "--layers", "6", "--heads", "8", "--envs", "512", "--horizon", "64",
+                         "--mb-size", "512", "--epochs", "2", "--updates", "20000", "--val-n", "256", "--eval-every", "10", "--name", "lander_pilot"],
+                        *[[*labels, "--sites", *g] for g in groups]], 140, parallel=4, train=True,
+              note="pilot (GPU, ~5 M vision transformer) in parallel with 3 label simulators on the i3"),
+        Stage("lander_eval", [["worldmodel.lander.evaluate", "--name", "lander_pilot", "--n", "512", "--seeds", "3"]], 12),
+        Stage("planner", [["worldmodel.planner.train", "--epochs", "400"]], 5),
+        Stage("planner_eval", [["worldmodel.planner.evaluate"]], 2),
+        Stage("plan_demo", [["worldmodel.planner.plan", "--region", "lola5m_site23", "--date", "2027-03-01", "--run", "demo"]], 3),
+    ])
+
+
+PROFILES = {"smoke": smoke, "real4090": real4090, "colab": colab, "macmini": macmini, "brain4090": brain4090, "brain3050": brain3050}
 
 
 def get_profile(name: str) -> Profile:

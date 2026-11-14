@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--repeat", type=int, default=5, help="sim steps (0.1 s) per pilot decision")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--minibatches", type=int, default=8)
+    ap.add_argument("--mb-size", type=int, default=0, help="samples per gradient step (overrides --minibatches; keeps transformer memory bounded)")
     ap.add_argument("--lr", type=float, default=2e-4)
     ap.add_argument("--gamma", type=float, default=0.995)
     ap.add_argument("--lam", type=float, default=0.95)
@@ -67,6 +68,10 @@ def main(argv: list[str] | None = None) -> int:
         torch.backends.cudnn.allow_tf32 = True
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
+    import contextlib
+
+    use_bf16 = device.type == "cuda" and torch.cuda.is_bf16_supported()
+    amp = (lambda: torch.autocast("cuda", dtype=torch.bfloat16)) if use_bf16 else contextlib.nullcontext   # half memory, faster on RTX 40/50
     t0 = time.time()
     scenes = load_scenes(a.sites, cfg, device, a.belief, a.windows_per_site)
     val_scenes = load_scenes(a.val_sites, cfg, device, a.belief, 1)
@@ -128,8 +133,10 @@ def main(argv: list[str] | None = None) -> int:
             classic = classic_action(gp, obs)
             st = pilot_features(obs, classic)
             img = env.crop(32)
-            with torch.no_grad():
+            with torch.no_grad(), amp():
                 mu, val = model(st, img)
+            mu, val = mu.float(), val.float()
+            with torch.no_grad():
                 dist = torch.distributions.Normal(mu, model.log_std.exp())
                 r = dist.sample()
                 logp = dist.log_prob(r).sum(1)
@@ -148,8 +155,8 @@ def main(argv: list[str] | None = None) -> int:
                 fin = env.done
                 obs = env.reset(fin, scene.sample_targets(int(fin.sum()), rng, device))
         states[scene.region] = obs
-        with torch.no_grad():
-            last_v = model(pilot_features(obs, classic_action(gp, obs)), env.crop(32))[1]
+        with torch.no_grad(), amp():
+            last_v = model(pilot_features(obs, classic_action(gp, obs)), env.crop(32))[1].float()
         rew, val, dn = torch.stack(buf["rew"]), torch.stack(buf["val"]), torch.stack(buf["done"])
         adv = torch.zeros_like(rew)
         g = torch.zeros(N, device=device)
@@ -164,12 +171,14 @@ def main(argv: list[str] | None = None) -> int:
         del stacked
         flat["adv"] = (flat["adv"] - flat["adv"].mean()) / (flat["adv"].std() + 1e-8)
         total = H * N
-        mb = total // a.minibatches
+        mb = min(a.mb_size, total) if a.mb_size else total // a.minibatches
         for _ in range(a.epochs):
             perm = torch.randperm(total).to(device)
             for s in range(0, total - mb + 1, mb):
                 ix = perm[s:s + mb]
-                mu, v = model(flat["state"][ix], flat["img"][ix].float())
+                with amp():
+                    mu, v = model(flat["state"][ix], flat["img"][ix].float())
+                mu, v = mu.float(), v.float()
                 dist = torch.distributions.Normal(mu, model.log_std.exp())
                 ratio = (dist.log_prob(flat["r"][ix]).sum(1) - flat["logp"][ix]).exp()
                 pg = -torch.min(ratio * flat["adv"][ix], ratio.clamp(1 - a.clip, 1 + a.clip) * flat["adv"][ix]).mean()

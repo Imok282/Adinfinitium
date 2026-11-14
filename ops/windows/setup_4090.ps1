@@ -1,4 +1,4 @@
-# 4090 PC setup (fresh Windows, no WSL): Python 3.12 venv, CUDA PyTorch, libraries, seed data, machine check.
+# 4090 / 5070 PC setup (fresh Windows, no WSL). An RTX 50xx (Blackwell) needs a CUDA 12.8+ PyTorch build and a recent driver: tried first below.: Python 3.12 venv, CUDA PyTorch, libraries, seed data, machine check.
 # Run from the package root in PowerShell:   powershell -ExecutionPolicy Bypass -File ops\windows\setup_4090.ps1
 # UNTESTED on Windows by the author (written on a Mac): if a step fails, read its message, fix that step, re-run (every step is safe to repeat).
 Set-Location (Join-Path $PSScriptRoot "..\..")
@@ -21,7 +21,7 @@ foreach ($cu in @("cu130", "cu128", "cu126", "cu124")) {
   & $vpy -m pip uninstall -y torch | Out-Null
   & $vpy -m pip install torch --index-url "https://download.pytorch.org/whl/$cu"
   if ($LASTEXITCODE -eq 0) {
-    & $vpy -c "import torch, sys; print(torch.__version__, torch.cuda.is_available()); sys.exit(0 if torch.cuda.is_available() else 1)"
+    & $vpy -c "import torch, sys; ok = torch.cuda.is_available(); print(torch.__version__, ok); x = torch.randn(256, 256, device='cuda') if ok else None; y = (x @ x).sum().item() if ok else None; print(torch.cuda.get_device_name(0) if ok else 'no GPU', 'compute OK' if ok else ''); sys.exit(0 if ok else 1)"
     if ($LASTEXITCODE -eq 0) { $ok = $true; break }
   }
 }

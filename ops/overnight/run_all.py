@@ -189,7 +189,7 @@ def run(profile: Profile, run_id: str, only: list[str] | None = None, skip: list
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--profile", default="smoke", choices=["smoke", "real4090", "colab", "macmini", "brain4090"])
+    ap.add_argument("--profile", default="smoke", choices=["smoke", "real4090", "colab", "macmini", "brain4090", "brain3050"])
     ap.add_argument("--run-id", default=None, help="default: <profile>_<timestamp>; reuse the same id with --resume to continue a run")
     ap.add_argument("--only", default=None, help="comma-separated stage names")
     ap.add_argument("--skip", default=None, help="comma-separated stage names")
