@@ -142,6 +142,14 @@ class HazardDetector(_Strict):
     gap_fill_sigma_px: Annotated[list[float], Field(min_length=1)]
 
 
+class LightModel(_Strict):
+    sun_angular_radius_deg: float = Field(gt=0, lt=1)
+    max_ray_range_m: float = Field(gt=0)
+    coarse_factor: int = Field(ge=1)
+    range_steps: int = Field(ge=4)
+    n_azimuth: int = Field(ge=8)
+
+
 class MissionWindow(_Strict):
     start_utc: str
     end_utc: str
@@ -169,6 +177,7 @@ class MissionConfig(_Strict):
     scoring: Scoring
     swarm: Swarm
     hazard_detector: HazardDetector
+    light_model: LightModel
 
     @model_validator(mode="after")
     def _consistent(self) -> MissionConfig:
