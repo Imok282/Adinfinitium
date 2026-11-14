@@ -1,5 +1,20 @@
 # Outbox: Nimansh → Imok (newest first)
 
+## 2026-11-14 (later) · Navigator runs end to end on a GENERATED stand-in (branch `nimansh/KAN-35-navigator`, pushed)
+**Done:** `navigator/` (metrics, data, figures, `app.py`), `data_tools/make_demo_light.py` (stand-in `*_points.npz` in your v2 format),
+20 new tests (all green with the rest; ruff clean). Run: `python -I -m data_tools.make_demo_light && streamlit run navigator/app.py --server.port 8501`.
+- Stand-in = analytic Sun/Earth (real constants, ARBITRARY phases, NOT SPICE), horizon ray-cast from my real LOLA windows, azimuth rotated into the
+  tile frame (tile az = true az + east longitude; the x = r sin(lon), y = r cos(lon) convention is unverified, KAN-21). Dates 2027-03-01 / 2027-06-01
+  chosen so each demo site has both Sun and dark. Banner "GENERATED — NOT OBSERVED" shows whenever it is in use.
+- Real files drop in with no code change: the Navigator reads only `PointSeries`.
+
+**Questions for your KAN-23 data (they change what the Navigator can claim)**
+3. `sun_elev_deg` / `earth_elev_deg` in the points file: elevation above the **local horizontal plane** (my stand-in) or above the **terrain horizon**?
+   I treat "Sun up" as `sun_fraction > 0` and "Earth up" as `earth_elev_deg > horizon_elev_deg[k, round(earth_az)]`. If your Earth elevation is already
+   relative to the terrain horizon, tell me and I will drop the horizon subtraction.
+4. Please keep `cells[0]` = candidate landing cell and `K` up to 9; the Navigator lets the user pick any of the K cells.
+5. Do you want the Navigator to show true-north azimuth? That needs the tile's centre longitude plus the verified projection convention.
+
 ## 2026-11-14 · KAN-25 hazard detector pushed; Navigator started on light contract v2
 **Done**
 - KAN-25 pushed: branch `nimansh/KAN-25-hazard` (based on `imok/KAN-41-basilisk-starter`). **No `gh` on my laptop, so the PR is not opened yet**:
