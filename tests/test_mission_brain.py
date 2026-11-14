@@ -110,3 +110,10 @@ def test_dream_validation_is_frozen_and_never_a_test_site():
     train, val = split_val(gs)
     assert [g.region for g in val] == ["lola5m_site11"]
     assert "lola5m_site23" not in [g.region for g in train]
+
+
+def test_pilot_dream_gate_needs_a_real_gain():
+    from worldmodel.lander.dream import accept
+
+    assert accept(0.950, 0.955, 0.002)
+    assert not accept(0.950, 0.951, 0.002) and not accept(0.950, 0.940, 0.002) and not accept(0.95, float("nan"), 0.002)

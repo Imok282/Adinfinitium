@@ -58,6 +58,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--max-minutes", type=float, default=0.0)
     ap.add_argument("--name", default="lander_pilot")
+    ap.add_argument("--fail-boost", type=float, default=1.0, help="multiply the TRAINING failure rates (engine out, nav drift, blind camera); validation stays nominal")
     a = ap.parse_args(argv)
 
     cfg = load_mission()
@@ -80,7 +81,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"device={device} train scenes={[s.region.split('lola5m_')[1] for s in scenes]} val={[s.region.split('lola5m_')[1] for s in val_scenes]} "
           f"test {HOLDOUT_SITES} never loaded; ready in {time.time() - t0:.0f}s", flush=True)
 
-    params = make_params(cfg)
+    params = make_params(cfg)                                              # nominal: used for validation
+    tparams = make_params(cfg)                                             # training: failure rates optionally boosted (harder dreams)
+    if a.fail_boost != 1.0:
+        tparams.p_engine_out = min(1.0, tparams.p_engine_out * a.fail_boost)
+        tparams.p_nav_drift = min(1.0, tparams.p_nav_drift * a.fail_boost)
+        tparams.p_camera_blind = min(1.0, tparams.p_camera_blind * a.fail_boost)
     gp = guidance_params(params, cfg.scenarios.terminal.hover_gate_altitude_m, cfg.scenarios.terminal.final_descent_speed_m_s)
     kw = {"hidden": a.hidden} if a.arch == "mlp" else {"d": a.d, "layers": a.layers, "heads": a.heads}
     model = build_model(a.arch, **kw).to(device)
@@ -90,8 +96,9 @@ def main(argv: list[str] | None = None) -> int:
     if a.resume and last_p.exists():
         st = torch.load(last_p, map_location="cpu", weights_only=False)
         model.load_state_dict(st["state_dict"])
-        opt.load_state_dict(st["optimizer"])
-        update, best_val = st["info"]["update"], st["info"].get("best_val_success", -1.0)
+        if "optimizer" in st:                                             # a best checkpoint (Dream-RSI warm start) has no optimizer state
+            opt.load_state_dict(st["optimizer"])
+        update, best_val = st["info"].get("update", 0), st["info"].get("best_val_success", -1.0)
         print(f"resumed at update {update}", flush=True)
     log = run_dir("lander") / "train_log.jsonl"
     log.parent.mkdir(parents=True, exist_ok=True)
@@ -116,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         key = scene.region
         if key not in envs:
             tg = scene.sample_targets(a.envs, rng, device)
-            envs[key] = LanderBatch(params, scene.terrain, a.envs, device, seed=a.seed + len(envs), targets=tg)
+            envs[key] = LanderBatch(tparams, scene.terrain, a.envs, device, seed=a.seed + len(envs), targets=tg)
             states[key] = envs[key].observe()
         return envs[key]
 
