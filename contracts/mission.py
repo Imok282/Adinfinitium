@@ -137,6 +137,11 @@ class Swarm(_Strict):
     seed: int
 
 
+class HazardDetector(_Strict):
+    decision_threshold: float = Field(gt=0, lt=1)
+    gap_fill_sigma_px: Annotated[list[float], Field(min_length=1)]
+
+
 class MissionWindow(_Strict):
     start_utc: str
     end_utc: str
@@ -163,6 +168,7 @@ class MissionConfig(_Strict):
     sensor_noise: SensorNoise
     scoring: Scoring
     swarm: Swarm
+    hazard_detector: HazardDetector
 
     @model_validator(mode="after")
     def _consistent(self) -> MissionConfig:
