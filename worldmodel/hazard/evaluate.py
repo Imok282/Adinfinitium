@@ -17,13 +17,13 @@ import numpy as np
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir, tile_path
 from worldmodel.hazard.backup import backup_hazard, label_hazard
-from worldmodel.hazard.lola import HOLDOUT_SITES, region_name
+from worldmodel.hazard.lola import HOLDOUT_SITES, regions_for_site
 from worldmodel.hazard.metrics import confusion
 
 
 def evaluate_tile(tile, model, device, cfg) -> dict:
-    from worldmodel.hazard.features import build_features
     from worldmodel.hazard.backup import slope_limit_deg
+    from worldmodel.hazard.features import build_features
     from worldmodel.hazard.model import predict_probability
 
     thr = cfg.hazard_detector.decision_threshold
@@ -51,8 +51,12 @@ def main(argv: list[str] | None = None) -> int:
               "label": "official LOLA 5 m slope >= limit", "limit_deg": info["limit_deg"], "regions": {}}
     print(f"checkpoint {info['checkpoint_id']}  trained on {info['trained_on']}")
     print(f"{'region':14s} {'role':9s} {'model':18s} {'precision':>9s} {'recall':>7s} {'F1':>6s} {'missed':>7s}")
+    jobs = [(s, r) for s in a.sites for r in regions_for_site(s)]
     for s in a.sites:
-        t = load_tile(tile_path(region_name(s)))
+        if not regions_for_site(s):
+            print(f"note: no tiles for {s} on this machine; skipped", flush=True)
+    for s, region in jobs:
+        t = load_tile(tile_path(region))
         role = "TEST" if s in HOLDOUT_SITES else "val"
         res, label, prob = evaluate_tile(t, model, device, cfg)
         report["regions"][t.region] = {"role": role, "unsafe_fraction": float(label.mean()), **res}

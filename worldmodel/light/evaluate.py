@@ -24,9 +24,15 @@ from worldmodel.light.data import TEST_SITES, VAL_SITES, build_site
 from worldmodel.light.physics import light_from_skyline
 
 
-def find_directions() -> PointSeries | None:
+def find_directions(region: str | None = None, date: str = "2027-09-01") -> PointSeries | None:
+    """Sun/Earth direction series for a region: its own file for `date` if present (real SPICE), else any region's first file."""
     d = data_root() / "light"
-    files = sorted(d.glob("*_points.npz")) if d.exists() else []
+    if not d.exists():
+        return None
+    own = d / f"{region}_{date}_points.npz" if region else None
+    if own is not None and own.exists():
+        return load_points(own)
+    files = sorted(d.glob("*_points.npz"))
     return load_points(files[0]) if files else None
 
 
@@ -63,20 +69,20 @@ def main(argv: list[str] | None = None) -> int:
     device = pick_device(a.device)
     model, info = load_checkpoint(model_path(a.name), device)
     student = SkylineStudent(model, cfg, device, info)
-    ps = find_directions()
     sun_r = cfg.light_model.sun_angular_radius_deg
     report = {"checkpoint_id": info["checkpoint_id"], "trained_on": info["trained_on"], "val_regions": info["val_regions"],
               "coarse_factor": cfg.light_model.coarse_factor, "max_ray_range_m": cfg.light_model.max_ray_range_m,
-              "truth": "exact ray-cast of the fine 5 m LOLA grid", "directions": (f"{ps.region} {ps.date} [{ps.meta.provenance.banner}]" if ps else None),
-              "regions": {}}
-    print(f"checkpoint {info['checkpoint_id']}  trained on {info['trained_on']}  | directions: {report['directions']}")
+              "truth": "exact ray-cast of the fine 5 m LOLA grid", "regions": {}}
+    print(f"checkpoint {info['checkpoint_id']}  trained on {info['trained_on']}")
     for site in VAL_SITES + TEST_SITES:
         role = "TEST" if site in TEST_SITES else "val"
         s = build_site(site, cfg, a.cells, 2000, device, cache=False)
         tile = load_tile(tile_path(s.region))
+        ps = find_directions(s.region)
+        res_dir = f"{ps.region} {ps.date} [{ps.meta.provenance.banner}]" if ps else None
         t0 = time.time(); base = student.skyline(tile, s.cells_fine, use_model=False); t_base = time.time() - t0
         t0 = time.time(); pred = student.skyline(tile, s.cells_fine, use_model=True); t_net = time.time() - t0
-        res = {"role": role, "n_cells": a.cells, "skyline_baseline": skyline_stats(base, s.truth), "skyline_model": skyline_stats(pred, s.truth),
+        res = {"role": role, "n_cells": a.cells, "directions": res_dir, "skyline_baseline": skyline_stats(base, s.truth), "skyline_model": skyline_stats(pred, s.truth),
                "seconds_baseline": t_base, "seconds_model": t_net}
         if ps is not None:
             res["light_baseline"] = light_stats(base, s.truth, ps, sun_r)
@@ -88,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  model (backup + learned correction)                  {m['mae_deg']:6.3f} {m['p95_deg']:6.3f} {m['max_deg']:6.2f}")
         if ps is not None:
             lb, lm_ = res["light_baseline"], res["light_model"]
-            print(f"  downstream ({len(ps.times_utc)} h window):            backup  ->  model")
+            print(f"  downstream over {len(ps.times_utc)} h, Sun/Earth from {res_dir}:   backup  ->  model")
             for k, lab in (("sun_fraction_mae", "Sun fraction MAE"), ("sun_up_wrong_pct", "Sun up/down wrong %"),
                            ("earth_visible_wrong_pct", "Earth visible wrong %"), ("sunlit_hours_error_mean", "sunlit hours error (mean h)"),
                            ("sunlit_hours_error_p95", "sunlit hours error (p95 h)"), ("earth_hours_error_mean", "Earth-link hours error (mean h)")):

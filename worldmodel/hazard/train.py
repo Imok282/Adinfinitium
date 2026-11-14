@@ -23,19 +23,26 @@ from contracts.paths import model_path, run_dir, tile_path
 from contracts.tiles import load_tile
 from worldmodel.hazard.backup import label_hazard, slope_limit_deg
 from worldmodel.hazard.features import N_CHANNELS, build_features
-from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, region_name
+from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, regions_for_site
 from worldmodel.hazard.metrics import confusion
-from worldmodel.hazard.model import UNet, load_checkpoint, pick_device, predict_probability, save_checkpoint
+from worldmodel.hazard.model import UNet, pick_device, predict_probability, save_checkpoint
 
 VAL_SITES = ["Site11"]
 
 
 def load_split(sites: list[str], cfg):
+    """Every built window of every site (centre + grid windows). Sites whose tiles are not on this machine are skipped with a note."""
     out = []
     for s in sites:
-        t = load_tile(tile_path(region_name(s)))
-        feats, _ = build_features(t, slope_limit_deg(cfg), cfg.hazard_detector.gap_fill_sigma_px)
-        out.append((t.region, feats, label_hazard(t, cfg)))
+        regions = regions_for_site(s)
+        if not regions:
+            print(f"note: no tiles for {s} on this machine (python -I -m worldmodel.hazard.lola all --sites {s}); skipped", flush=True)
+        for region in regions:
+            t = load_tile(tile_path(region))
+            feats, _ = build_features(t, slope_limit_deg(cfg), cfg.hazard_detector.gap_fill_sigma_px)
+            out.append((t.region, feats, label_hazard(t, cfg)))
+    if not out:
+        raise SystemExit(f"no tiles found for {sites}: fetch them first (python -I -m worldmodel.hazard.lola all)")
     return out
 
 

@@ -7,8 +7,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from worldmodel.hazard.features import N_CHANNELS
 

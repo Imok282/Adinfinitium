@@ -48,6 +48,14 @@ horizon, terrain/hazard map. Runs today on a **GENERATED** stand-in (`python -m 
 phases, NOT SPICE; horizon ray-cast from the real LOLA windows). Switches to Imok's real `*_points.npz` with no code change.
 Ice/PSR = UNKNOWN until KAN-39. Details: `navigator/README.md`.
 
+## World models (Nimansh, 2026-11-14 evening) — branches `nimansh/KAN-24-light-model`, `nimansh/KAN-26-terrain` (stacked on `imok/integration`)
+- **Light model (KAN-24), trained:** predicts the terrain skyline; physics does the rest. Held-out Site 23: skyline error 0.63° -> 0.47°, sunlit-hours error 21 h -> 14 h vs the physics backup. `worldmodel/light/README.md`.
+- **Real ephemeris:** NASA SPICE DE440 Sun/Earth directions (`worldmodel/light/ephemeris.py`), checked against JPL Horizons to 0.00003°. `worldmodel.light.make_points` writes REAL point series (MODELLED) for 12 months of 2027 per site; the analytic stand-in is retired for those sites.
+- **Terrain generator (KAN-26):** code + tests + physics backup done; model not trained (planned on the 4090). Outputs always GENERATED.
+- **Data:** the fetcher can now pull a window grid per site and 4 more sites (Site42, Haworth, Shoemaker, DM2): `python -I -m worldmodel.hazard.lola all --grid --sites ...`. Not run locally (disk nearly full); plan: Colab/4090. Test sites: Site23 + Site42.
+- **Viewer:** `streamlit run model_viewer/app.py --server.port 8504` (3D, trial).
+- Shared files touched: `config/mission.yaml` `light_model` block, `contracts/mission.py` `LightModel`.
+
 ## Decisions already made
 - Submission: **Final project = all three** (hosted web app + GitHub repo + Google Drive). **Repo goes public Sunday** before submitting. **Demo = 30 s video with English subtitles.** **Imok owns the Drive** and tests every link in incognito.
 - AI-generated images/video need a visible "AI-generated" watermark, and no NASA logos may appear in generated content. AI-written code is disclosed in the "Use of AI" field.

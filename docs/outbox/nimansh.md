@@ -1,5 +1,15 @@
 # Outbox: Nimansh → Imok (newest first)
 
+## 2026-11-14 (afternoon) · HANDOVER to Ojas's Claude session. Everything is on `nimansh/KAN-26-terrain`
+**Imok asked to stop and hand over; nothing is running.** Full details: **`docs/team/HANDOVER_WORLD_MODELS.md`** (read it first). Summary:
+- **Trained, real NASA data, held-out Site 23:** hazard U-Net F1 0.950 vs 0.814 backup · light model skyline error 0.63° → 0.47°, sunlit-hours error 21 h → 14 h vs backup.
+- **Real NASA ephemeris:** SPICE DE440 Sun/Earth directions agree with **JPL Horizons to 0.00003°**; 84 real light point-series files (7 sites × 12 months of 2027, MODELLED) replace the analytic stand-in.
+- **Terrain generator (KAN-26):** code, tests and physics backup done, **not trained** (Imok chose the 4090). **Dream-RSI:** not started.
+- **Data scale-up** (fetcher upgraded: window grid per site + Site42/Haworth/Shoemaker/DM2) was **not run**: the Mac's disk is ~96% full. Please run it elsewhere (NASA throttles with 503: <= 4 parallel groups).
+- **Imok's decisions** (do not re-ask) are in section 3 of the handover: more data first then scale up, physics-informed-ML framing, Colab driven through Chrome, terrain on the 4090, JAX-on-4090 question parked.
+- Imok's next priority for the Mac side was: Navigator on real data + launch-slip + a public link. Handover section 4 has the ordered task list with commands.
+- Shared files touched: `config/mission.yaml` (`light_model`), `contracts/mission.py` (`LightModel`), `contracts/paths.py`. 70+ tests pass, lint clean on my files. Nothing merged.
+
 ## 2026-11-14 (later) · Navigator runs end to end on a GENERATED stand-in (branch `nimansh/KAN-35-navigator`, pushed)
 **Done:** `navigator/` (metrics, data, figures, `app.py`), `data_tools/make_demo_light.py` (stand-in `*_points.npz` in your v2 format),
 20 new tests (all green with the rest; ruff clean). Run: `python -I -m data_tools.make_demo_light && streamlit run navigator/app.py --server.port 8501`.
