@@ -1,6 +1,6 @@
 # START HERE: 4090 PC, 2-hour run of the pilot brain + mission planner (Adinfinitium)
 
-> **One command, about 2 hours, unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`
+> **One command, about 4 hours of training (+10-20 min first-time setup), unattended:** `powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1`  (`-BudgetScale 1.0` = about 2 hours)
 > It sets up the PC (first time only), trains the two models, runs their held-out exams, verifies, freezes (SHA-256) and zips the results.
 > **After the freeze nothing changes:** no re-training, no tuning, no edits. This is written for whoever operates the PC: a person, or an agent with remote hands.
 
@@ -18,7 +18,7 @@
 | **pilot brain** `lander_pilot` | lands the 1.5 t, 5-engine lander: a vision transformer that sees the sensors + a camera image of the ground and adds a correction (residual) to classic ZEM/ZEV guidance. Untrained it flies exactly like the backup | ~15 M | classic ZEM/ZEV guidance (already ~95-98 % success with engine-out, navigation drift and blind-camera failures injected) |
 | **meta layer** `planner_set` (+ `planner_logistic` baseline) | picks the landing cell and hour with the best simulated chance of the full mission (land, rover reaches the ice edge, rover returns); writes the plan + decision log | ~0.6 M (data are small: a bigger net would memorise) | the exact Navigator ranking |
 
-How the 2 hours are used: the pilot trains on the GPU for ~95 min **while** 3 processes simulate the planner's labels (lander flights + rover drives per landing cell); then the exams (~10 min), the planner training (~2 min) and a demo plan.
+How the time is used (default long run): the pilot trains on the GPU for ~3 h **while** 3 processes simulate the planner's labels (8 months x 20 landing cells per site) (lander flights + rover drives per landing cell); then the exams (~20 min), the planner training (~8 min) and a demo plan.
 
 ## 3. Steps
 1. Copy `adinfinitium_4090_package.zip` to the PC (pen drive), right-click, Extract All, open PowerShell in the extracted `adinfinitium` folder.

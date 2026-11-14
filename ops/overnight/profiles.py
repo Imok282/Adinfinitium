@@ -133,11 +133,12 @@ def macmini() -> Profile:
 def brain4090() -> Profile:
     """4090 PC, 2 hours max (Imok): the pilot brain trains on the GPU WHILE the planner's outcome labels are simulated on the CPU cores (3 processes),
     then both exams run and a demo plan is written. Uses the seed data in the package (no NASA download). Test site: Site23 (Site42 tiles not in the seed)."""
-    labels = ["worldmodel.planner.labels_run", "--cells", "16", "--n-land", "48", "--n-rover", "32", "--max-minutes", "88"]
+    dates = ["2027-01-01", "2027-02-15", "2027-03-01", "2027-04-15", "2027-06-01", "2027-07-15", "2027-09-01", "2027-12-01"]
+    labels = ["worldmodel.planner.labels_run", "--cells", "20", "--n-land", "48", "--n-rover", "32", "--dates", *dates]   # runner adds --max-minutes (scaled)
     return Profile("brain4090", [
         Stage("env_check", [["ops.overnight.env_check", "--need-cuda"]], 2),
         Stage("brain", [["worldmodel.lander.train", "--arch", "former", "--d", "384", "--layers", "8", "--heads", "8", "--envs", "512", "--horizon", "96",
-                         "--updates", "3000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
+                         "--updates", "20000", "--val-n", "512", "--eval-every", "10", "--name", "lander_pilot"],
                         [*labels, "--sites", "Site11", "Site23", "Site01"],
                         [*labels, "--sites", "Site04", "Site06"],
                         [*labels, "--sites", "Site07", "Site20"]], 100, parallel=4, train=True,

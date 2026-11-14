@@ -1,0 +1,65 @@
+{
+  "provenance": "modelled (illustrative, to scale, not flight CAD; no agency logos)",
+  "units": "metres",
+  "glb_frame": "glTF Y up, vehicle front facing -Z (lander front = hazard-camera face, rover front = camera mast end)",
+  "obj_frame": "simulator body frame: Z up, front +x (lander thrust +z, nozzle exits z = -1.0 m)",
+  "named_parts": "wheel_FL/ML/RL/FR/MR/RR (pivot = wheel centre, spin about the body y axis); engine_centre, engine_outer0..3 (pivot = nozzle exit centre); tilt_panel, wing_port_panel1/2, wing_starboard_panel1/2, pm_wing_* (solar panels)",
+  "models": {
+    "lander_B": {
+      "objects": 211,
+      "triangles": 39738,
+      "size_m": [
+        3.62,
+        7.19,
+        2.864
+      ],
+      "min_m": [
+        -1.81,
+        -3.595,
+        -1.45
+      ]
+    },
+    "rover_B": {
+      "objects": 84,
+      "triangles": 13544,
+      "size_m": [
+        0.95,
+        0.76,
+        0.665
+      ],
+      "min_m": [
+        -0.47,
+        -0.38,
+        -0.219
+      ]
+    },
+    "propulsion_module_B": {
+      "objects": 90,
+      "triangles": 16712,
+      "size_m": [
+        2.465,
+        8.31,
+        2.967
+      ],
+      "min_m": [
+        -1.233,
+        -4.155,
+        -2.754
+      ]
+    },
+    "stack_attached_B": {
+      "objects": 302,
+      "triangles": 56450,
+      "size_m": [
+        3.62,
+        8.31,
+        5.417
+      ],
+      "min_m": [
+        -1.81,
+        -4.155,
+        -2.754
+      ]
+    }
+  }
+}

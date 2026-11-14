@@ -16,7 +16,8 @@ from pathlib import Path
 from contracts.paths import data_root, repo_root
 
 SEED_DIRS = ["raw", "tiles", "kernels", "light", "light_train", "rover_cache", "models"]
-DROP_FROM_CODE = ("docs/inbox/", "docs/outbox/", "CLAUDE.md")
+SEED_BY_TARGET = {"macmini": SEED_DIRS, "4090": ["tiles", "kernels", "rover_cache", "models/hazard_unet.pt"]}   # 4090 brain run needs only these
+DROP_FROM_CODE = ("docs/inbox/", "docs/outbox/", "CLAUDE.md", "vizard/assets/blender/", "vizard/assets/ui_models/")
 
 
 def code_files(root: Path) -> list[str]:
@@ -36,8 +37,9 @@ def main(argv: list[str] | None = None) -> int:
     n_seed = 0
     if not a.no_data:
         with zipfile.ZipFile(seed, "w", zipfile.ZIP_STORED) as z:
-            for d in SEED_DIRS:
-                for f in sorted((data_root() / d).rglob("*")) if (data_root() / d).exists() else []:
+            for d in SEED_BY_TARGET[a.target]:
+                src = data_root() / d
+                for f in ([src] if src.is_file() else sorted(src.rglob("*")) if src.exists() else []):
                     if f.is_file():
                         z.write(f, Path("data") / f.relative_to(data_root()))
                         n_seed += 1
