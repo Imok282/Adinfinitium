@@ -12,6 +12,13 @@ Field file, same grid as the matching tile, T time samples:
   earth_az_deg  [T]        0..360, in the tile ENU frame (row 0 = north). Per tile, not per cell: across a
                            2 km tile the azimuth differs by ~0.07 deg.
 
+ELEVATION CONVENTION (decided 2026-11-14, answers a Navigator question): `sun_elev_deg` / `earth_elev_deg` are measured
+from the TERRAIN HORIZON, not from the horizontal plane: elev = geometric elevation of the body centre - horizon elevation
+at that azimuth (terrain + curvature, no refraction). So elev > 0 <=> the body centre is above the skyline (that is what
+earth_visible() and the Earth-link rule rely on). To DRAW the body use the absolute elevation
+elev + horizon_elev_deg[k, round(az) % 360]  (PointSeries.absolute_elev_deg()). "Sun up" for planning = sun_fraction > 0
+(finite disk: the centre can be below the skyline while part of the disk is still visible).
+
 Time axis: `date` = window start, UTC, YYYY-MM-DD (00:00:00Z), NOT a lunar-day id. Standard cadence 1 h and
 one synodic month = 709 samples (708 h, both ends inclusive); see is_standard_axis().
 
@@ -170,6 +177,15 @@ class PointSeries:
 
     def earth_visible(self) -> np.ndarray:
         return self.earth_elev_deg > 0.0
+
+    def absolute_elev_deg(self, body: str) -> np.ndarray:
+        """[T, K] elevation above the horizontal plane (for drawing): horizon-relative elev + skyline at the body's azimuth."""
+        if body not in ("sun", "earth"):
+            raise ValueError("body must be 'sun' or 'earth'")
+        elev = self.sun_elev_deg if body == "sun" else self.earth_elev_deg
+        az = self.sun_az_deg if body == "sun" else self.earth_az_deg
+        idx = np.round(az).astype(int) % 360                      # [T]
+        return elev + self.horizon_elev_deg[:, idx].T              # [K,T] -> [T,K]
 
     @classmethod
     def from_field(cls, lf: LightField, cells: np.ndarray, horizon_elev_deg: np.ndarray,
