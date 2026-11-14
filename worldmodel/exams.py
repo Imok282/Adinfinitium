@@ -116,7 +116,8 @@ EXAMS: tuple[Exam, ...] = (
 EXAM_BY_NAME = {e.name: e for e in EXAMS}
 
 
-def make_exam_envs(exam: Exam, cfg: MissionConfig, targets_per_tile: int = 4) -> list[tuple[str, LanderEnv, object]]:
+def make_exam_envs(exam: Exam, cfg: MissionConfig, targets_per_tile: int = 4,
+                   env_overrides: dict | None = None) -> list[tuple[str, LanderEnv, object]]:
     """[(label, env, guidance-params-source EnvParams)] — one env per (tile, target)."""
     out = []
     for seed in exam.tile_seeds:
@@ -124,7 +125,7 @@ def make_exam_envs(exam: Exam, cfg: MissionConfig, targets_per_tile: int = 4) ->
         terrain = terrain_from_tile(tile)
         for i, (x, y) in enumerate(pick_targets(tile, targets_per_tile, exam.near_hazard_m, seed=seed)):
             p = make_params(cfg, terrain, target_xy=(x, y), failures=True)
-            p = p._replace(**exam.overrides)
+            p = p._replace(**exam.overrides, **(env_overrides or {}))   # e.g. {"lookahead": True}
             if exam.start_mass_kg is not None:
                 p = p._replace(start_mass=exam.start_mass_kg,
                                start_fuel=exam.start_mass_kg - p.dry_mass)
@@ -141,12 +142,12 @@ def classic_factory(env, gp):
 
 
 def run_exam(exam: Exam, policy_factory: PolicyFactory, cfg: MissionConfig, n_per_target: int = 200,
-             targets_per_tile: int = 4, seed: int = 0) -> dict:
+             targets_per_tile: int = 4, seed: int = 0, env_overrides: dict | None = None) -> dict:
     """Fly `n_per_target` missions at every target. Returns success rate + failure counts."""
     cfgt = cfg.scenarios.terminal
     ok = total = 0
     failures: dict[str, int] = {}
-    for j, (_label, env, p) in enumerate(make_exam_envs(exam, cfg, targets_per_tile)):
+    for j, (_label, env, p) in enumerate(make_exam_envs(exam, cfg, targets_per_tile, env_overrides)):
         gp = guidance_params_from_env(p, cfgt.hover_gate_altitude_m, cfgt.final_descent_speed_m_s)
         policy, params = policy_factory(env, gp)
         _, m, _ = rollout(env, policy, params, jax.random.PRNGKey(seed + 1000 * j), n_per_target)
@@ -160,9 +161,10 @@ def run_exam(exam: Exam, policy_factory: PolicyFactory, cfg: MissionConfig, n_pe
 
 
 def run_all(policy_factory: PolicyFactory, exams=EXAMS, n_per_target: int = 200,
-            targets_per_tile: int = 4, seed: int = 0) -> dict:
+            targets_per_tile: int = 4, seed: int = 0, env_overrides: dict | None = None) -> dict:
     cfg = load_mission()
-    results = [run_exam(e, policy_factory, cfg, n_per_target, targets_per_tile, seed) for e in exams]
+    results = [run_exam(e, policy_factory, cfg, n_per_target, targets_per_tile, seed, env_overrides)
+               for e in exams]
     return {"exams": results, "intelligence_score": float(np.mean([r["success_rate"] for r in results]))}
 
 

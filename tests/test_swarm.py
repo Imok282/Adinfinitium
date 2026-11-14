@@ -133,3 +133,11 @@ def test_exam_report_pools_per_exam_then_averages():
     assert r["exam_breakdown"]["a"] == {"champion": 0.5, "classic": 0.0}
     assert r["exam_breakdown"]["b"] == {"champion": 0.5, "classic": 1.0}
     assert r["exam_success_rate"] == 0.5 and r["classic_exam_success_rate"] == 0.5
+
+
+def test_exam_envs_follow_the_pilot_lookahead_setting():
+    pytest.importorskip("tensorneat")
+    from swarm.run_swarm import exam_suites
+    for flag, dim in ((False, OBS_DIM), (True, OBS_DIM + 8)):
+        train, held = exam_suites(CFG, ["nav_drift_near_hazard"], 1, lookahead=flag)
+        assert train[0][0].params.obs_dim == held[0][1].params.obs_dim == dim
