@@ -51,7 +51,7 @@ Evolved lander pilot (TensorNEAT, JAX → Colab) ─► touchdown scatter ─►
 | **NASA PSR (permanent shadow)**, `worldmodel/rover/psr.py` | **Done** (7 tiles) | LOLA LPSR 20 m read as a small window over HTTP; Site 04 (Shackleton rim) 32% PSR. PSR = dark and cold, NOT confirmed ice |
 | **Terrain generator** (diffusion, 2.04 M), `worldmodel/terrain/` | Code + tests + physics backup (gap-fill + LOLA-error noise) done. **NOT TRAINED** | Evaluation is hide-and-check vs the backup; if it cannot beat the backup, ship the backup |
 | **Rover world + env + planner**, `worldmodel/rover/` | **Done, 11 tests** | Baselines on held-out Site 23 (Sept 2027, 512 rovers): naive 28% ice / 12% home / 88% die; cautious 6% / 4% / 77%; cautious+wait-for-light 4% / 3% / 85% |
-| **Rover driving model** (PPO, 506 k params), `worldmodel/rover/train.py` | Code done and smoke-tested; **a validation run (80 updates, Mac) was started and had not logged a result at handover time**: check `runs/rover/train_log.jsonl` | Two bugs fixed on the way (MPS out-of-memory, MPS `randperm` garbage indices). No held-out evaluation script yet (TODO) |
+| **Rover driving model** (PPO, 506 k params), `worldmodel/rover/train.py` | Code done and smoke-tested; **the Mac validation run (80 updates, 6 worlds x 512 envs) STALLED and was killed: the Mac had ~58 MB free RAM and a 98%-full disk and was thrashing on swap, so NO rover model has been trained yet**. Run it on the 4090/Colab, or on the Mac only with a tiny config (1 world, `--envs 128`) | Two bugs fixed on the way (MPS out-of-memory, MPS `randperm` garbage indices). No held-out evaluation script yet (TODO) |
 | **Mission planner + orchestrator** | Spec only (`MISSION_BRAIN_SPEC.md`) | `contracts/plan.py` not written |
 | **Evolved lander pilot** (TensorNEAT/JAX) | Imok's `swarm/` + `worldmodel/exams.py` on `imok/integration`; never run end to end here | classic guidance 99.7% safe on easy target; weak on tight fuel (25.7%, tuned classic 81%) |
 | **Dream-RSI meta layer** (KAN-106) | **Not started** | needs several swarm runs with different strategies; user wants it with the pilot |
@@ -100,7 +100,7 @@ Goal: one command per machine that runs every model stage, resumably, and record
 ## 6. Ordered task list (owner, time, acceptance)
 | # | Task | Owner/where | Time | Done when |
 |---|---|---|---|---|
-| 1 | Check the rover validation run (`runs/rover/train_log.jsonl`, `rover_driver.pt`); write `worldmodel/rover/evaluate.py` (held-out Site 23 + 42, 4 dates, vs the 3 baselines, JSON report) | any session | 45 min | model vs baselines table with per-seed spread, honest if it does not win |
+| 1 | Run the rover validation on the 4090/Colab (not the Mac: it stalled there); write `worldmodel/rover/evaluate.py` (held-out Site 23 + 42, 4 dates, vs the 3 baselines, JSON report) | any session | 45 min | model vs baselines table with per-seed spread, honest if it does not win |
 | 2 | Multi-window code gaps (section 5.6) + tests | any session | 1 h | `pytest` green, scripts skip missing sites |
 | 3 | Overnight kit (section 5): run_all, ledger, report, dashboard, bundles, Colab notebook, PowerShell setup, `--dry-run` + smoke profile tested on the Mac | any session | 2-3 h | smoke profile passes end to end on the Mac in < 15 min |
 | 4 | **4090 bring-up** (user + SSH): unzip, setup script, smoke profile, then real profile; time-box 2 h | user + session | 2 h | `torch.cuda.is_available()`, smoke green, first real stage logging |
@@ -135,7 +135,8 @@ Checkpoints go to `<ADI_DATA>/models/` (default `./data/models/`, never git). Se
 4. **Navigator bugs found by testing:** horizon subtracted twice for Earth visibility after the contract defined elevations relative to the skyline; picker lost a site when two display names collided.
 5. **Rover environment bugs:** "reached" radius (20 m) smaller than one step (36 m), so rovers stepped over targets (fixed by checking the path's closest approach); the turn-back rule ignored solar income and sent every rover home (fixed; naive/cautious/wait-for-light baselines all kept: they die 77-88% in the dark).
 6. **Platform bugs:** Apple MPS out-of-memory at ~9 GB; MPS `randperm` returned garbage indices (CPU permutation); CPU jobs during GPU training doubled training time (55 min vs ~25); nested same-quote f-string broke Python 3.11; zsh unquoted variables not word-split; NASA 503 throttling; Mac disk nearly full.
-7. **Tooling dead ends:** browsers/Chrome tools were unavailable several times; the shared planning chat needed the Claude-in-Chrome extension to be read.
+7. **The Mac cannot train the rover**: a 6-world PPO run stalled the whole machine (swap thrash, 98% disk). Heavy training belongs on the 4090/Colab; this is why the overnight kit matters.
+8. **Tooling dead ends:** browsers/Chrome tools were unavailable several times; the shared planning chat needed the Claude-in-Chrome extension to be read.
 
 ## 9. Open questions / decisions still needed
 - Ojas/Imok: where the JAX swarm runs (Colab free T4 is the only Linux GPU under the "no WSL" choice) and whether Dream-RSI is realistic by 12:00.
