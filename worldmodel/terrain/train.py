@@ -19,6 +19,7 @@ import numpy as np
 import torch
 
 from contracts.paths import model_path, run_dir
+from worldmodel.budget import TimeBudget
 from worldmodel.terrain.data import (
     PATCH,
     SD_FLOOR_M,
@@ -72,6 +73,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--max-minutes", type=float, default=0.0, help="wall-clock budget: the run sizes its own step count to finish in time (0 = off)")
     ap.add_argument("--name", default="terrain_diffusion")
     a = ap.parse_args(argv)
     assert not set(TRAIN_SITES + VAL_SITES) & set(TEST_SITES), "test region leaked into training"
@@ -122,6 +124,8 @@ def main(argv: list[str] | None = None) -> int:
         return tot / max(cnt, 1.0)
 
     t1, run = time.time(), 0.0
+    bud = TimeBudget(a.max_minutes, a.steps)
+    bud.begin(step)
     while step < a.steps:
         model.train()
         x0, C, Hm = make_batch(train, a.batch, rng, device)
@@ -135,6 +139,12 @@ def main(argv: list[str] | None = None) -> int:
         sched.step()
         run += float(loss.detach())
         step += 1
+        if bud.update(step):
+            a.steps = bud.total
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(a.steps - step, 1))
+            print(f"{bud.summary()}", flush=True)
+        if bud.expired():
+            a.steps = step
         if step % a.eval_every == 0 or step == a.steps:
             v = validate()
             info = {"step": step, "train_mse": run / a.eval_every, "val_mse": v, "best_val_mse": min(best, v),

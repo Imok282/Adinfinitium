@@ -20,6 +20,7 @@ import torch.nn.functional as F
 
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
+from worldmodel.budget import TimeBudget
 from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, regions_for_site
 from worldmodel.rover.env import RoverEnv
 from worldmodel.rover.policy import build_model, pick_device, save_checkpoint
@@ -80,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--max-minutes", type=float, default=0.0, help="wall-clock budget: the run sizes its own update count to finish in time (0 = off)")
     ap.add_argument("--name", default="rover_driver")
     a = ap.parse_args(argv)
 
@@ -114,6 +116,8 @@ def main(argv: list[str] | None = None) -> int:
     obs_store = {}
     for e in envs:
         obs_store[id(e)] = e.reset()
+    bud = TimeBudget(a.max_minutes, a.updates, warmup_s=90.0)
+    bud.begin(update)
     while update < a.updates:
         env = envs[rng.integers(len(envs))]
         obs = obs_store[id(env)]
@@ -165,6 +169,11 @@ def main(argv: list[str] | None = None) -> int:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
                 opt.step()
         update += 1
+        if bud.update(update):
+            a.updates = bud.total
+            print(bud.summary(), flush=True)
+        if bud.expired():
+            a.updates = update
         score = (ice + ret) / max(eps, 1)
         info_d = {"update": update, "world": f"{env.world.region}@{env.world.date}", "episodes": eps, "reached_ice_per_episode": ice / max(eps, 1),
                   "returned_per_episode": ret / max(eps, 1), "died_per_episode": dead / max(eps, 1), "mean_reward": float(rew.mean()),

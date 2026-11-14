@@ -20,6 +20,7 @@ import torch.nn.functional as F
 
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
+from worldmodel.budget import TimeBudget
 from worldmodel.light.data import TEST_SITES, TRAIN_SITES, VAL_SITES, build_site_windows
 from worldmodel.light.model import build_model, pick_device, ray_inputs, save_checkpoint
 
@@ -74,6 +75,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--max-minutes", type=float, default=0.0, help="wall-clock budget: the run sizes its own step count to finish in time (0 = off)")
     ap.add_argument("--name", default="light_skyline")
     a = ap.parse_args(argv)
 
@@ -110,6 +112,8 @@ def main(argv: list[str] | None = None) -> int:
     log.parent.mkdir(parents=True, exist_ok=True)
 
     run_loss, t1 = 0.0, time.time()
+    bud = TimeBudget(a.max_minutes, a.steps)
+    bud.begin(step)
     while step < a.steps:
         model.train()
         x, base, y = make_batch(train, a.batch, rng, cfg, augment=True)
@@ -120,6 +124,12 @@ def main(argv: list[str] | None = None) -> int:
         sched.step()
         run_loss += float(loss.detach())
         step += 1
+        if bud.update(step):
+            a.steps = bud.total
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(a.steps - step, 1))
+            print(f"{bud.summary()}", flush=True)
+        if bud.expired():
+            a.steps = step
         if step % a.eval_every == 0 or step == a.steps:
             model.eval()
             v = validate(model, val, cfg)

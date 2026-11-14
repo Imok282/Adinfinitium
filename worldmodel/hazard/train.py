@@ -21,6 +21,7 @@ import torch.nn.functional as F
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir, tile_path
 from contracts.tiles import load_tile
+from worldmodel.budget import TimeBudget
 from worldmodel.hazard.backup import label_hazard, slope_limit_deg
 from worldmodel.hazard.features import N_CHANNELS, build_features
 from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, regions_for_site
@@ -91,6 +92,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true", help="continue from hazard_unet_last.pt")
+    ap.add_argument("--max-minutes", type=float, default=0.0, help="wall-clock budget: the run sizes its own epoch count to finish in time (0 = off)")
     ap.add_argument("--name", default="hazard_unet")
     a = ap.parse_args(argv)
 
@@ -120,7 +122,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"device={device} train={[r for r, _, _ in train]} val={[r for r, _, _ in val]} "
           f"(test region {HOLDOUT_SITES} is never loaded)", flush=True)
 
-    for epoch in range(start, a.epochs):
+    bud = TimeBudget(a.max_minutes, a.epochs)
+    bud.begin(start)
+    epoch = start
+    while epoch < a.epochs:
         model.train()
         t0, tot = time.time(), 0.0
         for _ in range(a.steps):
@@ -144,6 +149,13 @@ def main(argv: list[str] | None = None) -> int:
             fh.write(json.dumps({**info, "seconds": time.time() - t0}) + "\n")
         print(f"epoch {epoch + 1:3d}/{a.epochs} loss {tot / a.steps:.4f} | val P {v['precision']:.3f} "
               f"R {v['recall']:.3f} F1 {v['f1']:.3f} | best {best:.3f} | {time.time() - t0:.0f}s", flush=True)
+        epoch += 1
+        if bud.update(epoch):
+            a.epochs = bud.total
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(a.epochs - epoch, 1))
+            print(bud.summary(), flush=True)
+        if bud.expired():
+            break
     return 0
 
 

@@ -8,6 +8,26 @@ Companion docs: `docs/team/HANDOVER_WORLD_MODELS.md` (state after the world mode
 **User preference (from Imok, keep it):** build REAL working, validated solutions for the hackathon, not prototypes/demos; keep everything honest (physics baselines, held-out tests, provenance labels).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
+## 0. UPDATE Sat 14 Nov, evening (read this first; sections below are older where they disagree)
+- **Overnight kit EXISTS** (`ops/`): `run_all` runner (ledger with failures, status.json, per-stage time budgets, resume), `report` (RUN_REPORT.md + curves),
+  `verify before|after`, `freeze` (SHA-256 of checkpoints/evals/code; nothing changes after), `make_bundle --target macmini|4090` (code + seed data zip + brief).
+  Smoke-tested on the MacBook from an unpacked package (bugs it found and fixed: hazard attention window 37 GiB -> 256 px windows; seed missing `data/raw`;
+  runner import path). Training scripts size themselves to `--max-minutes` (worldmodel/budget.py). Rover plan corrected: 1024 x 32 per update, not 4096 x 64.
+- **Mac mini M5 run is IN PROGRESS** (sent 14 Nov ~16:00, Opus session there, ONE access): light skyline transformer ~38 M, hazard attention U-Net ~60 M,
+  rover driver mini ~9 M (equal must-have), terrain diffusion mini ~50 M; ~11.7 h; brief = `ops/macmini/START_HERE.md`; results come back as
+  `adinfinitium_results_macmini.zip` + `RESULTS_FOR_TEAM.md`. Known: its smoke-stage terrain uses depth 2 (fixed in the repo afterwards; harmless on 64 GB).
+- **Pilot brain (NEW, `worldmodel/lander/`)**: PyTorch twin of the JAX lander (parity-tested step for step), classic ZEM/ZEV backup, `PilotFormer` (~15 M vision
+  transformer residual on ZEM/ZEV, zero-init so untrained == backup), PPO, best checkpoint by validation Site11, exam on Site23 (Site42 when its tiles exist).
+  Honest baseline: classic already lands 97.7 % on Site23 / 94.9 % on Site11 with failures injected.
+- **Meta layer (NEW, `worldmodel/planner/`, `contracts/plan.py`)**: candidate features (SPICE+skyline light, Earth link, hazard, PSR ice edges), labels =
+  simulated full missions (lander to that cell x rover drive at that hour; label kept STRICT: land AND ice AND return, decided with Imok), set-transformer planner
+  + logistic baseline vs Navigator ranking backup (Brier, ECE, rank correlation, regret), `plan.py` writes `plan_XXX.json` + `decisions_XXX.csv` (orchestrator).
+  Note: the physics rover rarely completes ice-and-return (mean p ~3 % in the first worlds), so the planner's signal is weak; reported as is.
+- **4090: 2-hour run** (`ops/windows/run_brain.ps1`, profile `brain4090`): pilot on GPU in parallel with 3 label simulators, then exams, planner, demo plan,
+  verify, freeze, zip. Windows scripts UNTESTED (written on a Mac). Package: `python -m ops.make_bundle --target 4090`.
+- **3D vehicles** (branch `nimansh/KAN-47-vehicle-models`, pushed): procedural lander/rover OBJ+GLB from mission.yaml; Tripo prompts for cinematic versions in
+  `docs/team/TRIPO_PROMPTS.md`.
+
 ## 1. The hackathon, the product, the rules
 - **Event:** NASA Space Apps 2026, challenge **Lunar Landing Site Navigator** (brief: an intuitive tool to compare lunar south-pole landing sites and dates on Sun and Earth vs the horizon,
   power, direct-to-Earth windows, countdowns to sunset/Earthset). Pune, online team of 4 + orchestrator Ojas.
@@ -80,7 +100,7 @@ The JAX swarm cannot use the 4090 under these choices: **it moves to Colab** (Oj
 **Scale-up plan (user's wish: bigger, more accurate models):** more data first (about 16x more real terrain: grid windows + 4 more sites), then grow models: hazard `--base 48` (17.5 M params; base 32 = 7.8 M, 64 = 31 M), light `--width 128` (907 k; 64 = 228 k, 192 = 2.04 M),
 terrain `--base 64` (8.1 M; 96 = 18.3 M, 128 = 32.6 M), rover `--width 64 --hidden 512`. Honest note told to the user: parameter count alone does not help; with 7 windows a huge model overfits; data + held-out tests are what make it accurate.
 
-## 5. Overnight run kit: SPEC (all of this is TODO; nothing in `ops/` exists yet)
+## 5. Overnight run kit: SPEC (now BUILT, see section 0)
 Goal: one command per machine that runs every model stage, resumably, and records everything.
 1. **`ops/overnight/run_all.py`** (`python -m ops.overnight.run_all --profile smoke|real4090|colab [--only stage,...] [--resume] [--dry-run]`). Stages (each a subprocess `sys.executable -I -m ...`, own log file, wall-clock budget; timeout = kill, checkpoints are resumable):
    `env_check` (python/torch/CUDA/GPU/VRAM/disk/RAM versions) -> `kernels` (download the 5 NAIF files with stdlib urllib; TODO new module `worldmodel/light/fetch_kernels.py`) -> `tiles` (`lola all --grid`, up to 3 parallel site groups, 503 backoff) -> `psr` (`worldmodel.rover.psr`, default regions must be ALL `lola5m_*` tiles except `_gen`) ->

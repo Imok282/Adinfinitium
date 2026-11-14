@@ -74,7 +74,7 @@ class AttnUNet(nn.Module):
     Channels grow base, 2b, 4b, 8b (capped at 8b); `blocks` residual blocks per level; self-attention at the deepest `attn_levels` encoder
     levels, in the bottleneck and in the matching decoder levels. base=72, depth=4, blocks=2 is about 60 M parameters."""
 
-    preferred_window = 384      # attention cost grows with the pixel count: run big tiles in smaller windows
+    preferred_window = 256      # attention cost grows with the pixel count squared (MPS materialises it): run big tiles in 256 px windows + 64 px margins
 
     def __init__(self, in_ch: int = N_CHANNELS, base: int = 72, depth: int = 4, blocks: int = 2, heads: int = 8, attn_levels: int = 2):
         super().__init__()

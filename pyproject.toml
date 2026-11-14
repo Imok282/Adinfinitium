@@ -29,7 +29,7 @@ basilisk = ["bsk>=2.12", "matplotlib>=3.8", "pytest>=8"]
 dev = ["pytest>=8", "jax>=0.4.30", "ruff>=0.5"]
 
 [tool.setuptools.packages.find]
-include = ["contracts*", "data_tools*", "worldmodel*", "sim_jax*", "swarm*", "basilisk_mods*",
+include = ["contracts*", "data_tools*", "ops*", "model_viewer*", "worldmodel*", "sim_jax*", "swarm*", "basilisk_mods*",
            "navigator*", "mission_control*", "brain_window*", "vizard*", "scripts*"]
 
 [tool.pytest.ini_options]
