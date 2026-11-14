@@ -96,3 +96,22 @@ def test_landing_score_gate():
     sc = landing_score(m)
     assert float(sc[0]) == pytest.approx(100 - 0.5 - 10)
     assert float(sc[1]) == 0.0
+
+
+def test_same_seed_same_result():
+    env = LanderEnv(make_params(CFG, flat_terrain(101, 40.0), failures=True, noise=True))
+    gp = guidance_params_from_env(env.params)
+    _, a, _ = rollout(env, classic_policy, gp, jax.random.PRNGKey(7), 32)
+    _, b, _ = rollout(env, classic_policy, gp, jax.random.PRNGKey(7), 32)
+    for k in a:
+        np.testing.assert_array_equal(np.asarray(a[k]), np.asarray(b[k]))
+
+
+def test_mass_flow_matches_rocket_equation(flat_env):
+    _, s = flat_env.reset(jax.random.PRNGKey(0))
+    p = flat_env.params
+    s = s._replace(pos=jnp.array([0.0, 0.0, 5000.0]))
+    full = jnp.array([0.0, 0.0, 1.0])
+    _, s2, _, _, _ = flat_env.step(jax.random.PRNGKey(1), s, full)
+    expected = p.max_total_thrust / (p.isp * p.g0) * p.dt
+    assert float(s.mass - s2.mass) == pytest.approx(expected, rel=1e-3)  # float32 mass ~900 kg

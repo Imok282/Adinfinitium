@@ -137,8 +137,23 @@ class Swarm(_Strict):
     seed: int
 
 
+class MissionWindow(_Strict):
+    start_utc: str
+    end_utc: str
+
+    @model_validator(mode="after")
+    def _ordered(self) -> MissionWindow:
+        from datetime import datetime
+        s = datetime.fromisoformat(self.start_utc)
+        e = datetime.fromisoformat(self.end_utc)
+        if e <= s:
+            raise ValueError("mission_window end must be after start")
+        return self
+
+
 class MissionConfig(_Strict):
     schema_version: int
+    mission_window: MissionWindow
     moon: Moon
     lander: Lander
     rover: Rover

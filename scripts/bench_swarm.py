@@ -21,7 +21,7 @@ from contracts.runs import FailureCount, GenerationLog, gen_name, write_json
 from contracts.tiles import load_tile
 from sim_jax.guidance import classic_policy, guidance_params_from_env
 from sim_jax.lander_env import LanderEnv, make_params
-from sim_jax.rollout import rollout, summarize
+from sim_jax.rollout import landing_score, rollout, summarize
 from sim_jax.terrain import flat_terrain, terrain_from_tile
 
 
@@ -65,8 +65,11 @@ def main() -> None:
     print(f"success rate : {s['success_rate']:.2%}")
     print(f"failures     : {s['failures']}")
 
+    sc = cfg.scoring
+    scores = landing_score(m, sc.w_landed, sc.w_target_distance_per_m, sc.w_fuel_per_kg, sc.landing_gate)
     log = GenerationLog(
-        run="bench", generation=0, population=a.n, best_score=float("nan"), mean_score=float("nan"),
+        run="bench", generation=0, population=a.n,
+        best_score=float(scores.max()), mean_score=float(scores.mean()),
         success_rate=s["success_rate"], classic_success_rate=s["success_rate"],
         failures=[FailureCount(reason=k, count=v) for k, v in s["failures"].items()],
         strategy={"policy": "classic ZEM/ZEV guidance"}, wall_time_s=t_second,

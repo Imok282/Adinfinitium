@@ -100,3 +100,8 @@ def test_run_files_roundtrip(tmp_path):
 def test_example_sites_load():
     lib = load_sites(repo_root() / "sites" / "sites.example.json")
     assert lib.by_id("chandrayaan3_shiv_shakti").lat_deg < -69
+
+
+def test_validate_formats_selftest():
+    from data_tools.validate_formats import main
+    assert main(["--selftest"]) == 0
