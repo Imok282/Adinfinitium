@@ -24,6 +24,10 @@ the normal env; `--exam-targets` targets per tile, `--exam-missions` missions pe
 stress is used for training and reporting, but on **different generated terrain**: training tiles are seeded
 +1000, the held-out exam tiles are the exam's own. Each `generation_XXX.json` then also has `exam_success_rate`,
 `classic_exam_success_rate` and `exam_breakdown` (per exam, champion vs classic, fresh held-out missions).
+**Baselines (important for honesty):** every exam number is reported against the default classic AND a *tuned* classic
+(`worldmodel.exams.TUNED_CLASSIC`: hover gate 5 m, final speed 1.8 m/s, chosen on other tiles). On `tight_fuel` the default classic
+only gets 25.7% because it wastes fuel; simply retuned it gets ~81%. The tuned classic is the fair opponent: quote AI against it
+(`tuned_classic_exam_success_rate`, `exam_breakdown[..].classic_tuned`).
 Caveat: the `tight_fuel`/hazard exam tiles share seed 0 with the standard demo tile, so those are *scenario*
 generalisation (new targets, new stress draws), not new terrain; only `unseen_craters` is new terrain, and it is
 never trained on.

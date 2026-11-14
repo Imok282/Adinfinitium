@@ -133,6 +133,8 @@ def test_exam_report_pools_per_exam_then_averages():
     assert r["exam_breakdown"]["a"] == {"champion": 0.5, "classic": 0.0}
     assert r["exam_breakdown"]["b"] == {"champion": 0.5, "classic": 1.0}
     assert r["exam_success_rate"] == 0.5 and r["classic_exam_success_rate"] == 0.5
+    r2 = exam_report(held, champ, classic, tuned_ok=np.array([[1, 1], [1, 1], [0, 0]], bool))
+    assert r2["exam_breakdown"]["a"]["classic_tuned"] == 1.0 and r2["tuned_classic_exam_success_rate"] == 0.5
 
 
 def test_exam_envs_follow_the_pilot_lookahead_setting():
