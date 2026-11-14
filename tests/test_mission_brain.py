@@ -85,3 +85,28 @@ def test_orchestrator_log_is_ordered_and_explains_itself():
     assert phases[:3] == ["orbit", "descent", "touchdown"] and "night" in phases and "sunrise" in phases
     assert all(r["reason"] for r in rows)
     assert [r["t_utc"] for r in rows] == sorted(r["t_utc"] for r in rows)
+
+
+def test_dream_gate_never_accepts_a_worse_planner():
+    from worldmodel.planner.dream import accept
+
+    assert accept(0.050, 0.040)
+    assert not accept(0.050, 0.050) and not accept(0.050, 0.060) and not accept(0.05, float("nan"))
+
+
+def test_dream_chooses_where_the_two_brains_disagree():
+    from worldmodel.planner.dream import choose
+
+    p_set = np.array([0.10, 0.50, 0.20, 0.90])
+    p_log = np.array([0.10, 0.05, 0.20, 0.88])
+    assert list(choose(p_set, p_log, 1, explore=0.0)) == [1]
+
+
+def test_dream_validation_is_frozen_and_never_a_test_site():
+    from worldmodel.planner.dream import split_val
+
+    gs = _groups(4)
+    gs[0].region, gs[1].region, gs[2].region, gs[3].region = "lola5m_site01", "lola5m_site06", "lola5m_site11", "lola5m_site23"
+    train, val = split_val(gs)
+    assert [g.region for g in val] == ["lola5m_site11"]
+    assert "lola5m_site23" not in [g.region for g in train]

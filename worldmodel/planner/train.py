@@ -26,12 +26,16 @@ def predict(model, g) -> np.ndarray:
         return torch.sigmoid(model(torch.as_tensor(g.x)[None]))[0].numpy()
 
 
-def fit(kind: str, train, val, epochs: int, lr: float, seed: int, **kw) -> tuple[torch.nn.Module, dict]:
+def fit(kind: str, train, val, epochs: int, lr: float, seed: int, init_state: dict | None = None, **kw) -> tuple[torch.nn.Module, dict]:
+    """Train on simulated outcomes; keep the best epoch by validation Brier. init_state = warm start (keeps its input normalisation)."""
     torch.manual_seed(seed)
     model = build_model(kind, **kw)
-    allx = np.concatenate([g.x for g in train])
-    model.mu.copy_(torch.as_tensor(allx.mean(0)))
-    model.sd.copy_(torch.as_tensor(allx.std(0) + 1e-6))
+    if init_state is not None:
+        model.load_state_dict(init_state)
+    else:
+        allx = np.concatenate([g.x for g in train])
+        model.mu.copy_(torch.as_tensor(allx.mean(0)))
+        model.sd.copy_(torch.as_tensor(allx.std(0) + 1e-6))
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     rng = np.random.default_rng(seed)
     best, best_state, hist = 1e9, None, []

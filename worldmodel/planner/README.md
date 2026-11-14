@@ -18,3 +18,15 @@ python -m worldmodel.planner.labels_run --max-minutes 120
 python -m worldmodel.planner.train && python -m worldmodel.planner.evaluate
 python -m worldmodel.planner.plan --region lola5m_site23 --date 2027-03-01 --run demo
 ```
+
+## Dream-RSI: the planner keeps improving itself offline (`dream.py`)
+After training stops (e.g. the planner is installed on a laptop), it can keep learning on its own, safely:
+imagine new missions on training terrain -> pick the ones it is least sure about (its two predictors disagree) -> play them out in the
+offline physics simulators (lander twin + rover environment, NASA LOLA terrain, SPICE light) -> warm-start retrain -> **keep the new
+version only if it is better on a frozen validation set**, else roll back. Each accepted version chooses the next dreams (recursive).
+Test sites are never dreamt about. State and history: `<ADI_DATA>/planner_dream/` (resumable, Ctrl-C safe).
+```bash
+python -m worldmodel.planner.dream --generations 3
+python -m worldmodel.planner.dream --forever          # keep improving whenever the laptop is on
+```
+First run (Mac, 14 Nov): 120 missions imagined, 2 most-uncertain cells simulated (112 missions), validation Brier 0.0089 -> 0.0091, rejected (kept the previous version): the gate working.

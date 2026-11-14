@@ -57,9 +57,31 @@ def to_az_el(v: np.ndarray, lat_deg: float, lon_deg: float) -> tuple[float, floa
     return float(np.degrees(np.arctan2(v @ east, v @ north)) % 360.0), float(np.degrees(np.arcsin(np.clip(v @ up, -1, 1))))
 
 
+def _cache_path(site_lat_deg: float, site_lon_east_deg: float, times_utc: list[str]) -> Path:
+    import hashlib
+
+    key = f"{site_lat_deg:.6f}_{site_lon_east_deg:.6f}_{times_utc[0]}_{times_utc[-1]}_{len(times_utc)}"
+    return data_root() / "ephemeris_cache" / (hashlib.sha1(key.encode()).hexdigest()[:16] + ".npz")
+
+
 def sun_earth_directions(site_lat_deg: float, site_lon_east_deg: float, times_utc: list[str]) -> dict[str, np.ndarray]:
     """True azimuth / absolute elevation of the Sun and Earth centres at a lunar site, for ISO-8601 UTC times.
-    Returns arrays [T]: sun_az, sun_el, earth_az, earth_el (degrees) and et_s (TDB seconds past J2000)."""
+    Returns arrays [T]: sun_az, sun_el, earth_az, earth_el (degrees) and et_s (TDB seconds past J2000).
+    Results are cached in <ADI_DATA>/ephemeris_cache/ (same SPICE numbers; lets machines where the CSPICE library cannot load reuse them)."""
+    cp = _cache_path(site_lat_deg, site_lon_east_deg, times_utc)
+    if cp.exists():
+        z = np.load(cp)
+        return {k: z[k] for k in ("sun_az", "sun_el", "earth_az", "earth_el", "et_s")}
+    out = _spice_directions(site_lat_deg, site_lon_east_deg, times_utc)
+    try:
+        cp.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(cp, **out)
+    except OSError:
+        pass
+    return out
+
+
+def _spice_directions(site_lat_deg: float, site_lon_east_deg: float, times_utc: list[str]) -> dict[str, np.ndarray]:
     import spiceypy as sp
 
     load_kernels()

@@ -4,10 +4,14 @@
 #   powershell -ExecutionPolicy Bypass -File ops\windows\run_brain.ps1 -RunProfile brain4090   # big GPU (4090 / 5070)
 param([double]$BudgetScale = 1.0, [string]$RunProfile = "brain3050")
 Set-Location (Join-Path $PSScriptRoot "..\..")
+[Environment]::CurrentDirectory = (Get-Location).ProviderPath      # child programs (python, pip) start in the package folder too
 New-Item -ItemType Directory -Force runs | Out-Null
 Start-Transcript -Path "runs\run_brain.log" -Append
-if (-not (Test-Path ".venv\Scripts\python.exe")) { & powershell -ExecutionPolicy Bypass -File "ops\windows\setup_4090.ps1" }
+if (-not (Test-Path ".venv\Scripts\python.exe")) { & powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "setup_4090.ps1") }
+if (-not (Test-Path ".venv\Scripts\python.exe")) { Write-Host "SETUP FAILED: no .venv - read the messages above (antivirus? no internet?), fix, run again"; Stop-Transcript; exit 1 }
 $vpy = (Resolve-Path ".venv\Scripts\python.exe").Path
+& $vpy -c "import torch; assert torch.cuda.is_available()"
+if ($LASTEXITCODE -ne 0) { Write-Host "SETUP FAILED: PyTorch cannot use the GPU - run ops\windows\setup_4090.ps1 again"; Stop-Transcript; exit 1 }
 $env:PYTHONUTF8 = "1"
 # keep the PC awake while plugged in (restore later with: powercfg /restoredefaultschemes)
 powercfg /change standby-timeout-ac 0
