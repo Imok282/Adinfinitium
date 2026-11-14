@@ -1,5 +1,15 @@
 # Outbox: Nimansh → Imok (newest first)
 
+## 2026-11-14 (later still) · Got your reply (terrain-horizon elevations); Navigator updated and re-pushed
+- Merged `imok/light-contract-v2` @ b5b22d6 into `nimansh/KAN-35-navigator`. **Q3 answered, thank you**: `elev > 0` = centre above the skyline, Sun up =
+  `sun_fraction > 0`. Changes: Earth line of sight is now `earth_elev_deg > 0` (I had subtracted the horizon a second time; removed); bodies are drawn with
+  `absolute_elev_deg()`; the stand-in generator now writes skyline-relative elevations per cell. Hours are unchanged (same physics, new convention).
+  Tests: contract-convention tests added (stand-in obeys fraction=1 above/0 below the skyline); 43 contract/Navigator/stand-in tests pass, full suite green, ruff clean.
+- Saw that `imok/integration` already contains `nimansh/KAN-25-hazard`. Thanks. Still outstanding on my side: nothing blocking; PR for KAN-25 was never opened by me (no `gh`).
+- **Still open (Q4, Q5):** keep `cells[0]` = candidate cell, K ≤ 9 (Navigator lets the user pick any cell); do you want true-north azimuth in the Navigator
+  (needs tile centre longitude + the verified projection convention)?
+- Next: KAN-37 project README, then KAN-24 light-model training code against the v2 format unless you redirect me.
+
 ## 2026-11-14 (later) · Navigator runs end to end on a GENERATED stand-in (branch `nimansh/KAN-35-navigator`, pushed)
 **Done:** `navigator/` (metrics, data, figures, `app.py`), `data_tools/make_demo_light.py` (stand-in `*_points.npz` in your v2 format),
 20 new tests (all green with the rest; ruff clean). Run: `python -I -m data_tools.make_demo_light && streamlit run navigator/app.py --server.port 8501`.

@@ -15,7 +15,6 @@ from navigator.metrics import (
     countdown,
     earth_up,
     format_hours,
-    horizon_at,
     runs,
     step_hours,
     summarize,
@@ -45,17 +44,17 @@ def test_runs():
     assert runs(np.ones(3, bool)) == [(0, 3)]
 
 
-def test_horizon_interpolates_between_degrees_and_wraps():
-    ps = series([1, 1], [1, 1])
-    ps.horizon_elev_deg[0, 359], ps.horizon_elev_deg[0, 0] = 4.0, 8.0
-    assert horizon_at(ps, np.array([359.5]))[0] == pytest.approx(6.0)
-    assert horizon_at(ps, np.array([360.0]))[0] == pytest.approx(8.0)
+def test_earth_line_of_sight_follows_the_contract_elevation_is_already_relative_to_the_skyline():
+    # earth_elev_deg > 0 <=> centre above the skyline. The horizon must NOT be subtracted a second time.
+    assert earth_up(series([1, 1, 1], [3.0, 0.5, 3.0], horizon=5.0)).all()
+    assert not earth_up(series([1, 1, 1], [-3.0, -0.5, 0.0], horizon=0.0)).any()
 
 
-def test_earth_line_of_sight_uses_the_terrain_horizon_not_zero():
-    ps = series([1, 1, 1], [3.0, 3.0, 3.0], horizon=5.0)
-    assert not earth_up(ps).any()  # 3 deg is above 0 but below a 5 deg ridge
-    assert earth_up(series([1, 1, 1], [3.0] * 3, horizon=1.0)).all()
+def test_mean_sun_elevation_is_reported_above_the_horizontal_plane():
+    ps = series([1, 1, 0, 0], [1] * 4, horizon=5.0, sun_elev=[1.0, 3.0, -2.0, -4.0])
+    s = summarize(ps)
+    assert s.mean_sun_elev_deg == pytest.approx(7.0)   # (1+5 + 3+5) / 2: skyline-relative + 5 deg skyline
+    assert s.max_sun_elev_deg == pytest.approx(8.0)
 
 
 def test_summary_hours_and_blackout():

@@ -155,9 +155,10 @@ with tab_sky:
     k = st.selectbox("Cell", list(range(len(ps.cells))), format_func=lambda j: "candidate landing cell" if j == 0 else f"neighbour {j}",
                      help="The candidate cell and its 8 neighbours, each with its own terrain horizon.")
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Sun elevation", f"{ps.sun_elev_deg[i_now, k]:.1f}°")
+    sun_abs, earth_abs = ps.absolute_elev_deg("sun")[i_now, k], ps.absolute_elev_deg("earth")[i_now, k]
+    m1.metric("Sun elevation", f"{sun_abs:.1f}°", f"{ps.sun_elev_deg[i_now, k]:+.1f}° vs skyline", delta_color="off")
     m2.metric("Sun visible", f"{ps.sun_fraction[i_now, k]:.0%}")
-    m3.metric("Earth elevation", f"{ps.earth_elev_deg[i_now, k]:.1f}°")
+    m3.metric("Earth elevation", f"{earth_abs:.1f}°", f"{ps.earth_elev_deg[i_now, k]:+.1f}° vs skyline", delta_color="off")
     m4.metric("Earth line of sight", "yes" if earth_up(ps, k)[i_now] else "no")
     left, right = st.columns([3, 2])
     pano, dome = left.empty(), right.empty()

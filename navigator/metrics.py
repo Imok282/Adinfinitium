@@ -5,8 +5,9 @@ Reads only contracts.light.PointSeries (never other folders' code). Definitions,
 
 * Sun up    : sun_fraction > 0, i.e. any part of the solar disk is above the terrain horizon (finite disk,
               terrain + curvature already applied by whoever wrote the file).
-* Earth up  : Earth-centre elevation > the terrain horizon at Earth's azimuth (horizon_elev_deg[k, az]). Earth is a
-              point here, so this is a direct-to-Earth (DTE) radio line of sight for a lander antenna at ground level.
+* Earth up  : earth_elev_deg > 0. By the light contract the elevations are ALREADY relative to the terrain horizon, so
+              this means the Earth centre is above the skyline: a direct-to-Earth (DTE) radio line of sight for a
+              lander antenna at ground level. (Do not subtract the horizon again.)
 * Blackout  : Sun down AND Earth down: no power from the panels and no radio link.
 
 Time resolution is the file's cadence (1 h): countdowns are 'by the next sample' and say so.
@@ -20,34 +21,18 @@ import numpy as np
 
 from contracts.light import PointSeries
 
-N_AZ = 360
-
 
 def step_hours(ps: PointSeries) -> float:
     """Sample spacing in hours (from the ephemeris-time axis)."""
     return float(np.median(np.diff(ps.et_s)) / 3600.0)
 
 
-def horizon_at(ps: PointSeries, az_deg: np.ndarray, k: int = 0) -> np.ndarray:
-    """Terrain horizon elevation [T] along azimuths `az_deg` [T] (tile frame), linear between 1 deg bins."""
-    a = np.asarray(az_deg, dtype=np.float64) % N_AZ
-    i0 = np.floor(a).astype(int) % N_AZ
-    f = a - np.floor(a)
-    h = ps.horizon_elev_deg[k].astype(np.float64)
-    return (1 - f) * h[i0] + f * h[(i0 + 1) % N_AZ]
-
-
 def sun_up(ps: PointSeries, k: int = 0) -> np.ndarray:
     return ps.sun_fraction[:, k] > 0.0
 
 
-def earth_margin_deg(ps: PointSeries, k: int = 0) -> np.ndarray:
-    """Earth elevation minus the terrain horizon in Earth's direction [T] (> 0 means line of sight)."""
-    return ps.earth_elev_deg[:, k].astype(np.float64) - horizon_at(ps, ps.earth_az_deg, k)
-
-
 def earth_up(ps: PointSeries, k: int = 0) -> np.ndarray:
-    return earth_margin_deg(ps, k) > 0.0
+    return ps.earth_elev_deg[:, k] > 0.0
 
 
 def runs(mask: np.ndarray) -> list[tuple[int, int]]:
@@ -69,7 +54,7 @@ class Summary:
     longest_dark_hours: float
     longest_dark_is_lower_bound: bool   # the run touches the window edge, so the real one may be longer
     longest_blackout_hours: float
-    mean_sun_elev_deg: float            # mean while the Sun is up (nan if never)
+    mean_sun_elev_deg: float            # above the horizontal plane, mean while the Sun is up (nan if never)
     max_sun_elev_deg: float
     n_sunsets: int
     n_earthsets: int
@@ -82,7 +67,7 @@ def summarize(ps: PointSeries, k: int = 0) -> Summary:
     black = runs(~s & ~e)
     n = len(s)
     longest = max(dark, key=lambda r: r[1] - r[0]) if dark else (0, 0)
-    elev = ps.sun_elev_deg[:, k]
+    elev = ps.absolute_elev_deg("sun")[:, k]          # above the horizontal plane: what people expect to read
     return Summary(
         window_hours=(n - 1) * dt,
         sun_hours=float(s.sum() * dt), earth_hours=float(e.sum() * dt), both_hours=float((s & e).sum() * dt),

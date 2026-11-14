@@ -48,14 +48,16 @@ def panorama_figure(ps: PointSeries, i_now: int, k: int = 0, title: str = "") ->
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=az, y=hor, mode="lines", line=dict(color=GROUND, width=1), name="Terrain horizon",
                              fill="tozeroy", fillcolor="rgba(107,107,107,0.55)", hoverinfo="skip"))
-    for name, a, el, color in (("Sun", ps.sun_az_deg, ps.sun_elev_deg[:, k], SUN), ("Earth", ps.earth_az_deg, ps.earth_elev_deg[:, k], EARTH)):
+    for name, a, el, color in (("Sun", ps.sun_az_deg, ps.absolute_elev_deg("sun")[:, k], SUN),
+                               ("Earth", ps.earth_az_deg, ps.absolute_elev_deg("earth")[:, k], EARTH)):
         xa, ya = _wrap_break(a, el)
         fig.add_trace(go.Scatter(x=xa, y=ya, mode="lines", line=dict(color=color, width=1.5), opacity=0.45, name=f"{name} path (window)",
                                  hoverinfo="skip"))
         fig.add_trace(go.Scatter(x=[a[i_now]], y=[el[i_now]], mode="markers", name=f"{name} now", marker=dict(size=16, color=color, line=dict(width=2, color="#222")),
                                  hovertemplate=f"{name}: az %{{x:.0f}}°, elev %{{y:.1f}}°<extra></extra>"))
-    top = float(max(ps.sun_elev_deg[:, k].max(), ps.earth_elev_deg[:, k].max(), hor.max(), 2.0)) + 2.0
-    bot = float(min(ps.sun_elev_deg[:, k].min(), ps.earth_elev_deg[:, k].min(), hor.min(), -2.0)) - 1.0
+    sun_abs, earth_abs = ps.absolute_elev_deg("sun")[:, k], ps.absolute_elev_deg("earth")[:, k]
+    top = float(max(sun_abs.max(), earth_abs.max(), hor.max(), 2.0)) + 2.0
+    bot = float(min(sun_abs.min(), earth_abs.min(), hor.min(), -2.0)) - 1.0
     fig.update_layout(title=title, height=360, margin=dict(l=10, r=10, t=40, b=30), legend=dict(orientation="h", y=-0.25),
                       xaxis=dict(title="Azimuth (tile frame, 0 = up on the map, clockwise)", range=[0, 360], dtick=45),
                       yaxis=dict(title="Elevation (deg)", range=[bot, top]))
@@ -70,7 +72,8 @@ def dome_figure(ps: PointSeries, i_now: int, k: int = 0, title: str = "") -> go.
     r_h = 90.0 - np.append(hor, hor[0])
     fig.add_trace(go.Scatterpolar(theta=th, r=r_h, mode="lines", fill="toself", fillcolor="rgba(107,107,107,0.35)",
                                   line=dict(color=GROUND), name="Terrain horizon", hoverinfo="skip"))
-    for name, a, el, color in (("Sun", ps.sun_az_deg, ps.sun_elev_deg[:, k], SUN), ("Earth", ps.earth_az_deg, ps.earth_elev_deg[:, k], EARTH)):
+    for name, a, el, color in (("Sun", ps.sun_az_deg, ps.absolute_elev_deg("sun")[:, k], SUN),
+                               ("Earth", ps.earth_az_deg, ps.absolute_elev_deg("earth")[:, k], EARTH)):
         vis = el > -6.0
         xa, ya = _wrap_break(a[vis], 90.0 - el[vis])
         fig.add_trace(go.Scatterpolar(theta=xa, r=ya, mode="lines", line=dict(color=color, width=1.5), opacity=0.5, name=f"{name} path", hoverinfo="skip"))

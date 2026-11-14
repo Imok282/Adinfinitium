@@ -74,6 +74,22 @@ def test_time_axis_is_the_agreed_standard_window():
     assert len(times) == SYNODIC_SAMPLES and is_standard_axis(et) and times[0] == "2027-03-01T00:00:00Z"
 
 
+def test_stand_in_follows_the_terrain_relative_elevation_contract():
+    t = make_demo_tile(size=160, n_craters=12, seed=3, region="f")
+    ps = make_points(t, "2027-03-01")
+    r = SUN_ANGULAR_RADIUS_DEG
+    # elev is relative to the skyline: a whole disk above it means fraction 1, a whole disk below means 0.
+    assert np.all(ps.sun_fraction[ps.sun_elev_deg >= r] == pytest.approx(1.0))
+    assert np.all(ps.sun_fraction[ps.sun_elev_deg <= -r] == pytest.approx(0.0))
+    mid = np.abs(ps.sun_elev_deg) < 0.05 * r
+    if mid.any():
+        assert np.allclose(ps.sun_fraction[mid], 0.5, atol=0.1)
+    # Absolute elevation (for drawing) is one direction in the sky: the same for every cell up to 1 deg skyline binning.
+    absolute = ps.absolute_elev_deg("earth")
+    assert np.allclose(absolute, absolute[:, :1], atol=1.5)
+    assert np.array_equal(ps.earth_visible(), ps.earth_elev_deg > 0)
+
+
 def test_make_points_is_generated_and_contract_valid(tmp_path):
     t = make_demo_tile(size=160, n_craters=5, region="fixture")
     ps = make_points(t, "2027-03-01")

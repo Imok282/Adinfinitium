@@ -24,8 +24,9 @@ streamlit run navigator/app.py --server.port 8501
 | `figures.py` | Timeline, sky panorama + dome, comparison bars, terrain map (Plotly) |
 | `app.py` | The Streamlit app |
 
-**Definitions** (see `metrics.py`): *Sun up* = `sun_fraction > 0`. *Earth up* = Earth elevation above the terrain horizon in
-Earth's azimuth (`horizon_elev_deg`). *Blackout* = neither. Countdowns have the file's 1 h resolution.
+**Definitions** (see `metrics.py`): *Sun up* = `sun_fraction > 0`. *Earth up* = `earth_elev_deg > 0` (the light contract
+measures elevations from the **terrain horizon**, so this already means "above the skyline"; the horizon is never subtracted
+again). *Blackout* = neither. Bodies are drawn at `PointSeries.absolute_elev_deg()`. Countdowns have the file's 1 h resolution.
 
 **Honest limits.** Today's light files are a GENERATED analytic stand-in (arbitrary phases, not SPICE, not checked
 against JPL Horizons) and the banner says so on screen. Horizons only reach the edge of a 5 km terrain window. Ice and

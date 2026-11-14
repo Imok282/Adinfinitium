@@ -12,6 +12,8 @@ Labelled GENERATED — NOT OBSERVED. It is NOT SPICE and NOT validated against J
 * No parallax (Earth is treated as a direction at infinity); no refraction (the Moon has no atmosphere).
 * The horizon profile IS computed from the real LOLA height window of the tile, but only out to the
   window edge (~2.5 km), so far-away mountains are missing and the horizon is biased low.
+* Elevations follow the contract: relative to the TERRAIN horizon (elev > 0 <=> body centre above the skyline), one value per cell
+  because each cell has its own skyline. PointSeries.absolute_elev_deg() gives back the elevation above the horizontal plane.
 * Azimuth is in the tile frame (row 0 = +y). Convention x = r sin(lon), y = r cos(lon) (LOLA) is NOT yet
   verified (KAN-21), so tile-frame azimuth = true azimuth + east longitude.
 """
@@ -145,19 +147,20 @@ def make_points(tile: Tile, date: str) -> PointSeries:
         f = az_deg - np.floor(az_deg)
         return (1 - f)[:, None] * horizon[:, i0].T + f[:, None] * horizon[:, (i0 + 1) % N_AZ].T
 
-    sun_fraction = sun_visible_fraction(sun_el[:, None], horizon_at(sun_az))
+    h_sun, h_earth = horizon_at(sun_az), horizon_at(ea_az)                   # [T,K] skyline in each body's direction
+    sun_fraction = sun_visible_fraction(sun_el[:, None], h_sun)
     meta = Meta(
         provenance=Provenance.GENERATED,
         source=("data_tools.make_demo_light: ANALYTIC Sun/Earth stand-in (arbitrary phases, NOT SPICE, not validated "
                 f"vs JPL Horizons); horizon ray-cast from {tile.meta.source}, only out to the tile edge"),
         frame="local tile ENU (south polar stereographic, row 0 = +y); azimuth = true azimuth + east longitude",
         created_by="data_tools.make_demo_light",
-        units={"sun_elev_deg": "deg above local horizontal plane (not terrain)", "earth_elev_deg": "same"},
+        units={"sun_elev_deg": "deg relative to the terrain horizon (>0: centre above skyline)", "earth_elev_deg": "same"},
     )
     ps = PointSeries(region=tile.region, date=date, cells=cells, times_utc=times, et_s=et,
                      sun_fraction=sun_fraction.astype(np.float32),
-                     sun_elev_deg=np.repeat(sun_el[:, None], len(cells), axis=1).astype(np.float32),
-                     earth_elev_deg=np.repeat(ea_el[:, None], len(cells), axis=1).astype(np.float32),
+                     sun_elev_deg=(sun_el[:, None] - h_sun).astype(np.float32),
+                     earth_elev_deg=(ea_el[:, None] - h_earth).astype(np.float32),
                      sun_az_deg=sun_az.astype(np.float32), earth_az_deg=ea_az.astype(np.float32),
                      horizon_elev_deg=horizon.astype(np.float32), meta=meta)
     ps.validate()
