@@ -88,6 +88,12 @@ scoring:
   w_survived_night: 100.0
   w_data_per_mb: 0.1
 
+# Hazard detector (KAN-25). The slope limit itself is lander.touchdown_limits.max_slope_deg.
+hazard_detector:
+  decision_threshold: 0.5            # probability at/above which a pixel counts as UNSAFE (precision/recall)
+  gap_fill_sigma_px: [2.5, 5.0, 10.0, 20.0, 40.0]  # assumption: gaussian widths (coarse fallback) used to fill the ~90% of
+                                     # pixels without a LOLA laser return, for BOTH the U-Net input and the slope-rule backup
+
 swarm:
   population: 10000
   generations_overnight: 300

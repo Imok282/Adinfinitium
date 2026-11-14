@@ -30,6 +30,11 @@ def light_path(region: str, date: str) -> Path:
     return data_root() / "light" / f"{region}_{date}.npz"
 
 
+def model_path(name: str) -> Path:
+    """Trained checkpoints live in <data>/models/ (never in git)."""
+    return data_root() / "models" / f"{name}.pt"
+
+
 def run_dir(run: str) -> Path:
     return runs_root() / run
 

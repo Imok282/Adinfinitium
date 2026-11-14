@@ -21,6 +21,8 @@ swarm = ["jax>=0.4.30", "tensorneat"]
 # 4090 venv ~/venvs/adi-torch: pip install -e ".[worldmodel]"
 worldmodel = ["torch>=2.3", "scipy>=1.11", "spiceypy>=6"]
 apps = ["streamlit>=1.35", "plotly>=5.20", "pandas>=2.1"]
+# Hazard detector (KAN-25): pip install -e ".[hazard,dev]"
+hazard = ["torch>=2.3", "scipy>=1.11", "rasterio>=1.3", "matplotlib>=3.8"]
 # Tanush + Arnav laptops: pip install -e ".[basilisk,apps,dev]"
 basilisk = ["bsk>=2.12", "matplotlib>=3.8", "pytest>=8"]
 dev = ["pytest>=8", "jax>=0.4.30", "ruff>=0.5"]
