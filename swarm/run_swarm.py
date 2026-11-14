@@ -53,7 +53,7 @@ from sim_jax.terrain import flat_terrain, terrain_from_tile
 from swarm.fitness import shaped_fitness
 from swarm.pilot import PilotConfig, make_pilot_policy
 from swarm.problem import LanderProblem, mission_keys, pilot_metrics
-from worldmodel.exams import EXAM_BY_NAME, make_exam_envs
+from worldmodel.exams import EXAM_BY_NAME, make_exam_envs, tuned_classic_params
 
 # Arguments that define WHAT is being evolved. A resumed run must match them exactly; the rest
 # (--generations, --champion-every, --eval-missions, --topk, --val-missions) may change.
@@ -205,10 +205,11 @@ def make_suite_fns(cfg, pilot, algo, rerank_suite, held_suite):
                                         mission_keys(jax.random.fold_in(base_key, i), gen, n))["success"]
                           for i, (_, env, gp) in enumerate(held_suite)])
 
-    @partial(jax.jit, static_argnames="n")
-    def exam_classic(base_key, gen, n):
+    def _exam_classic(base_key, gen, n, tuned):
         rows = []
         for i, (_, env, gp) in enumerate(held_suite):
+            gp = tuned_classic_params(gp) if tuned else gp
+
             def one(k, env=env, gp=gp):
                 sf, m0, _ = _episode(env, classic_policy, gp, k, False)
                 return sf, m0
@@ -216,18 +217,28 @@ def make_suite_fns(cfg, pilot, algo, rerank_suite, held_suite):
             rows.append(episode_metrics(sf, m0)["success"])
         return jnp.stack(rows)
 
+    @partial(jax.jit, static_argnames="n")
+    def exam_classic(base_key, gen, n):
+        """Default classic and the fair TUNED classic (worldmodel.exams.TUNED_CLASSIC), same missions."""
+        return _exam_classic(base_key, gen, n, False), _exam_classic(base_key, gen, n, True)
+
     return rerank, exam_champion, exam_classic
 
 
-def exam_report(held_suite, champ_ok, classic_ok) -> dict:
+def exam_report(held_suite, champ_ok, classic_ok, tuned_ok=None) -> dict:
     """Pool per exam name, then average over exams (same convention as worldmodel.exams)."""
     names = sorted({n for n, _, _ in held_suite}, key=[n for n, _, _ in held_suite].index)
     idx = {n: [i for i, (m, _, _) in enumerate(held_suite) if m == n] for n in names}
     br = {n: {"champion": float(champ_ok[idx[n]].mean()), "classic": float(classic_ok[idx[n]].mean())}
           for n in names}
-    return {"exam_success_rate": float(np.mean([v["champion"] for v in br.values()])),
-            "classic_exam_success_rate": float(np.mean([v["classic"] for v in br.values()])),
-            "exam_breakdown": br}
+    out = {"exam_success_rate": float(np.mean([v["champion"] for v in br.values()])),
+           "classic_exam_success_rate": float(np.mean([v["classic"] for v in br.values()])),
+           "exam_breakdown": br}
+    if tuned_ok is not None:
+        for n in names:
+            br[n]["classic_tuned"] = float(tuned_ok[idx[n]].mean())
+        out["tuned_classic_exam_success_rate"] = float(np.mean([v["classic_tuned"] for v in br.values()]))
+    return out
 
 
 def champion_file(run, gen, cid, score, fly_out, env, region, outcome_name, meta):
@@ -338,12 +349,12 @@ def main(argv=None) -> None:
         sc, scl = summarize(m_champ), summarize(m_classic)
         exam_extra = {}
         if held_suite:
+            cl, cl_tuned = exam_classic(exam_base, gen, a.exam_eval_missions)
             ex = exam_report(held_suite,
                              np.asarray(exam_champion(state_before, transformed, exam_base, gen, a.exam_eval_missions)),
-                             np.asarray(exam_classic(exam_base, gen, a.exam_eval_missions)))
-            exam_extra = {"exam_success_rate": ex["exam_success_rate"],
-                          "classic_exam_success_rate": ex["classic_exam_success_rate"],
-                          "exam_breakdown": ex["exam_breakdown"]}
+                             np.asarray(cl), np.asarray(cl_tuned))
+            exam_extra = {k: ex[k] for k in ("exam_success_rate", "classic_exam_success_rate",
+                                             "tuned_classic_exam_success_rate", "exam_breakdown")}
         wall = time.time() - t0
 
         nodes, conns = (np.asarray(x) for x in jax.device_get(genome))
@@ -380,7 +391,8 @@ def main(argv=None) -> None:
               f"champion held-out {held:6.1%} vs classic {scl['success_rate']:6.1%} | "
               f"fails {sc['failures']}"
               + (f" | EXAMS {exam_extra['exam_success_rate']:6.1%} vs classic "
-                 f"{exam_extra['classic_exam_success_rate']:6.1%}" if exam_extra else ""), flush=True)
+                 f"{exam_extra['classic_exam_success_rate']:6.1%} (tuned classic "
+                 f"{exam_extra['tuned_classic_exam_success_rate']:6.1%})" if exam_extra else ""), flush=True)
 
 
 if __name__ == "__main__":

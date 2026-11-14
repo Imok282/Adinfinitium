@@ -140,6 +140,21 @@ def classic_factory(env, gp):
     return classic_policy, gp
 
 
+# A fair physics baseline. The default classic (hover gate 30 m, final speed 1.0 m/s) is not fuel-efficient, so
+# beating it on `tight_fuel` overstates the AI. Same ZEM/ZEV law, two knobs retuned. Chosen on generated tiles
+# seeded 1000 (NOT the tiles any exam reports on): gate 5 m / 1.8 m/s scored 83% there vs 26% for the default;
+# 1.8 keeps 0.2 m/s of margin to the 2.0 m/s touchdown limit. Always report AI against BOTH baselines.
+TUNED_CLASSIC = {"gate_alt": 5.0, "v_final": 1.8}
+
+
+def tuned_classic_params(gp):
+    return gp._replace(**TUNED_CLASSIC)
+
+
+def tuned_classic_factory(env, gp):
+    return classic_policy, tuned_classic_params(gp)
+
+
 def run_exam(exam: Exam, policy_factory: PolicyFactory, cfg: MissionConfig, n_per_target: int = 200,
              targets_per_tile: int = 4, seed: int = 0) -> dict:
     """Fly `n_per_target` missions at every target. Returns success rate + failure counts."""
@@ -177,10 +192,13 @@ def main(argv=None) -> None:
 
     t0 = time.time()
     res = run_all(classic_factory, exams, a.n, a.targets)
-    print(f"{'exam':28s} {'n':>6s} {'classic':>9s}  failures")
-    for r in res["exams"]:
-        print(f"{r['exam']:28s} {r['n']:6d} {r['success_rate']:9.1%}  {r['failures']}")
-    print(f"mean over exams: {res['intelligence_score']:.1%}   ({time.time() - t0:.0f} s)")
+    tuned = run_all(tuned_classic_factory, exams, a.n, a.targets)
+    res["tuned_classic"] = tuned
+    print(f"{'exam':28s} {'n':>6s} {'classic':>9s} {'tuned':>9s}  failures (default classic)")
+    for r, t in zip(res["exams"], tuned["exams"], strict=True):
+        print(f"{r['exam']:28s} {r['n']:6d} {r['success_rate']:9.1%} {t['success_rate']:9.1%}  {r['failures']}")
+    print(f"mean over exams: default {res['intelligence_score']:.1%}, tuned {tuned['intelligence_score']:.1%}"
+          f"   ({time.time() - t0:.0f} s)")
     meta = Meta(provenance=Provenance.GENERATED, source="worldmodel.exams on generated crater tiles, classic guidance",
                 frame="tile ENU", created_by="worldmodel.exams")
     res["meta"] = json.loads(meta.model_dump_json())
