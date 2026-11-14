@@ -1,5 +1,12 @@
 # Outbox: Nimansh → Imok (newest first)
 
+## 2026-11-14 (late afternoon) · MASTER PLAN written for a fresh Claude session; rover brain pushed on `nimansh/KAN-45-rover-brain`
+Imok asked for the whole plan in depth so another Claude session can take over: **`docs/team/MASTER_PLAN.md`** (read first; also `MISSION_BRAIN_SPEC.md`, `HANDOVER_WORLD_MODELS.md`).
+- **New this session:** rover world + vectorised PyTorch env + physics planner (baselines on held-out Site 23: naive 28% ice / 12% home, cautious 6% / 4%, wait-for-light 4% / 3%; they die 77-88% in the dark) + PPO driver (506 k params; a validation run was still going at handover) + `rover_sim` config block + 11 tests; real NASA permanent-shadow maps attached to the tiles; multi-window support for hazard + light scripts; `contracts/mission.py` `RoverSim`.
+- **Imok's decisions** (all in the master plan): physics-informed-ML framing; real NASA data; scale up data first; 4090 = fresh Windows, PyTorch only, no WSL, code by zip; Colab free T4 with resumable jobs; JAX swarm to Colab; record failures for the showcase; no prototypes, real validated solutions.
+- **NOT built yet (specified in the master plan, section 5):** the overnight kit (`ops/`: run_all with ledger/report/dashboard, bundles, Colab notebook, Windows setup script), rover evaluation script, multi-window support for terrain + rover + PSR/points defaults.
+- Shared files touched: `config/mission.yaml` (`rover_sim`), `contracts/mission.py`. All tests pass (about 100), lint clean on my files. Nothing merged.
+
 ## 2026-11-14 (afternoon) · HANDOVER to Ojas's Claude session. Everything is on `nimansh/KAN-26-terrain`
 **Imok asked to stop and hand over; nothing is running.** Full details: **`docs/team/HANDOVER_WORLD_MODELS.md`** (read it first). Summary:
 - **Trained, real NASA data, held-out Site 23:** hazard U-Net F1 0.950 vs 0.814 backup · light model skyline error 0.63° → 0.47°, sunlit-hours error 21 h → 14 h vs backup.

@@ -56,6 +56,8 @@ Ice/PSR = UNKNOWN until KAN-39. Details: `navigator/README.md`.
 - **Viewer:** `streamlit run model_viewer/app.py --server.port 8504` (3D, trial).
 - Shared files touched: `config/mission.yaml` `light_model` block, `contracts/mission.py` `LightModel`.
 
+## START HERE for a fresh session: `docs/team/MASTER_PLAN.md` (whole plan, compute plan, ordered tasks, failures log). Branch `nimansh/KAN-45-rover-brain`.
+
 ## Decisions already made
 - Submission: **Final project = all three** (hosted web app + GitHub repo + Google Drive). **Repo goes public Sunday** before submitting. **Demo = 30 s video with English subtitles.** **Imok owns the Drive** and tests every link in incognito.
 - AI-generated images/video need a visible "AI-generated" watermark, and no NASA logos may appear in generated content. AI-written code is disclosed in the "Use of AI" field.

@@ -150,6 +150,31 @@ class LightModel(_Strict):
     n_azimuth: int = Field(ge=8)
 
 
+class RoverRewards(_Strict):
+    step: float
+    blocked: float
+    hazard: float
+    death: float
+    progress: float
+
+
+class RoverSim(_Strict):
+    world_px: int = Field(ge=64)
+    step_s: float = Field(gt=0)
+    max_steps: int = Field(ge=1)
+    crop_px: int = Field(ge=16)
+    light_stride_px: int = Field(ge=1)
+    drive_power_w: float = Field(ge=0)
+    idle_power_w: float = Field(ge=0)
+    reach_radius_m: float = Field(gt=0)
+    comms_range_m: float = Field(gt=0)
+    lander_antenna_height_m: float = Field(ge=0)
+    rover_antenna_height_m: float = Field(ge=0)
+    n_ice_targets: int = Field(ge=1)
+    lander_scatter_m: float = Field(ge=0)
+    reward: RoverRewards
+
+
 class MissionWindow(_Strict):
     start_utc: str
     end_utc: str
@@ -178,6 +203,7 @@ class MissionConfig(_Strict):
     swarm: Swarm
     hazard_detector: HazardDetector
     light_model: LightModel
+    rover_sim: RoverSim
 
     @model_validator(mode="after")
     def _consistent(self) -> MissionConfig:

@@ -14,15 +14,16 @@ import numpy as np
 from contracts.mission import MissionConfig
 from contracts.paths import data_root, tile_path
 from contracts.tiles import load_tile
+from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, VAL_SITES, regions_for_site
+from worldmodel.hazard.lola import region_name as _region_name
 from worldmodel.light.teacher import n_steps, raycast_skyline_torch, valid_cells_mask
 
-TRAIN_SITES = ["Site01", "Site04", "Site06", "Site07", "Site20"]
-VAL_SITES = ["Site11"]
-TEST_SITES = ["Site23"]
+TEST_SITES = HOLDOUT_SITES     # one source of truth for the splits (worldmodel/hazard/lola.py)
+__all__ = ["TEST_SITES", "TRAIN_SITES", "VAL_SITES", "SiteSkylines", "build_region", "build_site", "build_site_windows", "regions_for_site"]
 
 
 def region_name(site: str) -> str:
-    return f"lola5m_{site.lower()}"
+    return _region_name(site)
 
 
 def coarsen(height: np.ndarray, factor: int) -> np.ndarray:
@@ -56,12 +57,25 @@ def sample_cells(shape: tuple[int, int], margin_px: float, n: int, rng: np.rando
 
 
 def build_site(site: str, cfg: MissionConfig, n_cells: int, seed: int, device=None, cache: bool = True) -> SiteSkylines:
+    """The centre window of a site (see build_site_windows for all windows)."""
+    return build_region(region_name(site), cfg, n_cells, seed, device, cache)
+
+
+def build_site_windows(site: str, cfg: MissionConfig, n_cells: int, seed: int, device=None, cache: bool = True) -> list[SiteSkylines]:
+    """Every built window of a site (centre + grid windows). A site with no tiles on this machine is skipped with a note."""
+    regions = regions_for_site(site)
+    if not regions:
+        print(f"note: no tiles for {site} on this machine; skipped", flush=True)
+    return [build_region(r, cfg, n_cells, seed + 7 * i, device, cache) for i, r in enumerate(regions)]
+
+
+def build_region(region: str, cfg: MissionConfig, n_cells: int, seed: int, device=None, cache: bool = True) -> SiteSkylines:
     """Fine tile -> (coarse grid, random cells, exact fine skyline). The truth is cached under <ADI_DATA>/light_train/."""
     lm = cfg.light_model
-    tile = load_tile(tile_path(region_name(site)))
+    tile = load_tile(tile_path(region))
     mpp = tile.meters_per_pixel
     k_fine = n_steps(lm.max_ray_range_m, mpp)
-    cache_p = data_root() / "light_train" / f"{region_name(site)}_n{n_cells}_s{seed}_r{int(lm.max_ray_range_m)}_a{lm.n_azimuth}.npz"
+    cache_p = data_root() / "light_train" / f"{region}_n{n_cells}_s{seed}_r{int(lm.max_ray_range_m)}_a{lm.n_azimuth}.npz"
     cells = sample_cells(tile.shape, k_fine + 1, n_cells, np.random.default_rng(seed))
     if cache and cache_p.exists():
         truth = np.load(cache_p)["truth"]
@@ -70,5 +84,5 @@ def build_site(site: str, cfg: MissionConfig, n_cells: int, seed: int, device=No
         if cache:
             cache_p.parent.mkdir(parents=True, exist_ok=True)
             np.savez_compressed(cache_p, truth=truth.astype(np.float32))
-    return SiteSkylines(region_name(site), coarsen(tile.height, lm.coarse_factor).astype(np.float32), lm.coarse_factor,
+    return SiteSkylines(region, coarsen(tile.height, lm.coarse_factor).astype(np.float32), lm.coarse_factor,
                         mpp * lm.coarse_factor, cells, truth.astype(np.float32))

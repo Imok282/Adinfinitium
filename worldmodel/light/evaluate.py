@@ -20,7 +20,7 @@ from contracts.light import PointSeries, load_points
 from contracts.mission import load_mission
 from contracts.paths import data_root, model_path, run_dir, tile_path
 from contracts.tiles import load_tile
-from worldmodel.light.data import TEST_SITES, VAL_SITES, build_site
+from worldmodel.light.data import TEST_SITES, VAL_SITES, build_region, regions_for_site
 from worldmodel.light.physics import light_from_skyline
 
 
@@ -74,9 +74,13 @@ def main(argv: list[str] | None = None) -> int:
               "coarse_factor": cfg.light_model.coarse_factor, "max_ray_range_m": cfg.light_model.max_ray_range_m,
               "truth": "exact ray-cast of the fine 5 m LOLA grid", "regions": {}}
     print(f"checkpoint {info['checkpoint_id']}  trained on {info['trained_on']}")
+    jobs = [(site, region) for site in VAL_SITES + TEST_SITES for region in regions_for_site(site)]
     for site in VAL_SITES + TEST_SITES:
+        if not regions_for_site(site):
+            print(f"note: no tiles for {site} on this machine; skipped", flush=True)
+    for site, region in jobs:
         role = "TEST" if site in TEST_SITES else "val"
-        s = build_site(site, cfg, a.cells, 2000, device, cache=False)
+        s = build_region(region, cfg, a.cells, 2000, device, cache=False)
         tile = load_tile(tile_path(s.region))
         ps = find_directions(s.region)
         res_dir = f"{ps.region} {ps.date} [{ps.meta.provenance.banner}]" if ps else None

@@ -20,7 +20,7 @@ import torch.nn.functional as F
 
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
-from worldmodel.light.data import TEST_SITES, TRAIN_SITES, VAL_SITES, build_site
+from worldmodel.light.data import TEST_SITES, TRAIN_SITES, VAL_SITES, build_site_windows
 from worldmodel.light.model import SkylineNet, pick_device, ray_inputs, save_checkpoint
 
 
@@ -79,8 +79,10 @@ def main(argv: list[str] | None = None) -> int:
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     t0 = time.time()
-    train = [to_device(build_site(s, cfg, a.cells, a.seed + i, device), device) for i, s in enumerate(TRAIN_SITES)]
-    val = [to_device(build_site(s, cfg, a.val_cells, 1000 + i, device), device) for i, s in enumerate(VAL_SITES)]
+    train = [to_device(s, device) for i, site in enumerate(TRAIN_SITES) for s in build_site_windows(site, cfg, a.cells, a.seed + 100 * i, device)]
+    val = [to_device(s, device) for i, site in enumerate(VAL_SITES) for s in build_site_windows(site, cfg, a.val_cells, 1000 + 100 * i, device)]
+    if not train or not val:
+        raise SystemExit("no tiles for the train/validation sites: fetch them first (python -I -m worldmodel.hazard.lola all)")
     print(f"device={device} train={[s['region'] for s in train]} val={[s['region'] for s in val]} (test {TEST_SITES} never loaded) "
           f"data ready in {time.time() - t0:.0f}s", flush=True)
 

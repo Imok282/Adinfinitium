@@ -102,6 +102,28 @@ light_model:
   range_steps: 64                    # assumption: samples along each skyline ray in the coarse grid (64 x 20 m = 1280 m)
   n_azimuth: 360                     # one skyline value per degree, as in the light contract
 
+# Rover training world (autonomous rover brain). DESIGN ASSUMPTIONS for a simulation, not flight values. Rover mass/speed/slope/panel/battery are in `rover:` above.
+rover_sim:
+  world_px: 512                      # the rover world is the central 512 x 512 px (2.56 km) of a 5 m tile (skyline rays stay inside the tile)
+  step_s: 3600.0                     # one decision per hour of mission time
+  max_steps: 300                     # decisions per episode (12.5 days)
+  crop_px: 64                        # egocentric map crop, 64 x 64 px = 320 m
+  light_stride_px: 8                 # sunlight field resolution: one value per 8 px = 40 m
+  drive_power_w: 12.0                # assumption: power while driving
+  idle_power_w: 2.0                  # assumption: avionics keep-alive while stopped
+  reach_radius_m: 20.0               # within this distance the ice target / the lander counts as reached
+  comms_range_m: 1500.0              # assumption: rover-to-lander radio range (needs line of sight)
+  lander_antenna_height_m: 2.0
+  rover_antenna_height_m: 1.0
+  n_ice_targets: 16                  # candidate ice (PSR-edge) targets per world
+  lander_scatter_m: 60.0             # rover starts within this distance of the lander (touchdown scatter)
+  reward:
+    step: -0.01
+    blocked: -0.5                    # tried to drive into a slope over the rover limit or out of the world
+    hazard: -2.0                     # per unit hazard probability of the cell entered
+    death: -50.0                     # battery empty away from the lander
+    progress: 0.05                   # per metre of cost-to-go gained toward the current goal
+
 swarm:
   population: 10000
   generations_overnight: 300
