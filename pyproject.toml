@@ -17,7 +17,8 @@ dependencies = [
 [project.optional-dependencies]
 # 4090 venv ~/venvs/adi-jax:   pip install -e ".[sim]"  then  pip install -U "jax[cuda13]" (fallback cuda12)
 sim = ["jax>=0.4.30"]
-swarm = ["jax>=0.4.30", "tensorneat"]
+# tensorneat is NOT on PyPI; install from GitHub (pulls brax/mujoco, ~1 GB). Use a separate venv from "dev".
+swarm = ["jax>=0.4.30", "tensorneat @ git+https://github.com/EMI-Group/tensorneat.git"]
 # 4090 venv ~/venvs/adi-torch: pip install -e ".[worldmodel]"
 worldmodel = ["torch>=2.3", "scipy>=1.11", "spiceypy>=6"]
 apps = ["streamlit>=1.35", "plotly>=5.20", "pandas>=2.1"]
