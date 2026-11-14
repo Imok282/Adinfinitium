@@ -27,6 +27,13 @@ After both are merged, everyone works from `main` + their own task branch.
 
 Team tasks: `docs/team/SIMULATION_TEAM_HANDBOOK.md` (Tanush, Arnav). Nimansh: Navigator (KAN-35), tests (KAN-36), README (KAN-37).
 
+## Hazard detector (KAN-25, Nimansh) — branch `nimansh/KAN-25-hazard`
+Trained on real LOLA 5 m tiles (Sites 01/04/06/07/20; val Site 11; **test Site 23, never seen**). Same sparse input for both:
+slope-rule backup F1 0.814 (misses 20.9% of hazards) vs U-Net F1 0.950 (misses 4.7%). Label = NASA slope map (computed from
+interpolated heights), so it "recovers the official hazard map from sparse laser data", not proof of safety. Rocks and PSR = UNKNOWN.
+Shared files touched: `config/mission.yaml` + `contracts/mission.py` (`hazard_detector` block), `contracts/paths.py` (`model_path`).
+Details + how to run: `worldmodel/hazard/README.md`.
+
 ## Decisions already made
 - Submission: **Final project = all three** (hosted web app + GitHub repo + Google Drive). **Repo goes public Sunday** before submitting. **Demo = 30 s video with English subtitles.** **Imok owns the Drive** and tests every link in incognito.
 - AI-generated images/video need a visible "AI-generated" watermark, and no NASA logos may appear in generated content. AI-written code is disclosed in the "Use of AI" field.

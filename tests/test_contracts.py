@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from contracts.light import LightField, load_light, save_light
 from contracts.mission import load_mission
-from contracts.paths import repo_root
+from contracts.paths import model_path, repo_root
 from contracts.provenance import Meta, Provenance
 from contracts.runs import (
     TELEMETRY_COLUMNS,
@@ -95,6 +95,19 @@ def test_run_files_roundtrip(tmp_path):
     rows = [{"t_s": 0.0, "phase": "terminal", "decision": "start"}]
     got = read_telemetry(write_telemetry(rows, tmp_path / "telemetry_003.csv"))
     assert got[0]["phase"] == "terminal" and tuple(got[0].keys()) == TELEMETRY_COLUMNS
+
+
+def test_hazard_detector_config_block_and_model_path(monkeypatch, tmp_path):
+    h = load_mission().hazard_detector
+    assert 0 < h.decision_threshold < 1 and len(h.gap_fill_sigma_px) >= 1
+    assert h.gap_fill_sigma_px == sorted(h.gap_fill_sigma_px)  # finest gap-fill width first
+    bad = (repo_root() / "config" / "mission.yaml").read_text().replace("decision_threshold: 0.5", "decision_threshold: 1.5")
+    f = tmp_path / "m.yaml"
+    f.write_text(bad)
+    with pytest.raises(ValidationError):
+        load_mission(f)
+    monkeypatch.setenv("ADI_DATA", str(tmp_path))
+    assert model_path("hazard_unet") == tmp_path / "models" / "hazard_unet.pt"
 
 
 def test_example_sites_load():
