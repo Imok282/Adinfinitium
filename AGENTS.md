@@ -4,7 +4,7 @@ Adinfinitium — NASA Space Apps 2026, *Lunar Landing Site Navigator*. An autono
 that land where and when a mission survives, tested by an evolving 10,000-mission swarm.
 
 Read first: **`docs/STATUS.md`** (where we are, what's next), `docs/SYSTEM_DESIGN.md` (how the parts fit) and the folder `README.md` you are working in.
-Your task text is in Jira (project KAN); the key is in your branch name.
+Task IDs (KAN-n) go in branch names. Task text is in `docs/STATUS.md` and `docs/team/`; don't call Jira/Atlassian tools unless asked.
 
 ## Hard rules
 1. **Branches.** Never commit to `main`. Branch as `<name>/KAN-<n>-<short>` (e.g. `tanush/KAN-41-orbit`).
