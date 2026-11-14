@@ -214,3 +214,17 @@ def test_points_shape_errors():
     ps.horizon_elev_deg = np.full((3, 360), 120.0)
     with pytest.raises(ValueError, match="horizon"):
         ps.validate()
+
+
+def test_absolute_elevation_adds_the_skyline_at_the_body_azimuth():
+    ps, _ = _points()                                    # horizon 2 deg everywhere
+    ps.sun_az_deg = np.array([0.0, 90.0, 359.6, 180.4])
+    ps.horizon_elev_deg = np.zeros((3, 360))
+    ps.horizon_elev_deg[:, 90] = 5.0
+    ps.horizon_elev_deg[:, 0] = 1.0                      # 359.6 rounds to 360 -> index 0
+    ps.sun_elev_deg = np.full((4, 3), 10.0)
+    ab = ps.absolute_elev_deg("sun")
+    np.testing.assert_allclose(ab[:, 0], [11.0, 15.0, 11.0, 10.0])
+    assert ab.shape == (4, 3)
+    with pytest.raises(ValueError, match="body"):
+        ps.absolute_elev_deg("mars")

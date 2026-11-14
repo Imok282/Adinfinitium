@@ -39,7 +39,9 @@ Grid: row 0 = north (+y), col 0 = west (−x); `x = (col − (W−1)/2)·mpp`, `
 ## `data/light/<region>_<date>.npz` — `contracts/light.py: LightField` (v2)
 Same grid as the tile. `times_utc` [T] (in header), `et_s` [T] float64 (strictly increasing),
 `sun_fraction` [T,H,W] 0..1 (finite solar disk), `sun_elev_deg` and `earth_elev_deg` [T,H,W]
-above the **local** horizon (terrain + curvature, no refraction).
+relative to the **terrain horizon** (terrain + curvature, no refraction): elev = body-centre elevation minus the skyline elevation at
+that azimuth, so **elev > 0 means the centre is above the skyline** (Earth link = `earth_elev_deg > 0`). "Sun up" = `sun_fraction > 0`.
+To draw a body use the absolute elevation `elev + horizon_elev_deg[k, round(az) % 360]` (`PointSeries.absolute_elev_deg`).
 **v2 additions (optional on load; v1 files without them still load):** `sun_az_deg`, `earth_az_deg` **[T]**
 (tile centre, not per cell): compass degrees, 0 = north, clockwise, 0..360, tile ENU frame (row 0 = north).
 `<date>` = **window start, UTC, `YYYY-MM-DD`** (00:00:00Z), never a lunar-day id. Standard axis: 1 h cadence,
