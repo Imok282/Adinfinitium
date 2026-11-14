@@ -21,7 +21,7 @@ import torch.nn.functional as F
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
 from worldmodel.light.data import TEST_SITES, TRAIN_SITES, VAL_SITES, build_site_windows
-from worldmodel.light.model import SkylineNet, pick_device, ray_inputs, save_checkpoint
+from worldmodel.light.model import build_model, pick_device, ray_inputs, save_checkpoint
 
 
 def to_device(site, device):
@@ -64,6 +64,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=32)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--width", type=int, default=24)
+    ap.add_argument("--arch", choices=["conv", "former"], default="conv", help="conv = 33 k at width 24; former = transformer across the 360 directions (~38 M at --width 64 --d 512 --layers 12)")
+    ap.add_argument("--d", type=int, default=512)
+    ap.add_argument("--layers", type=int, default=12)
+    ap.add_argument("--heads", type=int, default=8)
     ap.add_argument("--cells", type=int, default=4000, help="random cells per training tile")
     ap.add_argument("--val-cells", type=int, default=800)
     ap.add_argument("--eval-every", type=int, default=250)
@@ -86,7 +90,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"device={device} train={[s['region'] for s in train]} val={[s['region'] for s in val]} (test {TEST_SITES} never loaded) "
           f"data ready in {time.time() - t0:.0f}s", flush=True)
 
-    model = SkylineNet(width=a.width).to(device)
+    lm = cfg.light_model
+    kw = {"width": a.width} if a.arch == "conv" else {"width": a.width, "d": a.d, "layers": a.layers, "heads": a.heads, "k_steps": lm.range_steps, "n_az": lm.n_azimuth}
+    model = build_model(a.arch, **kw).to(device)
+    print(f"architecture {a.arch}: {sum(p.numel() for p in model.parameters()):,} parameters", flush=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=1e-4)
     last_p, best_p = model_path(a.name + "_last"), model_path(a.name)
     step, best = 0, float("inf")

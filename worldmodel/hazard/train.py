@@ -25,7 +25,7 @@ from worldmodel.hazard.backup import label_hazard, slope_limit_deg
 from worldmodel.hazard.features import N_CHANNELS, build_features
 from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, regions_for_site
 from worldmodel.hazard.metrics import confusion
-from worldmodel.hazard.model import UNet, pick_device, predict_probability, save_checkpoint
+from worldmodel.hazard.model import build_model, pick_device, predict_probability, save_checkpoint
 
 VAL_SITES = ["Site11"]
 
@@ -84,6 +84,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--crop", type=int, default=128)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--base", type=int, default=16)
+    ap.add_argument("--arch", choices=["unet", "attn"], default="unet", help="unet = plain (1.9 M at base 16); attn = deep residual attention U-Net (~60 M at --base 72)")
+    ap.add_argument("--depth", type=int, default=4)
+    ap.add_argument("--blocks", type=int, default=2, help="residual blocks per level (attn only)")
+    ap.add_argument("--heads", type=int, default=8, help="attention heads (attn only)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true", help="continue from hazard_unet_last.pt")
@@ -98,7 +102,9 @@ def main(argv: list[str] | None = None) -> int:
     device = pick_device(a.device)
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    model = UNet(N_CHANNELS, base=a.base).to(device)
+    kw = {"base": a.base, "depth": a.depth} | ({"blocks": a.blocks, "heads": a.heads} if a.arch == "attn" else {})
+    model = build_model(a.arch, in_ch=N_CHANNELS, **kw).to(device)
+    print(f"architecture {a.arch}: {sum(p.numel() for p in model.parameters()):,} parameters", flush=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=1e-4)
     start, best = 0, -1.0
     last_p, best_p = model_path(a.name + "_last"), model_path(a.name)

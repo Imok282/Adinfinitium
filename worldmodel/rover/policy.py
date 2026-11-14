@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 from torch import nn
 
+from worldmodel.nn_blocks import TransformerStack, sincos_1d
 from worldmodel.rover.env import MAP_CHANNELS, N_ACTIONS, VEC_DIM
 
 
@@ -41,9 +42,49 @@ class DriverNet(nn.Module):
         nn.init.orthogonal_(self.pi.weight, 0.01)
         nn.init.zeros_(self.pi.bias)
 
+    def arch(self) -> dict:
+        return {"kind": "conv", "width": self.width, "hidden": self.hidden, "crop": self.crop}
+
     def forward(self, obs: dict) -> tuple[torch.Tensor, torch.Tensor]:
         h = self.trunk(torch.cat([self.map_fc(self.conv(obs["map"])), self.vec_fc(obs["vec"])], dim=1))
         return self.pi(h), self.v(h)[:, 0]
+
+
+class DriverFormer(nn.Module):
+    """Vision-transformer rover driver: a conv stem turns the egocentric map (terrain, slope, hazard, shadow, sunlight, Earth) into 8 x 8 patch tokens,
+    the battery / sunlight forecast / goal / lander / link vector becomes one more token, and a transformer (self-attention across all tokens) plans
+    the next move. A learned CLS token feeds the policy and value heads. d=512, layers=10 is about 32 M parameters."""
+
+    def __init__(self, d: int = 512, layers: int = 10, heads: int = 8, crop: int = 64, stem: int = 64):
+        super().__init__()
+        self.d, self.layers, self.heads, self.crop, self.stem_ch = d, layers, heads, crop, stem
+        self.stem = nn.Sequential(
+            nn.Conv2d(MAP_CHANNELS, stem, 3, 2, 1), nn.GroupNorm(8, stem), nn.SiLU(),
+            nn.Conv2d(stem, 2 * stem, 3, 2, 1), nn.GroupNorm(8, 2 * stem), nn.SiLU(),
+            nn.Conv2d(2 * stem, d, 2, 2))                                   # 64 -> 32 -> 16 -> 8 : 64 patch tokens
+        side = crop // 8
+        self.register_buffer("pe", sincos_1d(side * side, d), persistent=False)
+        self.vec = nn.Sequential(nn.Linear(VEC_DIM, d), nn.SiLU(), nn.Linear(d, d))
+        self.cls = nn.Parameter(torch.zeros(1, 1, d))
+        self.encoder = TransformerStack(d, layers, heads)
+        self.pi = nn.Sequential(nn.Linear(d, d), nn.SiLU(), nn.Linear(d, N_ACTIONS))
+        self.v = nn.Sequential(nn.Linear(d, d), nn.SiLU(), nn.Linear(d, 1))
+        nn.init.orthogonal_(self.pi[-1].weight, 0.01)
+        nn.init.zeros_(self.pi[-1].bias)
+
+    def arch(self) -> dict:
+        return {"kind": "former", "d": self.d, "layers": self.layers, "heads": self.heads, "crop": self.crop, "stem": self.stem_ch}
+
+    def forward(self, obs: dict) -> tuple[torch.Tensor, torch.Tensor]:
+        tok = self.stem(obs["map"]).flatten(2).transpose(1, 2) + self.pe        # [N, 64, d]
+        seq = torch.cat([self.cls.expand(tok.shape[0], -1, -1), self.vec(obs["vec"])[:, None], tok], dim=1)
+        h = self.encoder(seq)[:, 0]
+        return self.pi(h), self.v(h)[:, 0]
+
+
+def build_model(kind: str = "conv", **kw) -> nn.Module:
+    """Rover driver by kind: 'conv' (DriverNet, 0.5 M) or 'former' (DriverFormer vision transformer, ~32 M at d=512, layers=10)."""
+    return {"conv": DriverNet, "former": DriverFormer}[kind](**kw)
 
 
 def checkpoint_id(model: nn.Module) -> str:
@@ -54,18 +95,19 @@ def checkpoint_id(model: nn.Module) -> str:
     return h.hexdigest()[:10]
 
 
-def save_checkpoint(path: str | Path, model: DriverNet, info: dict, extra: dict | None = None) -> Path:
+def save_checkpoint(path: str | Path, model: nn.Module, info: dict, extra: dict | None = None) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
-                "arch": {"width": model.width, "hidden": model.hidden, "crop": model.crop},
+                "arch": model.arch(),
                 "info": {**info, "checkpoint_id": checkpoint_id(model)}, **(extra or {})}, p)
     return p
 
 
-def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[DriverNet, dict]:
+def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[nn.Module, dict]:
     state = torch.load(Path(path), map_location="cpu", weights_only=False)
-    model = DriverNet(**state["arch"])
+    arch = dict(state["arch"])
+    model = build_model(arch.pop("kind", "conv"), **arch)             # old checkpoints have no 'kind': the conv driver
     model.load_state_dict(state["state_dict"])
     model.eval()
     return model.to(device or torch.device("cpu")), state["info"]

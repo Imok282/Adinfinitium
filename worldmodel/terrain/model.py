@@ -15,6 +15,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from worldmodel.nn_blocks import ResBlock, SelfAttention2d, groups
+
 
 def pick_device(prefer: str | None = None) -> torch.device:
     if prefer:
@@ -65,6 +67,9 @@ class DenoiseUNet(nn.Module):
         self.dec = nn.ModuleList([_Block(chs[i] * 2, chs[i], self.temb) for i in range(depth)])
         self.head = nn.Conv2d(base, 1, 1)
 
+    def arch(self) -> dict:
+        return {"kind": "unet", "base": self.base, "depth": self.depth, "T": self.T}
+
     def forward(self, x_t, cond_val, cond_mask, t):
         te = self.t_mlp(time_embedding(t, self.base))
         x = torch.cat([x_t, cond_val, cond_mask], dim=1)
@@ -79,13 +84,69 @@ class DenoiseUNet(nn.Module):
         return self.head(x)
 
 
+class _Seq(nn.ModuleList):
+    """Sequence of blocks that all take (x, embedding)."""
+
+    def forward(self, x: torch.Tensor, e: torch.Tensor) -> torch.Tensor:
+        for m in self:
+            x = m(x, e)
+        return x
+
+
+class DenoiseAttnUNet(nn.Module):
+    """Large conditional denoiser: residual blocks with a time embedding and multi-head self-attention at the coarse scales (global terrain context
+    over the 320 m patch). Same interface as DenoiseUNet. base=192, depth=3, blocks=2, attn_levels=2 is about 112 M parameters."""
+
+    def __init__(self, base: int = 128, depth: int = 3, T: int = 100, blocks: int = 2, heads: int = 8, attn_levels: int = 2):
+        super().__init__()
+        self.base, self.depth, self.T, self.blocks, self.heads, self.attn_levels = base, depth, T, blocks, heads, attn_levels
+        emb = base * 4
+        self.t_mlp = nn.Sequential(nn.Linear(base, emb), nn.SiLU(), nn.Linear(emb, emb))
+        chs = [min(base * 2**i, base * 4) for i in range(depth + 1)]
+        use_attn = [i >= depth - attn_levels for i in range(depth)]
+        self.stem = nn.Conv2d(3, chs[0], 3, padding=1)
+        self.enc, self.down = nn.ModuleList(), nn.ModuleList()
+        for i in range(depth):
+            layers = [ResBlock(chs[i], chs[i], emb) for _ in range(blocks)] + ([SelfAttention2d(chs[i], heads)] if use_attn[i] else [])
+            self.enc.append(_Seq(layers))
+            self.down.append(nn.Conv2d(chs[i], chs[i + 1], 3, stride=2, padding=1))
+        self.mid = _Seq([ResBlock(chs[depth], chs[depth], emb), SelfAttention2d(chs[depth], heads), ResBlock(chs[depth], chs[depth], emb)])
+        self.up = nn.ModuleList([nn.ConvTranspose2d(chs[i + 1], chs[i], 2, stride=2) for i in range(depth)])
+        self.dec = nn.ModuleList()
+        for i in range(depth):
+            layers = [ResBlock(2 * chs[i], chs[i], emb)] + [ResBlock(chs[i], chs[i], emb) for _ in range(blocks - 1)]
+            self.dec.append(_Seq(layers + ([SelfAttention2d(chs[i], heads)] if use_attn[i] else [])))
+        self.head = nn.Sequential(nn.GroupNorm(groups(chs[0]), chs[0]), nn.SiLU(), nn.Conv2d(chs[0], 1, 1))
+
+    def arch(self) -> dict:
+        return {"kind": "attn", "base": self.base, "depth": self.depth, "T": self.T, "blocks": self.blocks, "heads": self.heads, "attn_levels": self.attn_levels}
+
+    def forward(self, x_t, cond_val, cond_mask, t):
+        e = self.t_mlp(time_embedding(t, self.base))
+        x = self.stem(torch.cat([x_t, cond_val, cond_mask], dim=1))
+        skips = []
+        for i in range(self.depth):
+            x = self.enc[i](x, e)
+            skips.append(x)
+            x = self.down[i](x)
+        x = self.mid(x, e)
+        for i in reversed(range(self.depth)):
+            x = self.dec[i](torch.cat([self.up[i](x), skips[i]], dim=1), e)
+        return self.head(x)
+
+
+def build_model(kind: str = "unet", **kw) -> nn.Module:
+    """Terrain denoiser by kind: 'unet' (2 M at base 32) or 'attn' (attention U-Net, ~100 M at base 128)."""
+    return {"unet": DenoiseUNet, "attn": DenoiseAttnUNet}[kind](**kw)
+
+
 def q_sample(x0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor, ab: torch.Tensor) -> torch.Tensor:
     a = ab[t][:, None, None, None]
     return a.sqrt() * x0 + (1 - a).sqrt() * noise
 
 
 @torch.no_grad()
-def sample(model: DenoiseUNet, known_val: torch.Tensor, known_mask: torch.Tensor, steps: int = 25, eta: float = 1.0,
+def sample(model: nn.Module, known_val: torch.Tensor, known_mask: torch.Tensor, steps: int = 25, eta: float = 1.0,
            generator: torch.Generator | None = None) -> torch.Tensor:
     """known_val/known_mask [B,1,H,W] (normalised heights, 0/1 mask). Returns clean-height samples [B,1,H,W] (normalised)."""
     dev = known_val.device
@@ -114,18 +175,19 @@ def checkpoint_id(model: nn.Module) -> str:
     return h.hexdigest()[:10]
 
 
-def save_checkpoint(path: str | Path, model: DenoiseUNet, info: dict, extra: dict | None = None) -> Path:
+def save_checkpoint(path: str | Path, model: nn.Module, info: dict, extra: dict | None = None) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
-                "arch": {"base": model.base, "depth": model.depth, "T": model.T},
+                "arch": model.arch(),
                 "info": {**info, "checkpoint_id": checkpoint_id(model)}, **(extra or {})}, p)
     return p
 
 
-def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[DenoiseUNet, dict]:
+def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[nn.Module, dict]:
     state = torch.load(Path(path), map_location="cpu", weights_only=False)
-    model = DenoiseUNet(**state["arch"])
+    arch = dict(state["arch"])
+    model = build_model(arch.pop("kind", "unet"), **arch)             # old checkpoints have no 'kind': the small U-Net
     model.load_state_dict(state["state_dict"])
     model.eval()
     return model.to(device or torch.device("cpu")), state["info"]

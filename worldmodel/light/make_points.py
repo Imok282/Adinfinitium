@@ -21,6 +21,7 @@ from contracts.mission import load_mission
 from contracts.paths import data_root, points_path, tile_path
 from contracts.provenance import Meta, Provenance
 from contracts.tiles import Tile, load_tile
+from worldmodel.hazard.lola import ALL_SITES, region_name
 from worldmodel.light.ephemeris import grid_azimuth, sun_earth_directions
 from worldmodel.light.physics import light_from_skyline
 from worldmodel.light.teacher import raycast_skyline_numpy
@@ -66,8 +67,9 @@ def make_points(tile: Tile, date: str) -> PointSeries:
 
 
 def default_regions() -> list[str]:
+    """Centre-window tiles of every site that is on this machine (grid windows have no ring cells worth a Navigator file)."""
     d = data_root() / "tiles"
-    return sorted(p.stem for p in d.glob("lola5m_site*.npz") if "_gen" not in p.stem and "_r" not in p.stem.split("lola5m_")[1]) if d.exists() else []
+    return [region_name(s) for s in ALL_SITES if (d / f"{region_name(s)}.npz").exists()]
 
 
 def main(argv: list[str] | None = None) -> int:

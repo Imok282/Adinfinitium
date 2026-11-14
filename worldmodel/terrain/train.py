@@ -25,15 +25,16 @@ from worldmodel.terrain.data import (
     TEST_SITES,
     TRAIN_SITES,
     VAL_SITES,
-    load_site,
+    load_region,
+    regions_for_site,
     sample_patch_origins,
 )
-from worldmodel.terrain.model import DenoiseUNet, cosine_alpha_bar, pick_device, q_sample, save_checkpoint
+from worldmodel.terrain.model import build_model, cosine_alpha_bar, pick_device, q_sample, save_checkpoint
 
 
 class SitePatches:
-    def __init__(self, site: str, device, rng: np.random.Generator, n_origins: int = 6000):
-        t = load_site(site)
+    def __init__(self, region: str, device, rng: np.random.Generator, n_origins: int = 6000):
+        t = load_region(region)
         self.region, self.h, self.m = t.region, t.height.astype(np.float32), t.real_mask
         self.origins = sample_patch_origins(self.m, n_origins, rng)
 
@@ -62,6 +63,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=64)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--base", type=int, default=32)
+    ap.add_argument("--arch", choices=["unet", "attn"], default="unet", help="unet = 2 M at base 32; attn = attention U-Net (~112 M at --base 192)")
+    ap.add_argument("--depth", type=int, default=3)
+    ap.add_argument("--blocks", type=int, default=2)
+    ap.add_argument("--heads", type=int, default=8)
     ap.add_argument("--T", type=int, default=100)
     ap.add_argument("--eval-every", type=int, default=500)
     ap.add_argument("--seed", type=int, default=0)
@@ -73,11 +78,18 @@ def main(argv: list[str] | None = None) -> int:
     device = pick_device(a.device)
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    train = [SitePatches(s, device, rng) for s in TRAIN_SITES]
-    val = [SitePatches(s, device, np.random.default_rng(1000 + i), 1500) for i, s in enumerate(VAL_SITES)]
+    for s in TRAIN_SITES + VAL_SITES:
+        if not regions_for_site(s):
+            print(f"note: no tiles for {s} on this machine; skipped", flush=True)
+    train = [SitePatches(r, device, rng) for s in TRAIN_SITES for r in regions_for_site(s)]
+    val = [SitePatches(r, device, np.random.default_rng(1000 + i), 1500) for i, r in enumerate(r for s in VAL_SITES for r in regions_for_site(s))]
+    if not train or not val:
+        raise SystemExit("no tiles for the train/validation sites: fetch them first (python -I -m worldmodel.hazard.lola all)")
     print(f"device={device} train={[s.region for s in train]} val={[s.region for s in val]} (test {TEST_SITES} never loaded)", flush=True)
 
-    model = DenoiseUNet(base=a.base, T=a.T).to(device)
+    kw = {"base": a.base, "T": a.T} | ({"depth": a.depth, "blocks": a.blocks, "heads": a.heads} if a.arch == "attn" else {})
+    model = build_model(a.arch, **kw).to(device)
+    print(f"architecture {a.arch}: {sum(p.numel() for p in model.parameters()):,} parameters", flush=True)
     ab = cosine_alpha_bar(a.T).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=1e-4)
     last_p, best_p = model_path(a.name + "_last"), model_path(a.name)

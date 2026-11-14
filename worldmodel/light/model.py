@@ -20,6 +20,7 @@ from contracts.mission import MissionConfig
 from contracts.tiles import Tile
 from worldmodel.light.data import coarsen, fine_to_coarse
 from worldmodel.light.teacher import height_at_cells_torch, sample_rays_torch
+from worldmodel.nn_blocks import TransformerStack, sincos_1d
 
 REL_H_SCALE_M = 100.0     # model scalings (not mission numbers)
 ANGLE_SCALE_DEG = 10.0
@@ -72,6 +73,9 @@ class SkylineNet(nn.Module):
         nn.init.zeros_(self.head2.weight)
         nn.init.zeros_(self.head2.bias)
 
+    def arch(self) -> dict:
+        return {"kind": "conv", "width": self.width, "n_down": self.n_down}
+
     def delta(self, x: torch.Tensor) -> torch.Tensor:
         f = self.body(x)                                       # [N,w,K',n_az]
         g = torch.cat([f.amax(dim=2), f.mean(dim=2)], dim=1)   # collapse range -> [N,2w,n_az]
@@ -82,6 +86,44 @@ class SkylineNet(nn.Module):
         return baseline + self.delta(x)
 
 
+class SkylineFormer(nn.Module):
+    """Skyline transformer: a circular conv stem summarises the terrain along each compass ray, then a transformer attends ACROSS all 360 directions
+    (a mountain to the north changes what the south needs to know about curvature, shadows, ridges), and a zero-initialised head predicts the correction.
+    Like SkylineNet, prediction = physics baseline + delta, so an UNTRAINED model equals the physics backup exactly. d=512, layers=12 is about 38 M parameters."""
+
+    def __init__(self, width: int = 64, n_down: int = 3, d: int = 512, layers: int = 12, heads: int = 8, k_steps: int = 64, n_az: int = 360):
+        super().__init__()
+        self.width, self.n_down, self.d, self.layers, self.heads, self.k_steps, self.n_az = width, n_down, d, layers, heads, k_steps, n_az
+        stem = [_CircConv(2, width)] + [_CircConv(width, width, stride_range=2) for _ in range(n_down)]
+        self.body = nn.Sequential(*stem)
+        k = k_steps
+        for _ in range(n_down):
+            k = (k + 1) // 2
+        self.embed = nn.Linear(width * k, d)
+        self.register_buffer("pe", sincos_1d(n_az, d, period=float(n_az)), persistent=False)
+        self.encoder = TransformerStack(d, layers, heads)
+        self.head = nn.Linear(d, 1)
+        nn.init.zeros_(self.head.weight)
+        nn.init.zeros_(self.head.bias)
+
+    def arch(self) -> dict:
+        return {"kind": "former", "width": self.width, "n_down": self.n_down, "d": self.d, "layers": self.layers, "heads": self.heads,
+                "k_steps": self.k_steps, "n_az": self.n_az}
+
+    def delta(self, x: torch.Tensor) -> torch.Tensor:
+        f = self.body(x)                                                   # [N, w, K', n_az]
+        tok = self.embed(f.permute(0, 3, 1, 2).flatten(2)) + self.pe       # [N, n_az, d]
+        return self.head(self.encoder(tok))[..., 0]                        # degrees, [N, n_az]
+
+    def forward(self, x: torch.Tensor, baseline: torch.Tensor) -> torch.Tensor:
+        return baseline + self.delta(x)
+
+
+def build_model(kind: str = "conv", **kw) -> nn.Module:
+    """Skyline network by kind: 'conv' (SkylineNet, 33 k at width 24) or 'former' (SkylineFormer, ~38 M at d=512, layers=12)."""
+    return {"conv": SkylineNet, "former": SkylineFormer}[kind](**kw)
+
+
 def checkpoint_id(model: nn.Module) -> str:
     h = hashlib.sha1()
     for k, v in sorted(model.state_dict().items()):
@@ -90,18 +132,19 @@ def checkpoint_id(model: nn.Module) -> str:
     return h.hexdigest()[:10]
 
 
-def save_checkpoint(path: str | Path, model: SkylineNet, info: dict, extra: dict | None = None) -> Path:
+def save_checkpoint(path: str | Path, model: nn.Module, info: dict, extra: dict | None = None) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
-                "arch": {"width": model.width, "n_down": model.n_down},
+                "arch": model.arch() if hasattr(model, "arch") else {"kind": "conv", "width": model.width, "n_down": model.n_down},
                 "info": {**info, "checkpoint_id": checkpoint_id(model)}, **(extra or {})}, p)
     return p
 
 
-def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[SkylineNet, dict]:
+def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tuple[nn.Module, dict]:
     state = torch.load(Path(path), map_location="cpu", weights_only=False)
-    model = SkylineNet(**state["arch"])
+    arch = dict(state["arch"])
+    model = build_model(arch.pop("kind", "conv"), **arch)             # old checkpoints have no 'kind': they are the conv SkylineNet
     model.load_state_dict(state["state_dict"])
     model.eval()
     return model.to(device or torch.device("cpu")), state["info"]
@@ -110,7 +153,7 @@ def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tup
 class SkylineStudent:
     """Fast skyline for any cells of a tile: coarsens the tile, builds ray inputs, runs the network (or just the baseline)."""
 
-    def __init__(self, model: SkylineNet | None, cfg: MissionConfig, device: torch.device | None = None, info: dict | None = None):
+    def __init__(self, model: nn.Module | None, cfg: MissionConfig, device: torch.device | None = None, info: dict | None = None):
         self.model, self.cfg, self.info = model, cfg, info or {}
         self.device = device or (next(model.parameters()).device if model is not None else torch.device("cpu"))
 

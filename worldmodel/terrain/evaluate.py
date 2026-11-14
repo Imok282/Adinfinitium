@@ -20,7 +20,15 @@ import numpy as np
 from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
 from worldmodel.terrain.backup import backup_versions
-from worldmodel.terrain.data import PATCH, SD_FLOOR_M, TEST_SITES, VAL_SITES, load_site, sample_patch_origins
+from worldmodel.terrain.data import (
+    PATCH,
+    SD_FLOOR_M,
+    TEST_SITES,
+    VAL_SITES,
+    load_region,
+    regions_for_site,
+    sample_patch_origins,
+)
 
 
 def band_stats(real: np.ndarray, versions: np.ndarray) -> dict:
@@ -80,8 +88,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"checkpoint {info['checkpoint_id']} trained on {info['trained_on']}  [outputs are GENERATED — NOT OBSERVED]")
     print(f"{'region':14s} {'role':5s} {'method':24s} {'rmse m':>7s} {'MAE m':>7s} {'cover90%':>9s} {'width90 m':>10s}")
     for site in VAL_SITES + TEST_SITES:
+        if not regions_for_site(site):
+            print(f"note: no tiles for {site} on this machine; skipped", flush=True)
+    for site, region in [(s, r) for s in VAL_SITES + TEST_SITES for r in regions_for_site(s)]:
         role = "TEST" if site in TEST_SITES else "val"
-        tile = load_site(site)
+        tile = load_region(region)
         res = hide_and_check(model, tile, cfg, device, a.patches, a.versions, a.steps, seed=11, eta=a.eta)
         report["regions"][tile.region] = {"role": role, **res}
         for k, lab in (("backup", "gap-fill + LOLA-error noise"), ("model", "diffusion model")):

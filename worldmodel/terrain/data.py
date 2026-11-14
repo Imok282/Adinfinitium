@@ -6,21 +6,27 @@ import numpy as np
 
 from contracts.paths import tile_path
 from contracts.tiles import Tile, load_tile
+from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, VAL_SITES, regions_for_site
+from worldmodel.hazard.lola import region_name as _region_name
 
-TRAIN_SITES = ["Site01", "Site04", "Site06", "Site07", "Site20"]
-VAL_SITES = ["Site11"]
-TEST_SITES = ["Site23"]
+TEST_SITES = HOLDOUT_SITES      # one source of truth for the splits (worldmodel/hazard/lola.py)
+__all__ = ["PATCH", "TEST_SITES", "TRAIN_SITES", "VAL_SITES", "load_region", "load_site", "normalise", "region_name", "regions_for_site", "sample_patch_origins"]
 PATCH = 64            # 64 x 64 px = 320 m at 5 m/px
 MIN_MEASURED = 40     # a patch needs at least this many laser pixels
 SD_FLOOR_M = 1.0      # scaling floor so flat patches are not blown up
 
 
 def region_name(site: str) -> str:
-    return f"lola5m_{site.lower()}"
+    return _region_name(site)
 
 
 def load_site(site: str) -> Tile:
-    t = load_tile(tile_path(region_name(site)))
+    """The centre window of a site (see regions_for_site + load_region for every window)."""
+    return load_region(region_name(site))
+
+
+def load_region(region: str) -> Tile:
+    t = load_tile(tile_path(region))
     if t.real_mask is None:
         raise ValueError(f"{t.region} has no real_mask: cannot tell measured pixels from interpolated ones")
     return t

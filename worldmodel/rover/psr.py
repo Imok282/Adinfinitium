@@ -75,7 +75,7 @@ def attach_psr(tile: Tile) -> Tile:
 
 def default_regions() -> list[str]:
     d = data_root() / "tiles"
-    return sorted(p.stem for p in d.glob("lola5m_site*.npz") if "_gen" not in p.stem) if d.exists() else []
+    return sorted(p.stem for p in d.glob("lola5m_*.npz") if "_gen" not in p.stem) if d.exists() else []
 
 
 def main(argv: list[str] | None = None) -> int:

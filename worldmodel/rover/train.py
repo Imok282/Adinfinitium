@@ -22,19 +22,15 @@ from contracts.mission import load_mission
 from contracts.paths import model_path, run_dir
 from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, regions_for_site
 from worldmodel.rover.env import RoverEnv
-from worldmodel.rover.policy import DriverNet, pick_device, save_checkpoint
+from worldmodel.rover.policy import build_model, pick_device, save_checkpoint
 from worldmodel.rover.world import build_world
 
 TRAIN_DATES = ("2027-03-01", "2027-06-01", "2027-09-01", "2027-12-01")
 
 
-def world_list(sites: list[str], dates: list[str], cfg, device) -> list[tuple[str, str]]:
-    out = []
-    for s in sites:
-        for region in regions_for_site(s)[:1]:          # centre window; grid windows can be added when they exist
-            for d in dates:
-                out.append((region, d))
-    return out
+def world_list(sites: list[str], dates: list[str], windows_per_site: int = 1) -> list[tuple[str, str]]:
+    """(region, date) worlds: the first `windows_per_site` windows of each site (centre window first) x every date."""
+    return [(region, d) for s in sites for region in regions_for_site(s)[:windows_per_site] for d in dates]
 
 
 def evaluate_policy(model, region: str, date: str, cfg, device, n: int = 512, seed: int = 1234) -> dict:
@@ -72,10 +68,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--lam", type=float, default=0.95)
     ap.add_argument("--clip", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.01)
+    ap.add_argument("--arch", choices=["conv", "former"], default="conv", help="conv = 0.5 M; former = vision transformer (~32 M at --d 512 --layers 10)")
+    ap.add_argument("--d", type=int, default=512)
+    ap.add_argument("--layers", type=int, default=10)
+    ap.add_argument("--heads", type=int, default=8)
     ap.add_argument("--width", type=int, default=32)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--dates", nargs="+", default=list(TRAIN_DATES))
     ap.add_argument("--sites", nargs="+", default=TRAIN_SITES)
+    ap.add_argument("--windows-per-site", type=int, default=1, help="terrain windows per site (more = more varied worlds, more GPU memory)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default=None)
     ap.add_argument("--resume", action="store_true")
@@ -88,14 +89,15 @@ def main(argv: list[str] | None = None) -> int:
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     t0 = time.time()
-    specs = world_list(a.sites, a.dates, cfg, device)
+    specs = world_list(a.sites, a.dates, a.windows_per_site)
     if not specs:
         raise SystemExit("no tiles found for the training sites (python -I -m worldmodel.hazard.lola all)")
     envs = [RoverEnv(build_world(r, d, cfg, device=device), a.envs, device, cfg, seed=a.seed + i) for i, (r, d) in enumerate(specs)]
     labels = [r.split("lola5m_")[1] + "@" + d[5:7] for r, d in specs][:6]
     print(f"device={device} worlds={len(envs)} ({labels}...) test {HOLDOUT_SITES} never loaded; ready in {time.time() - t0:.0f}s", flush=True)
 
-    model = DriverNet(width=a.width, hidden=a.hidden).to(device)
+    kw = {"width": a.width, "hidden": a.hidden} if a.arch == "conv" else {"d": a.d, "layers": a.layers, "heads": a.heads}
+    model = build_model(a.arch, **kw).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=a.lr, eps=1e-5)
     last_p, best_p = model_path(a.name + "_last"), model_path(a.name)
     update, best = 0, -1e9
