@@ -27,6 +27,14 @@ After both are merged, everyone works from `main` + their own task branch.
 
 Team tasks: `docs/team/SIMULATION_TEAM_HANDBOOK.md` (Tanush, Arnav). Nimansh: Navigator (KAN-35), tests (KAN-36), README (KAN-37).
 
+## Shared-sim change (KAN-100, branch `imok/KAN-100-lookahead`) — read if you touch `sim_jax/lander_env.py`
+- New opt-in `EnvParams.lookahead` (default **off**): appends 8 `ring_unsafe_*` values AFTER the base observation.
+  Observation indices 0..12, `OBS_NAMES`, `OBS_DIM` (=13) and `classic_policy` are unchanged; with the flag off nothing
+  behaves differently. `EnvParams.obs_dim` gives the real length. `make_params(..., lookahead=True, lookahead_m=30.0)`.
+- Basilisk / Navigator / mission control do not read the sim's observation vector, so no action is needed from you;
+  tell Imok if you see anything change. Exams (`worldmodel/exams.py`, `python -m worldmodel.exams`) and the swarm
+  (`--exams`, `--lookahead`, `--resume`) are documented in `swarm/README.md`.
+
 ## Decisions already made
 - Submission: **Final project = all three** (hosted web app + GitHub repo + Google Drive). **Repo goes public Sunday** before submitting. **Demo = 30 s video with English subtitles.** **Imok owns the Drive** and tests every link in incognito.
 - AI-generated images/video need a visible "AI-generated" watermark, and no NASA logos may appear in generated content. AI-written code is disclosed in the "Use of AI" field.
