@@ -4,6 +4,8 @@
 
 Light-field teacher + neural light field, hazard U-Net, diffusion terrain versions, exam sets.
 
+Exam sets live in `exams.py` (`python -m worldmodel.exams` prints the classic-guidance baseline). They use only the public `sim_jax` API; hard cases are overrides + target placement, never edits to the shared sim.
+
 | | |
 |---|---|
 | Reads | Tiles + SPICE kernels |

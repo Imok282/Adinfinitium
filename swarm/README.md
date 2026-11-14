@@ -21,8 +21,9 @@ Files: `pilot.py` (net output -> thrust; **residual on classic guidance** or fro
 (shaped selection fitness vs the gated mission score), `problem.py` (TensorNEAT `BaseProblem`; every
 individual flies the same missions in a generation), `run_swarm.py` (loop, logs, champion export).
 
-**What the evolved pilot is — say this in the video:** the default `residual` pilot adds a learned correction
-(<= `--residual-scale` of max thrust) to classic ZEM/ZEV guidance. `--mode scratch` has no physics prior.
+**DISCLOSURE (required in the video and on the submission page):** the default `residual` pilot is classic ZEM/ZEV
+guidance plus a learned correction (<= `--residual-scale` of max thrust). It is NOT a from-scratch AI pilot; say
+"evolved residual on classic guidance". `--mode scratch` has no physics prior (and does not land reliably yet).
 
 **Reading `generation_XXX.json`:** `success_rate` is the champion on held-out missions, `classic_success_rate`
 is classic guidance on the *same* missions. `mean_score` is the population's mean of the shaped selection
