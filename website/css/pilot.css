@@ -1,0 +1,90 @@
+/* owned by round-3 agent B (pilot); see website/README.md. #ai cinematic beat, driven by js/pilot.js. Colours = css/style.css :root tokens. */
+#ai.pilot { display: block; min-height: 0; height: 470vh; padding: 0; gap: 0; }
+#ai.pilot > * { max-width: none; }
+#ai .pl-stage { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; z-index: 2; }
+#ai .pl-stage > * { position: absolute; will-change: transform, opacity; }
+
+/* dim-to-dark behind the river + network (showcase) */
+#ai .pl-dim { inset: 0; opacity: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 55%, rgba(31, 31, 29, .80), rgba(27, 27, 25, .96)); }
+
+/* headline: centred in the top band */
+#ai .pl-head { top: 14vh; left: 50%; width: min(860px, calc(100vw - 32px)); margin-left: max(-430px, calc(-50vw + 16px)); text-align: center; }
+#ai .pl-h { font-size: clamp(28px, 2.7vw, 44px); line-height: 1.12; color: var(--fg); margin: 0 0 16px; }
+#ai .pl-sub { font-size: 17px; color: var(--fg-2); max-width: 600px; margin: 0 auto; }
+#ai .pl-flow { margin: 28px 0 0; font: 500 clamp(17px, 1.5vw, 22px)/1.3 var(--head); color: var(--fg); }
+#ai .pl-flow i { font: 300 italic 1.1em var(--display); color: var(--accent); padding: 0 .3em; }
+
+/* zoom-through lander (fallback when the 3D scene has no setPilotFocus) */
+#ai .pl-lander { left: 50%; top: 56%; width: 240px; height: 240px; margin: -120px 0 0 -120px; display: grid; place-items: center;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .45)); }
+#ai .pl-lander img { width: 100%; height: 100%; object-fit: contain; }
+#ai .pl-3d .pl-lander { display: none; }
+#ai .pl-stream { inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* big centred captions */
+#ai .pl-cap { left: 50%; top: 10vh; width: min(900px, calc(100vw - 32px)); margin-left: max(-450px, calc(-50vw + 16px)); text-align: center; opacity: 0; }
+#ai .pl-big { font: 600 clamp(36px, 4.4vw, 68px)/1.02 var(--head); color: var(--fg); margin: 0 0 12px; letter-spacing: -.01em; }
+#ai .pl-mid { font: 400 clamp(16px, 1.3vw, 20px)/1.4 var(--font); color: var(--fg-2); margin: 0 auto; max-width: 620px; }
+#ai .pl-params { margin: 0 0 10px; font: 400 16px/1.2 var(--font); color: var(--fg-2); }
+#ai .pl-count { font: 500 clamp(28px, 2.8vw, 44px)/1 var(--mono); color: var(--lavender); margin-right: 8px; font-variant-numeric: tabular-nums; }
+#ai .pl-src-patches { left: 50%; bottom: 6vh; width: min(720px, calc(100vw - 32px)); margin: 0 0 0 max(-360px, calc(-50vw + 16px)); text-align: center; opacity: 0; }
+
+/* network phase: one source line */
+#ai .pl-netnote { left: 50%; bottom: 5vh; width: min(720px, calc(100vw - 32px)); margin-left: max(-360px, calc(-50vw + 16px)); text-align: center; opacity: 0; }
+#ai .pl-netnote .src { margin: 0; }
+#ai .nn-static { display: none; }
+
+/* output: arrows burst, pastel result card */
+#ai .pl-out { inset: 0; opacity: 0; pointer-events: none; }
+#ai .pl-out > * { position: absolute; }
+#ai .pl-rig { left: 50%; top: 56%; width: 340px; height: 340px; margin: -170px 0 0 -170px; opacity: 0; }
+#ai .pl-rig img { position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; margin: -110px 0 0 -110px; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .5)); }
+#ai .pl-arrows { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; color: var(--peach); }
+#ai .pl-ar line { stroke: currentColor; stroke-width: 6; stroke-linecap: round; }
+#ai .pl-ar text { fill: var(--fg); font: 600 15px var(--head); }
+#ai .pl-3d-arrows .pl-rig { display: none; }
+#ai .pl-result { left: max(4vw, calc(50% - 620px)); bottom: 8vh; width: 300px; opacity: 0; padding: 26px 26px 20px; border-radius: 24px;
+  background: var(--sage); color: var(--ink); box-shadow: 0 30px 60px rgba(0, 0, 0, .35); }
+#ai .pl-res-big { font: 600 60px/1 var(--head); color: var(--ink); margin: 0 0 10px; letter-spacing: -.02em; }
+#ai .pl-res-big small { font-size: 18px; color: var(--ink-2); font-weight: 500; letter-spacing: 0; }
+#ai .pl-res-txt { font-size: 16px; line-height: 1.4; margin: 0; color: var(--ink); }
+#ai .pl-result .src { font-size: 12px; color: var(--ink-2); margin-top: 12px; }
+
+/* phone */
+@media (max-width: 760px) {
+  #ai .pl-stage { width: 100vw; }
+  #ai .pl-head { top: 12vh; }
+  #ai .pl-sub { font-size: 15px; }
+  #ai .pl-lander { width: 170px; height: 170px; margin: -85px 0 0 -85px; }
+  #ai .pl-cap { top: 10vh; }
+  #ai .pl-big { font-size: 34px; }
+  #ai .pl-mid { font-size: 15px; }
+  #ai .pl-rig { width: 260px; height: 260px; margin: -130px 0 0 -130px; top: 46%; }
+  #ai .pl-rig img { width: 160px; height: 160px; margin: -80px 0 0 -80px; }
+  #ai .pl-result { left: 16px; right: 16px; width: auto; bottom: 6vh; padding: 18px; }
+  #ai .pl-res-big { font-size: 42px; }
+  #ai .pl-res-txt { font-size: 14.5px; }
+}
+
+/* ---------- static fallback: the settled final frame, as a readable flow ---------- */
+#ai.pl-static { height: auto; padding: 120px var(--gutter) 100px; }
+#ai.pl-static .pl-stage { position: static; height: auto; overflow: visible; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; margin: 0 auto; }
+#ai.pl-static .pl-stage > *, #ai.pl-static .pl-out > * { position: static; opacity: 1 !important; visibility: visible !important; transform: none !important; filter: none !important; margin: 0; width: auto; }
+#ai.pl-static .pl-head, #ai.pl-static .pl-cap, #ai.pl-static .pl-netnote, #ai.pl-static .pl-src-patches { text-align: left; }
+#ai.pl-static .pl-sub, #ai.pl-static .pl-mid { margin: 0; }
+#ai.pl-static .pl-lander, #ai.pl-static .pl-dim { display: none; }
+#ai.pl-static .pl-stream { display: block; width: 100%; height: auto; aspect-ratio: 18 / 4.1; }
+#ai.pl-static .nn-static { display: block; width: 100%; height: 260px; border-radius: 20px; margin-top: 12px; }
+#ai.pl-static .pl-out { display: grid; grid-template-columns: 1fr 340px 300px; gap: 24px; align-items: center; pointer-events: auto; }
+#ai.pl-static .pl-cap-out { grid-column: 1 / -1; }
+#ai.pl-static .pl-rig { position: relative !important; display: block; width: 340px; height: 340px; grid-column: 2; grid-row: 2; }
+#ai.pl-static .pl-result { grid-column: 3; grid-row: 2; }
+@media (max-width: 760px) {
+  #ai.pl-static { padding: 80px 16px 64px; }
+  #ai.pl-static .pl-out { grid-template-columns: 1fr; }
+  #ai.pl-static .pl-rig, #ai.pl-static .pl-result { grid-column: 1; grid-row: auto; }
+  #ai.pl-static .pl-rig { width: 280px; height: 280px; margin: 0 auto !important; }
+  #ai.pl-static .pl-stream { aspect-ratio: 8 / 9.2; }
+}
+/* lead: the dim never covers the right-hand strip where the side lander flies */
+@media (min-width: 761px) { #ai .pl-dim { -webkit-mask-image: linear-gradient(90deg, #000 66%, transparent 80%); mask-image: linear-gradient(90deg, #000 66%, transparent 80%); } }

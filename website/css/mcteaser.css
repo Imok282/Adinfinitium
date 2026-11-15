@@ -1,0 +1,20 @@
+/* landing.html #mc-teaser (js/mcteaser.js): the landing becomes a tile of the mission-control dashboard */
+#mc-teaser.mct { position: relative; padding: 0; }
+#mc-teaser.mct-live { height: 200vh; }
+#mc-teaser .mct-stage { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 28px; padding: 96px 24px 48px; box-sizing: border-box; }
+#mc-teaser.mct-live .mct-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+#mc-teaser .mct-tile { width: min(860px, 86vw, calc((100vh - 330px) * 1.183)); aspect-ratio: 1000 / 845; border-radius: 24px; overflow: hidden;
+  background: var(--sunken); box-shadow: 0 40px 90px -40px rgba(0, 0, 0, .8); transform-origin: 50% 50%; will-change: transform; z-index: 1; }
+#mc-teaser.mct-live .mct-tile { border-radius: 0; }
+#mc-teaser .mct-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#mc-teaser .mct-copy { text-align: center; max-width: 720px; position: relative; z-index: 2; }
+#mc-teaser .mct-copy h2 { margin: 0 0 10px; font-size: clamp(28px, 2.8vw, 42px); }
+#mc-teaser .mct-copy .lede { margin: 0 auto 18px; font-size: 17px; }
+#mc-teaser .mct-copy p:last-child { margin: 0; }
+#mc-teaser.mct-live .mct-copy { opacity: 0; }
+@media (max-width: 760px) {
+  #mc-teaser .mct-stage { padding: 84px 16px 32px; gap: 20px; }
+  #mc-teaser .mct-tile { width: min(92vw, calc((100vh - 360px) * 1.183)); }
+  #mc-teaser .mct-copy .lede { font-size: 15px; }
+}

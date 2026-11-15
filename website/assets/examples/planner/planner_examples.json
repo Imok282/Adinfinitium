@@ -1,0 +1,1220 @@
+{
+ "model": "mission planner: PlannerSetNet (listwise set transformer) + LogisticPlanner, vs the Navigator ranking (non-learned backup)",
+ "checkpoints": {
+  "set": {
+   "file": "data/models/planner_set.pt",
+   "checkpoint_id": "72b76466c7",
+   "parameters": 646401,
+   "trained_on": [
+    "lola5m_site01",
+    "lola5m_site06",
+    "lola5m_site07",
+    "lola5m_site20"
+   ],
+   "eval_json_id": "72b76466c7"
+  },
+  "logistic": {
+   "file": "data/models/planner_logistic.pt",
+   "checkpoint_id": "62b6dba29b",
+   "parameters": null,
+   "trained_on": [
+    "lola5m_site01",
+    "lola5m_site06",
+    "lola5m_site07",
+    "lola5m_site20"
+   ]
+  }
+ },
+ "world": {
+  "region": "lola5m_site23",
+  "site": "Site23 (Malapert massif)",
+  "date": "2027-09-01",
+  "candidates": 96,
+  "split": "TEST (held out: never trained or tuned on)",
+  "chosen_because": "Site23 world whose best candidate has the highest simulated p(mission)"
+ },
+ "what_it_is": "offline ranking of candidate (landing cell, landing hour) pairs; no flight in this example. The simulated label comes from the existing label file: the lander twin flies to the cell (p_land) and the rover environment drives from it (p_ice, p_return); p_mission = p_land x p_return-with-ice",
+ "label_provenance": {
+  "provenance": "modelled: simulated outcomes on real LOLA terrain and SPICE light",
+  "lander_pilot_used": "classic ZEM/ZEV (physics)",
+  "n_lander_sims_per_candidate": 48,
+  "n_rover_sims_per_candidate": 32
+ },
+ "factor_units": {
+  "slope_deg": "deg at the cell",
+  "sunlit_mean_frac": "mean Sun fraction over the 300 h horizon",
+  "earth_visible_frac": "fraction of hours with Earth above the skyline",
+  "ice_target_distance_km": "distance to the nearest NASA PSR ice-edge target (PSR = dark and cold, not confirmed ice)",
+  "hazard_frac_150m": "share of unsafe cells within 150 m",
+  "clear_radius_m": "distance to nearest unsafe cell (cap 400)"
+ },
+ "top10": {
+  "navigator": [
+   {
+    "rank": 1,
+    "id": 93,
+    "cell_rc": [
+     218,
+     331
+    ],
+    "hour": 240,
+    "navigator_score": 4.288,
+    "p_set": 0.2339,
+    "p_logistic": 0.4115,
+    "simulated": {
+     "p_mission": 0.0625,
+     "p_land": 1.0,
+     "p_ice": 0.0938,
+     "p_return": 0.0625,
+     "touchdown_scatter_m": 32.67
+    },
+    "factors": {
+     "slope_deg": 1.36,
+     "sunlit_mean_frac": 0.997,
+     "sunlit_first_day_frac": 0.958,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 0.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 90.0,
+     "ice_target_distance_km": 0.416,
+     "ice_targets_within_1km": 9,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 2,
+    "id": 69,
+    "cell_rc": [
+     124,
+     332
+    ],
+    "hour": 240,
+    "navigator_score": 4.017,
+    "p_set": 0.2168,
+    "p_logistic": 0.2674,
+    "simulated": {
+     "p_mission": 0.125,
+     "p_land": 1.0,
+     "p_ice": 0.1875,
+     "p_return": 0.125,
+     "touchdown_scatter_m": 0.84
+    },
+    "factors": {
+     "slope_deg": 2.26,
+     "sunlit_mean_frac": 0.981,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 2.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.004,
+     "clear_radius_m": 105.9,
+     "ice_target_distance_km": 0.431,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.014
+    }
+   },
+   {
+    "rank": 3,
+    "id": 94,
+    "cell_rc": [
+     218,
+     331
+    ],
+    "hour": 312,
+    "navigator_score": 3.967,
+    "p_set": 0.2521,
+    "p_logistic": 0.4014,
+    "simulated": {
+     "p_mission": 0.1875,
+     "p_land": 1.0,
+     "p_ice": 0.1875,
+     "p_return": 0.1875,
+     "touchdown_scatter_m": 32.67
+    },
+    "factors": {
+     "slope_deg": 1.36,
+     "sunlit_mean_frac": 0.916,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 16.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 90.0,
+     "ice_target_distance_km": 0.416,
+     "ice_targets_within_1km": 9,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 4,
+    "id": 15,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 240,
+    "navigator_score": 3.611,
+    "p_set": 0.1937,
+    "p_logistic": 0.5695,
+    "simulated": {
+     "p_mission": 0.3438,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3438,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.899,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.837,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 49.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 5,
+    "id": 11,
+    "cell_rc": [
+     215,
+     226
+    ],
+    "hour": 384,
+    "navigator_score": 3.578,
+    "p_set": 0.254,
+    "p_logistic": 0.2932,
+    "simulated": {
+     "p_mission": 0.2812,
+     "p_land": 1.0,
+     "p_ice": 0.2812,
+     "p_return": 0.2812,
+     "touchdown_scatter_m": 22.33
+    },
+    "factors": {
+     "slope_deg": 4.0,
+     "sunlit_mean_frac": 0.887,
+     "sunlit_first_day_frac": 0.231,
+     "earth_visible_frac": 0.653,
+     "longest_dark_h": 0.0,
+     "longest_blackout_h": 104.0,
+     "hazard_frac_150m": 0.012,
+     "clear_radius_m": 100.6,
+     "ice_target_distance_km": 0.23,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.012
+    }
+   },
+   {
+    "rank": 6,
+    "id": 20,
+    "cell_rc": [
+     70,
+     319
+    ],
+    "hour": 168,
+    "navigator_score": 3.568,
+    "p_set": 0.2806,
+    "p_logistic": 0.284,
+    "simulated": {
+     "p_mission": 0.3125,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3125,
+     "touchdown_scatter_m": 31.83
+    },
+    "factors": {
+     "slope_deg": 6.02,
+     "sunlit_mean_frac": 0.996,
+     "sunlit_first_day_frac": 0.947,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 0.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.011,
+     "clear_radius_m": 25.5,
+     "ice_target_distance_km": 0.591,
+     "ice_targets_within_1km": 2,
+     "psr_frac_1km": 0.005
+    }
+   },
+   {
+    "rank": 7,
+    "id": 16,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 312,
+    "navigator_score": 3.54,
+    "p_set": 0.2561,
+    "p_logistic": 0.5716,
+    "simulated": {
+     "p_mission": 0.4375,
+     "p_land": 1.0,
+     "p_ice": 0.4688,
+     "p_return": 0.4375,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.873,
+     "sunlit_first_day_frac": 0.756,
+     "earth_visible_frac": 0.947,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 16.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 8,
+    "id": 87,
+    "cell_rc": [
+     103,
+     227
+    ],
+    "hour": 240,
+    "navigator_score": 3.473,
+    "p_set": 0.1226,
+    "p_logistic": 0.4346,
+    "simulated": {
+     "p_mission": 0.3438,
+     "p_land": 1.0,
+     "p_ice": 0.375,
+     "p_return": 0.3438,
+     "touchdown_scatter_m": 20.3
+    },
+    "factors": {
+     "slope_deg": 7.51,
+     "sunlit_mean_frac": 0.832,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 44.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 61.0,
+     "ice_target_distance_km": 0.389,
+     "ice_targets_within_1km": 13,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 9,
+    "id": 21,
+    "cell_rc": [
+     70,
+     319
+    ],
+    "hour": 240,
+    "navigator_score": 3.423,
+    "p_set": 0.295,
+    "p_logistic": 0.2905,
+    "simulated": {
+     "p_mission": 0.4062,
+     "p_land": 1.0,
+     "p_ice": 0.5,
+     "p_return": 0.4062,
+     "touchdown_scatter_m": 31.83
+    },
+    "factors": {
+     "slope_deg": 6.02,
+     "sunlit_mean_frac": 0.963,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 8.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.011,
+     "clear_radius_m": 25.5,
+     "ice_target_distance_km": 0.591,
+     "ice_targets_within_1km": 2,
+     "psr_frac_1km": 0.005
+    }
+   },
+   {
+    "rank": 10,
+    "id": 29,
+    "cell_rc": [
+     237,
+     283
+    ],
+    "hour": 384,
+    "navigator_score": 3.24,
+    "p_set": 0.3161,
+    "p_logistic": 0.4318,
+    "simulated": {
+     "p_mission": 0.3672,
+     "p_land": 0.9792,
+     "p_ice": 0.375,
+     "p_return": 0.375,
+     "touchdown_scatter_m": 40.48
+    },
+    "factors": {
+     "slope_deg": 1.47,
+     "sunlit_mean_frac": 0.899,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.723,
+     "longest_dark_h": 25.0,
+     "longest_blackout_h": 83.0,
+     "hazard_frac_150m": 0.021,
+     "clear_radius_m": 50.2,
+     "ice_target_distance_km": 0.338,
+     "ice_targets_within_1km": 11,
+     "psr_frac_1km": 0.013
+    }
+   }
+  ],
+  "set": [
+   {
+    "rank": 1,
+    "id": 76,
+    "cell_rc": [
+     180,
+     240
+    ],
+    "hour": 312,
+    "navigator_score": 0.832,
+    "p_set": 0.8434,
+    "p_logistic": 0.1997,
+    "simulated": {
+     "p_mission": 0.3893,
+     "p_land": 0.9583,
+     "p_ice": 0.4062,
+     "p_return": 0.4062,
+     "touchdown_scatter_m": 37.42
+    },
+    "factors": {
+     "slope_deg": 6.39,
+     "sunlit_mean_frac": 0.228,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.957,
+     "longest_dark_h": 226.0,
+     "longest_blackout_h": 13.0,
+     "hazard_frac_150m": 0.003,
+     "clear_radius_m": 135.1,
+     "ice_target_distance_km": 0.111,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.012
+    }
+   },
+   {
+    "rank": 2,
+    "id": 5,
+    "cell_rc": [
+     132,
+     329
+    ],
+    "hour": 384,
+    "navigator_score": 0.028,
+    "p_set": 0.6373,
+    "p_logistic": 0.071,
+    "simulated": {
+     "p_mission": 0.3125,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3125,
+     "touchdown_scatter_m": 33.93
+    },
+    "factors": {
+     "slope_deg": 4.06,
+     "sunlit_mean_frac": 0.212,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.86,
+     "longest_dark_h": 232.0,
+     "longest_blackout_h": 42.0,
+     "hazard_frac_150m": 0.001,
+     "clear_radius_m": 141.4,
+     "ice_target_distance_km": 0.397,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 3,
+    "id": 89,
+    "cell_rc": [
+     103,
+     227
+    ],
+    "hour": 384,
+    "navigator_score": 1.04,
+    "p_set": 0.5578,
+    "p_logistic": 0.2436,
+    "simulated": {
+     "p_mission": 0.3125,
+     "p_land": 1.0,
+     "p_ice": 0.5312,
+     "p_return": 0.3125,
+     "touchdown_scatter_m": 20.3
+    },
+    "factors": {
+     "slope_deg": 7.51,
+     "sunlit_mean_frac": 0.352,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.983,
+     "longest_dark_h": 188.0,
+     "longest_blackout_h": 5.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 61.0,
+     "ice_target_distance_km": 0.389,
+     "ice_targets_within_1km": 13,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 4,
+    "id": 34,
+    "cell_rc": [
+     208,
+     219
+    ],
+    "hour": 312,
+    "navigator_score": 1.861,
+    "p_set": 0.4331,
+    "p_logistic": 0.3032,
+    "simulated": {
+     "p_mission": 0.1875,
+     "p_land": 1.0,
+     "p_ice": 0.1875,
+     "p_return": 0.1875,
+     "touchdown_scatter_m": 22.73
+    },
+    "factors": {
+     "slope_deg": 4.46,
+     "sunlit_mean_frac": 0.555,
+     "sunlit_first_day_frac": 0.0,
+     "earth_visible_frac": 0.88,
+     "longest_dark_h": 91.0,
+     "longest_blackout_h": 36.0,
+     "hazard_frac_150m": 0.003,
+     "clear_radius_m": 145.8,
+     "ice_target_distance_km": 0.26,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 5,
+    "id": 53,
+    "cell_rc": [
+     265,
+     405
+    ],
+    "hour": 384,
+    "navigator_score": 0.759,
+    "p_set": 0.431,
+    "p_logistic": 0.1276,
+    "simulated": {
+     "p_mission": 0.252,
+     "p_land": 0.8958,
+     "p_ice": 0.2812,
+     "p_return": 0.2812,
+     "touchdown_scatter_m": 1.72
+    },
+    "factors": {
+     "slope_deg": 7.46,
+     "sunlit_mean_frac": 0.773,
+     "sunlit_first_day_frac": 0.0,
+     "earth_visible_frac": 0.477,
+     "longest_dark_h": 65.0,
+     "longest_blackout_h": 157.0,
+     "hazard_frac_150m": 0.093,
+     "clear_radius_m": 29.2,
+     "ice_target_distance_km": 0.443,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.01
+    }
+   },
+   {
+    "rank": 6,
+    "id": 17,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 384,
+    "navigator_score": 2.868,
+    "p_set": 0.4044,
+    "p_logistic": 0.6966,
+    "simulated": {
+     "p_mission": 0.3438,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3438,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.897,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.707,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 88.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 7,
+    "id": 33,
+    "cell_rc": [
+     208,
+     219
+    ],
+    "hour": 240,
+    "navigator_score": 0.765,
+    "p_set": 0.3814,
+    "p_logistic": 0.1688,
+    "simulated": {
+     "p_mission": 0.1875,
+     "p_land": 1.0,
+     "p_ice": 0.1875,
+     "p_return": 0.1875,
+     "touchdown_scatter_m": 22.73
+    },
+    "factors": {
+     "slope_deg": 4.46,
+     "sunlit_mean_frac": 0.36,
+     "sunlit_first_day_frac": 0.0,
+     "earth_visible_frac": 0.767,
+     "longest_dark_h": 163.0,
+     "longest_blackout_h": 70.0,
+     "hazard_frac_150m": 0.003,
+     "clear_radius_m": 145.8,
+     "ice_target_distance_km": 0.26,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 8,
+    "id": 4,
+    "cell_rc": [
+     132,
+     329
+    ],
+    "hour": 312,
+    "navigator_score": 1.508,
+    "p_set": 0.3581,
+    "p_logistic": 0.1097,
+    "simulated": {
+     "p_mission": 0.6562,
+     "p_land": 1.0,
+     "p_ice": 0.7188,
+     "p_return": 0.6562,
+     "touchdown_scatter_m": 33.93
+    },
+    "factors": {
+     "slope_deg": 4.06,
+     "sunlit_mean_frac": 0.452,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 160.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.001,
+     "clear_radius_m": 141.4,
+     "ice_target_distance_km": 0.397,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 9,
+    "id": 88,
+    "cell_rc": [
+     103,
+     227
+    ],
+    "hour": 312,
+    "navigator_score": 2.273,
+    "p_set": 0.3535,
+    "p_logistic": 0.3329,
+    "simulated": {
+     "p_mission": 0.5312,
+     "p_land": 1.0,
+     "p_ice": 0.5938,
+     "p_return": 0.5312,
+     "touchdown_scatter_m": 20.3
+    },
+    "factors": {
+     "slope_deg": 7.51,
+     "sunlit_mean_frac": 0.592,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 116.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 61.0,
+     "ice_target_distance_km": 0.389,
+     "ice_targets_within_1km": 13,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 10,
+    "id": 71,
+    "cell_rc": [
+     124,
+     332
+    ],
+    "hour": 384,
+    "navigator_score": 1.617,
+    "p_set": 0.3478,
+    "p_logistic": 0.1333,
+    "simulated": {
+     "p_mission": 0.125,
+     "p_land": 1.0,
+     "p_ice": 0.1562,
+     "p_return": 0.125,
+     "touchdown_scatter_m": 0.84
+    },
+    "factors": {
+     "slope_deg": 2.26,
+     "sunlit_mean_frac": 0.501,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 1.0,
+     "longest_dark_h": 146.0,
+     "longest_blackout_h": 0.0,
+     "hazard_frac_150m": 0.004,
+     "clear_radius_m": 105.9,
+     "ice_target_distance_km": 0.431,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.014
+    }
+   }
+  ],
+  "logistic": [
+   {
+    "rank": 1,
+    "id": 17,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 384,
+    "navigator_score": 2.868,
+    "p_set": 0.4044,
+    "p_logistic": 0.6966,
+    "simulated": {
+     "p_mission": 0.3438,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3438,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.897,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.707,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 88.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 2,
+    "id": 9,
+    "cell_rc": [
+     215,
+     226
+    ],
+    "hour": 240,
+    "navigator_score": 2.582,
+    "p_set": 0.2258,
+    "p_logistic": 0.6295,
+    "simulated": {
+     "p_mission": 0.125,
+     "p_land": 1.0,
+     "p_ice": 0.125,
+     "p_return": 0.125,
+     "touchdown_scatter_m": 22.33
+    },
+    "factors": {
+     "slope_deg": 4.0,
+     "sunlit_mean_frac": 0.731,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.78,
+     "longest_dark_h": 37.0,
+     "longest_blackout_h": 66.0,
+     "hazard_frac_150m": 0.012,
+     "clear_radius_m": 100.6,
+     "ice_target_distance_km": 0.23,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.012
+    }
+   },
+   {
+    "rank": 3,
+    "id": 14,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 168,
+    "navigator_score": 2.343,
+    "p_set": 0.1726,
+    "p_logistic": 0.6157,
+    "simulated": {
+     "p_mission": 0.1875,
+     "p_land": 1.0,
+     "p_ice": 0.1875,
+     "p_return": 0.1875,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.902,
+     "sunlit_first_day_frac": 0.523,
+     "earth_visible_frac": 0.597,
+     "longest_dark_h": 9.0,
+     "longest_blackout_h": 121.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 4,
+    "id": 10,
+    "cell_rc": [
+     215,
+     226
+    ],
+    "hour": 312,
+    "navigator_score": 2.531,
+    "p_set": 0.2271,
+    "p_logistic": 0.5889,
+    "simulated": {
+     "p_mission": 0.2188,
+     "p_land": 1.0,
+     "p_ice": 0.2188,
+     "p_return": 0.2188,
+     "touchdown_scatter_m": 22.33
+    },
+    "factors": {
+     "slope_deg": 4.0,
+     "sunlit_mean_frac": 0.712,
+     "sunlit_first_day_frac": 0.612,
+     "earth_visible_frac": 0.893,
+     "longest_dark_h": 37.0,
+     "longest_blackout_h": 32.0,
+     "hazard_frac_150m": 0.012,
+     "clear_radius_m": 100.6,
+     "ice_target_distance_km": 0.23,
+     "ice_targets_within_1km": 14,
+     "psr_frac_1km": 0.012
+    }
+   },
+   {
+    "rank": 5,
+    "id": 16,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 312,
+    "navigator_score": 3.54,
+    "p_set": 0.2561,
+    "p_logistic": 0.5716,
+    "simulated": {
+     "p_mission": 0.4375,
+     "p_land": 1.0,
+     "p_ice": 0.4688,
+     "p_return": 0.4375,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.873,
+     "sunlit_first_day_frac": 0.756,
+     "earth_visible_frac": 0.947,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 16.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 6,
+    "id": 15,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 240,
+    "navigator_score": 3.611,
+    "p_set": 0.1937,
+    "p_logistic": 0.5695,
+    "simulated": {
+     "p_mission": 0.3438,
+     "p_land": 1.0,
+     "p_ice": 0.3438,
+     "p_return": 0.3438,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.899,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.837,
+     "longest_dark_h": 7.0,
+     "longest_blackout_h": 49.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 7,
+    "id": 86,
+    "cell_rc": [
+     103,
+     227
+    ],
+    "hour": 168,
+    "navigator_score": 2.975,
+    "p_set": 0.141,
+    "p_logistic": 0.5592,
+    "simulated": {
+     "p_mission": 0.2188,
+     "p_land": 1.0,
+     "p_ice": 0.2188,
+     "p_return": 0.2188,
+     "touchdown_scatter_m": 20.3
+    },
+    "factors": {
+     "slope_deg": 7.51,
+     "sunlit_mean_frac": 0.95,
+     "sunlit_first_day_frac": 0.373,
+     "earth_visible_frac": 0.95,
+     "longest_dark_h": 11.0,
+     "longest_blackout_h": 15.0,
+     "hazard_frac_150m": 0.007,
+     "clear_radius_m": 61.0,
+     "ice_target_distance_km": 0.389,
+     "ice_targets_within_1km": 13,
+     "psr_frac_1km": 0.015
+    }
+   },
+   {
+    "rank": 8,
+    "id": 12,
+    "cell_rc": [
+     182,
+     208
+    ],
+    "hour": 24,
+    "navigator_score": 0.834,
+    "p_set": 0.2539,
+    "p_logistic": 0.483,
+    "simulated": {
+     "p_mission": 0.0,
+     "p_land": 1.0,
+     "p_ice": 0.0,
+     "p_return": 0.0,
+     "touchdown_scatter_m": 39.03
+    },
+    "factors": {
+     "slope_deg": 5.82,
+     "sunlit_mean_frac": 0.722,
+     "sunlit_first_day_frac": 1.0,
+     "earth_visible_frac": 0.117,
+     "longest_dark_h": 76.0,
+     "longest_blackout_h": 265.0,
+     "hazard_frac_150m": 0.031,
+     "clear_radius_m": 60.2,
+     "ice_target_distance_km": 0.182,
+     "ice_targets_within_1km": 15,
+     "psr_frac_1km": 0.013
+    }
+   },
+   {
+    "rank": 9,
+    "id": 68,
+    "cell_rc": [
+     124,
+     332
+    ],
+    "hour": 168,
+    "navigator_score": 2.981,
+    "p_set": 0.2327,
+    "p_logistic": 0.4793,
+    "simulated": {
+     "p_mission": 0.0625,
+     "p_land": 1.0,
+     "p_ice": 0.0625,
+     "p_return": 0.0625,
+     "touchdown_scatter_m": 0.84
+    },
+    "factors": {
+     "slope_deg": 2.26,
+     "sunlit_mean_frac": 0.987,
+     "sunlit_first_day_frac": 0.832,
+     "earth_visible_frac": 0.973,
+     "longest_dark_h": 2.0,
+     "longest_blackout_h": 8.0,
+     "hazard_frac_150m": 0.004,
+     "clear_radius_m": 105.9,
+     "ice_target_distance_km": 0.431,
+     "ice_targets_within_1km": 4,
+     "psr_frac_1km": 0.014
+    }
+   },
+   {
+    "rank": 10,
+    "id": 28,
+    "cell_rc": [
+     237,
+     283
+    ],
+    "hour": 312,
+    "navigator_score": 2.92,
+    "p_set": 0.223,
+    "p_logistic": 0.4631,
+    "simulated": {
+     "p_mission": 0.0918,
+     "p_land": 0.9792,
+     "p_ice": 0.0938,
+     "p_return": 0.0938,
+     "touchdown_scatter_m": 40.48
+    },
+    "factors": {
+     "slope_deg": 1.47,
+     "sunlit_mean_frac": 0.931,
+     "sunlit_first_day_frac": 0.147,
+     "earth_visible_frac": 0.963,
+     "longest_dark_h": 17.0,
+     "longest_blackout_h": 11.0,
+     "hazard_frac_150m": 0.021,
+     "clear_radius_m": 50.2,
+     "ice_target_distance_km": 0.338,
+     "ice_targets_within_1km": 11,
+     "psr_frac_1km": 0.013
+    }
+   }
+  ]
+ },
+ "simulated_best10_ids": [
+  4,
+  3,
+  88,
+  16,
+  21,
+  22,
+  76,
+  23,
+  29,
+  15
+ ],
+ "this_world_metrics": {
+  "date": "2027-09-01",
+  "candidates": 96,
+  "best_simulated_p": 0.6562,
+  "mean_simulated_p": 0.1534,
+  "navigator": {
+   "chosen_simulated_p": 0.0625,
+   "regret": 0.5938,
+   "rank_corr": 0.58
+  },
+  "set": {
+   "chosen_simulated_p": 0.3893,
+   "regret": 0.2669,
+   "rank_corr": 0.583
+  },
+  "logistic": {
+   "chosen_simulated_p": 0.3438,
+   "regret": 0.3125,
+   "rank_corr": 0.504
+  }
+ },
+ "all_site23_worlds": [
+  {
+   "date": "2027-01-01",
+   "candidates": 96,
+   "best_simulated_p": 0.4062,
+   "mean_simulated_p": 0.081,
+   "navigator": {
+    "chosen_simulated_p": 0.0,
+    "regret": 0.4062,
+    "rank_corr": 0.474
+   },
+   "set": {
+    "chosen_simulated_p": 0.0625,
+    "regret": 0.3438,
+    "rank_corr": 0.506
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.0312,
+    "regret": 0.375,
+    "rank_corr": 0.544
+   }
+  },
+  {
+   "date": "2027-03-01",
+   "candidates": 96,
+   "best_simulated_p": 0.25,
+   "mean_simulated_p": 0.0309,
+   "navigator": {
+    "chosen_simulated_p": 0.25,
+    "regret": 0.0,
+    "rank_corr": 0.456
+   },
+   "set": {
+    "chosen_simulated_p": 0.0,
+    "regret": 0.25,
+    "rank_corr": 0.427
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.125,
+    "regret": 0.125,
+    "rank_corr": 0.572
+   }
+  },
+  {
+   "date": "2027-04-15",
+   "candidates": 96,
+   "best_simulated_p": 0.3438,
+   "mean_simulated_p": 0.0409,
+   "navigator": {
+    "chosen_simulated_p": 0.1562,
+    "regret": 0.1875,
+    "rank_corr": 0.418
+   },
+   "set": {
+    "chosen_simulated_p": 0.0312,
+    "regret": 0.3125,
+    "rank_corr": 0.173
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.1562,
+    "regret": 0.1875,
+    "rank_corr": 0.447
+   }
+  },
+  {
+   "date": "2027-06-01",
+   "candidates": 96,
+   "best_simulated_p": 0.3125,
+   "mean_simulated_p": 0.0384,
+   "navigator": {
+    "chosen_simulated_p": 0.25,
+    "regret": 0.0625,
+    "rank_corr": 0.525
+   },
+   "set": {
+    "chosen_simulated_p": 0.0299,
+    "regret": 0.2826,
+    "rank_corr": 0.53
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.1562,
+    "regret": 0.1562,
+    "rank_corr": 0.57
+   }
+  },
+  {
+   "date": "2027-07-15",
+   "candidates": 96,
+   "best_simulated_p": 0.375,
+   "mean_simulated_p": 0.0745,
+   "navigator": {
+    "chosen_simulated_p": 0.0859,
+    "regret": 0.2891,
+    "rank_corr": 0.52
+   },
+   "set": {
+    "chosen_simulated_p": 0.0312,
+    "regret": 0.3438,
+    "rank_corr": 0.252
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.0,
+    "regret": 0.375,
+    "rank_corr": 0.506
+   }
+  },
+  {
+   "date": "2027-09-01",
+   "candidates": 96,
+   "best_simulated_p": 0.6562,
+   "mean_simulated_p": 0.1534,
+   "navigator": {
+    "chosen_simulated_p": 0.0625,
+    "regret": 0.5938,
+    "rank_corr": 0.58
+   },
+   "set": {
+    "chosen_simulated_p": 0.3893,
+    "regret": 0.2669,
+    "rank_corr": 0.583
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.3438,
+    "regret": 0.3125,
+    "rank_corr": 0.504
+   }
+  },
+  {
+   "date": "2027-12-01",
+   "candidates": 96,
+   "best_simulated_p": 0.625,
+   "mean_simulated_p": 0.164,
+   "navigator": {
+    "chosen_simulated_p": 0.0938,
+    "regret": 0.5312,
+    "rank_corr": 0.325
+   },
+   "set": {
+    "chosen_simulated_p": 0.3125,
+    "regret": 0.3125,
+    "rank_corr": 0.522
+   },
+   "logistic": {
+    "chosen_simulated_p": 0.25,
+    "regret": 0.375,
+    "rank_corr": 0.419
+   }
+  }
+ ],
+ "rank_corr_note": "Spearman rank correlation between each ranking and the simulated p(mission) over all candidates of the world",
+ "site23_means_7_worlds": {
+  "navigator": {
+   "mean_chosen_simulated_p": 0.1283,
+   "mean_regret": 0.2958,
+   "mean_rank_corr": 0.471
+  },
+  "set": {
+   "mean_chosen_simulated_p": 0.1224,
+   "mean_regret": 0.3017,
+   "mean_rank_corr": 0.428
+  },
+  "logistic": {
+   "mean_chosen_simulated_p": 0.1518,
+   "mean_regret": 0.2723,
+   "mean_rank_corr": 0.509
+  }
+ },
+ "selection_caveat": "This world is one where the learned rankers pick better than the Navigator; on 2027-03-01 and 2027-06-01 the Navigator picks better. See site23_means_7_worlds."
+}

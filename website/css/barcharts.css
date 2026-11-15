@@ -1,0 +1,81 @@
+/* Vertical bar charts (js/barcharts.js). Colours from css/style.css :root tokens. .bc-ink = dark text on a pastel panel. */
+.bc-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--bc-min, 300px)), 1fr)); gap: 20px; }
+.bc { --bc-fg: var(--fg); --bc-fg2: var(--fg-2); --bc-fg3: var(--fg-3); --bc-axis: var(--line-strong);
+  --bc-base: rgba(240, 238, 230, .26); --bc-ours: var(--accent); --bc-ours2: var(--peach); --bc-bg: var(--surface);
+  margin: 0; min-width: 0; background: var(--bc-bg); border-radius: 22px; padding: 22px 22px 18px; display: flex; flex-direction: column; }
+.bc-ink { --bc-fg: var(--ink); --bc-fg2: var(--ink-2); --bc-fg3: var(--ink-2); --bc-axis: rgba(31, 31, 29, .28);
+  --bc-base: rgba(31, 31, 29, .22); --bc-ours2: #b9846c; --bc-bg: rgba(255, 255, 255, .42); }
+.bc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.bc-title { margin: 0; font: 600 15px/1.35 var(--head); color: var(--bc-fg); min-width: 0; }
+.bc-tog { display: inline-flex; border: 1px solid var(--bc-axis); border-radius: 999px; padding: 2px; flex: none; }
+.bc-tog button { appearance: none; border: 0; background: transparent; color: var(--bc-fg3); font: 500 12px/1 var(--font);
+  padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.bc-tog button[aria-pressed="true"] { background: var(--bc-fg); color: var(--bc-bg); }
+.bc-ink .bc-tog button[aria-pressed="true"] { color: #fff; }
+.bc-tog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.bc-plot { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+.bc-bars { display: flex; align-items: stretch; gap: clamp(6px, 2.4%, 18px); min-width: calc(var(--n, 3) * 56px); padding-top: 34px; }
+.bc-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.bc-area { position: relative; width: 100%; height: 210px; border-bottom: 1px solid var(--bc-axis); }
+.bc-bar { position: absolute; left: 50%; bottom: 0; width: min(100%, 76px); transform: translateX(-50%) scaleY(0); transform-origin: bottom;
+  border-radius: 8px 8px 0 0; background: var(--bc-base); transition: transform .9s var(--ease); }
+.bc-in .bc-bar { transform: translateX(-50%) scaleY(1); }
+.bc-ours .bc-bar { background: var(--bc-ours); }
+.bc-ours2 .bc-bar { background: var(--bc-ours2); }
+.bc-proj .bc-bar { background: repeating-linear-gradient(135deg, rgba(217, 119, 87, .38) 0 5px, transparent 5px 10px);
+  border: 1.5px dashed var(--bc-ours); border-bottom: 0; box-sizing: border-box; }
+.bc-whisk { position: absolute; left: 50%; width: 0; border-left: 1.5px solid var(--bc-fg2); opacity: 0; transform: translateX(-50%); transition: opacity .4s .7s; }
+.bc-whisk::before, .bc-whisk::after { content: ""; position: absolute; left: -6px; width: 10px; border-top: 1.5px solid var(--bc-fg2); }
+.bc-whisk::before { top: 0; } .bc-whisk::after { bottom: 0; }
+.bc-val { position: absolute; left: 50%; transform: translate(-50%, -6px); white-space: nowrap; font: 500 clamp(15px, 1.5vw, 21px)/1 var(--head);
+  color: var(--bc-fg); opacity: 0; transition: opacity .4s .6s; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.bc-in .bc-val, .bc-in .bc-whisk { opacity: 1; }
+.bc-whisk { opacity: 0; } .bc-in .bc-whisk { opacity: .75; }
+.bc-ours .bc-val { color: var(--bc-fg); font-weight: 600; }
+.bc-name { margin-top: 10px; font: 500 12.5px/1.3 var(--font); color: var(--bc-fg2); overflow-wrap: break-word; hyphens: auto; max-width: 100%; }
+.bc-ours .bc-name { color: var(--bc-fg); font-weight: 600; }
+.bc-sub { margin-top: 2px; font: 400 11px/1.3 var(--font); color: var(--bc-fg3); }
+.bc-proj .bc-sub { color: var(--accent); font-weight: 600; }
+.bc-ink .bc-proj .bc-sub { color: #a4482c; }
+.bc-col[title*="FAILED"] .bc-sub { color: var(--bad); font-weight: 600; }
+.bc-ink .bc-col[title*="FAILED"] .bc-sub { color: #9b2f28; }
+.bc-cap { margin: 14px 0 0; font: 400 12.5px/1.5 var(--font); color: var(--bc-fg3); }
+.bc-still .bc-bar, .bc-still .bc-val, .bc-still .bc-whisk { transition: none; }
+@media (prefers-reduced-motion: reduce) { .bc-bar, .bc-val, .bc-whisk { transition: none !important; } }
+@media (max-width: 560px) {
+  .bc { padding: 18px 14px 14px; border-radius: 18px; }
+  .bc-area { height: 180px; }
+  .bc-val { font-size: 14px; }
+  .bc-name { font-size: 11.5px; }
+  .bc-bars { gap: 6px; min-width: calc(var(--n, 3) * 50px); }
+}
+
+.bc-many { grid-column: 1 / -1; }
+.bc-many .bc-val { font-size: clamp(14px, 1.3vw, 18px); }
+
+/* page placements */
+.page-pilot .pp-charts { margin-top: 32px; }
+.page-pilot .pp-charts-note { margin-top: 14px; }
+.nv-charts { margin-top: 20px; }
+.ch-learn-chart { grid-column: 1 / -1; margin-top: 4px; }
+.ch-learn-note { grid-column: 1 / -1; margin: -8px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.ch-learn-note a { color: var(--ink); }
+.nv-proof .nv-charts { margin-top: 0; }
+.ch-learn-chart .bc-area { height: 170px; }
+
+/* callout, significance, n, how measured (Nov 15, judge-proof round) */
+.bc-callout { margin: 2px 0 4px; font: 500 14px/1.45 var(--font); color: var(--bc-fg); }
+.bc-sig { margin: 10px 0 0; font: 500 12.5px/1.45 var(--mono); color: var(--bc-fg2); }
+.bc-n { margin: 6px 0 0; font: 400 12px/1.45 var(--font); color: var(--bc-fg3); }
+.bc-cap { margin-top: 8px; }
+.bc-how { margin-top: 10px; border-top: 1px solid var(--bc-axis); padding-top: 8px; }
+.bc-how summary { cursor: pointer; font: 600 12.5px/1.4 var(--head); color: var(--bc-fg2); }
+.bc-how summary:hover { color: var(--bc-fg); }
+.bc-how dl { margin: 8px 0 0; display: grid; gap: 6px; }
+.bc-how dl div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; }
+.bc-how dt { font: 600 11.5px/1.45 var(--head); color: var(--bc-fg2); }
+.bc-how dd { margin: 0; font: 400 12px/1.45 var(--font); color: var(--bc-fg3); overflow-wrap: anywhere; }
+.bc-tile { justify-content: flex-start; }
+.bc-big { margin: 18px 0 10px; font: 500 clamp(26px, 2.6vw, 36px)/1.1 var(--head); color: var(--bc-ours); letter-spacing: -.01em; }
+@media (max-width: 560px) { .bc-how dl div { grid-template-columns: 1fr; gap: 2px; } }

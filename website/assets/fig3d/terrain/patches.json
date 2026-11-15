@@ -1,0 +1,127 @@
+{
+ "created_by": "website/tools/export_fig3d_terrain.py",
+ "region": "lola5m_site23",
+ "role": "TEST (held-out Site 23 centre window; never used for training or settings)",
+ "n": 64,
+ "m_per_px": 5.0,
+ "size_m": 320.0,
+ "layout": "per patch: truth, kriging, backup as uint16 LE n*n (row 0 = north, h = min + v/65535*(max-min)), then uint8 n*n mask (1 shown, 2 hidden)",
+ "surfaces": {
+  "truth": {
+   "provenance": "observed",
+   "label": "Real height (LOLA 5 m)",
+   "note": "away from laser pixels this is NASA's interpolation"
+  },
+  "kriging": {
+   "provenance": "modelled",
+   "label": "Kriging (Matern 3/2, plane mean)",
+   "setting": "gp|mat32|32.0|0.01|1, chosen on Site 11"
+  },
+  "backup": {
+   "provenance": "modelled",
+   "label": "Old backup (Gaussian gap-fill)",
+   "note": "mean of 6 noisy versions, as frozen"
+  }
+ },
+ "diffusion_missing": "terrain_diffusion_samples_site23.npz and terrain_diffusion_mini.pt are in the hand-off MANIFEST but not on this machine",
+ "window": {
+  "n_hidden": 21767,
+  "n_shown": 21903,
+  "kriging_rmse_m": 0.76,
+  "kriging_mae_m": 0.549,
+  "backup_rmse_m": 10.26,
+  "network_rmse_m": 1.317
+ },
+ "site23_pooled": {
+  "kriging_rmse_m": 0.94,
+  "network_rmse_m": 1.83
+ },
+ "checks": "origins and shown/hidden counts equal the 2-D figure; window totals and kriging/backup RMSE+MAE equal terrain.json to 1e-6 m",
+ "source": "data/tiles/lola5m_site23.npz (NASA LRO LOLA PGDA 5 m); records/weak_flags/terrain.json; records/weak_flags/scripts/terrain/terrain_wf.py",
+ "patches": [
+  {
+   "index": 0,
+   "origin_rc": [
+    128,
+    247
+   ],
+   "min_m": 4679.42578125,
+   "max_m": 4720.681029472935,
+   "relief_m": 40.94,
+   "n_shown": 244,
+   "n_hidden": 253,
+   "errors": {
+    "kriging": {
+     "rmse_hidden_m": 0.449,
+     "mae_hidden_m": 0.345,
+     "rmse_all_not_shown_m": 0.276
+    },
+    "backup": {
+     "rmse_hidden_m": 3.844,
+     "mae_hidden_m": 1.704,
+     "rmse_all_not_shown_m": 5.387
+    },
+    "network": {
+     "rmse_hidden_m": 0.51,
+     "source": "title of records/terrain_calibration/terrain_diffusion_samples_site23.png"
+    }
+   }
+  },
+  {
+   "index": 1,
+   "origin_rc": [
+    123,
+    533
+   ],
+   "min_m": 4650.16357421875,
+   "max_m": 4707.183755497904,
+   "relief_m": 56.85,
+   "n_shown": 243,
+   "n_hidden": 260,
+   "errors": {
+    "kriging": {
+     "rmse_hidden_m": 0.68,
+     "mae_hidden_m": 0.51,
+     "rmse_all_not_shown_m": 0.462
+    },
+    "backup": {
+     "rmse_hidden_m": 4.477,
+     "mae_hidden_m": 2.049,
+     "rmse_all_not_shown_m": 5.579
+    },
+    "network": {
+     "rmse_hidden_m": 0.74,
+     "source": "title of records/terrain_calibration/terrain_diffusion_samples_site23.png"
+    }
+   }
+  },
+  {
+   "index": 2,
+   "origin_rc": [
+    765,
+    817
+   ],
+   "min_m": 4609.00537109375,
+   "max_m": 4707.61709633279,
+   "relief_m": 95.62,
+   "n_shown": 245,
+   "n_hidden": 243,
+   "errors": {
+    "kriging": {
+     "rmse_hidden_m": 0.797,
+     "mae_hidden_m": 0.617,
+     "rmse_all_not_shown_m": 0.487
+    },
+    "backup": {
+     "rmse_hidden_m": 10.665,
+     "mae_hidden_m": 4.96,
+     "rmse_all_not_shown_m": 14.267
+    },
+    "network": {
+     "rmse_hidden_m": 0.85,
+     "source": "title of records/terrain_calibration/terrain_diffusion_samples_site23.png"
+    }
+   }
+  }
+ ]
+}

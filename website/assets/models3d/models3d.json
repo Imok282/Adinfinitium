@@ -1,0 +1,223 @@
+{
+ "meta": {
+  "created_by": "website/tools/export_models3d.py",
+  "note": "see per-view provenance/source"
+ },
+ "a": {
+  "n": 256,
+  "m_per_px": 20.0,
+  "size_m": 5120.0,
+  "min_m": 4057.9669647216797,
+  "max_m": 4937.26416015625,
+  "encoding": "uint16 little-endian, row 0 = north, h = min + v/65535*(max-min)",
+  "provenance": "observed",
+  "source": "data/tiles/lola5m_site23.npz (NASA LRO LOLA PGDA 5 m/px, Site23 Malapert massif, Barker et al. 2021; height partly interpolated by LOLA)",
+  "frame": "MOON_ME_DE421 south polar stereographic, metres (tile centre = window centre)",
+  "units": "m",
+  "texture": "a_elev_tex.jpg",
+  "inset": {
+   "kind": "square",
+   "frac": 0.62
+  },
+  "colour_range_m": [
+   4417.411181640625,
+   4857.2667236328125
+  ],
+  "colormap": "rainbow (purple low -> red high) x hillshade",
+  "laser_coverage": 0.10795211791992188
+ },
+ "b": {
+  "height": "site23",
+  "texture": "b_hazard_tex.jpg",
+  "provenance": "modelled",
+  "kind": "unet",
+  "source": "U-Net P(unsafe) for held-out Site 23, checkpoint data/models/hazard_unet.pt, cached by model_viewer at data/viewer_cache/lola5m_site23_hazard_1794638269341533160.npy; recomputed F1 0.950 vs label slope >= 12 deg",
+  "frame": "MOON_ME_DE421 south polar stereographic, metres (tile centre = window centre)",
+  "units": "probability 0..1 (blue 0 safe -> red 1 unsafe)",
+  "inset": {
+   "kind": "circle",
+   "frac": 0.7
+  },
+  "check": {
+   "f1": 0.9503,
+   "missed_hazard_rate": 0.0475,
+   "eval_json_f1": 0.9502803888980582
+  },
+  "slope_limit_deg": 12.0
+ },
+ "d": {
+  "n": 256,
+  "m_per_px": 20.0,
+  "size_m": 5120.0,
+  "min_m": 4873.192169189453,
+  "max_m": 6453.3115234375,
+  "encoding": "uint16 little-endian, row 0 = north, h = min + v/65535*(max-min)",
+  "provenance": "observed",
+  "source": "data/tiles/lola5m_site06.npz (NASA LRO LOLA PGDA 5 m/px, Site06 Nobile rim 1, Barker et al. 2021)",
+  "frame": "MOON_ME_DE421 south polar stereographic, metres (tile centre = window centre)",
+  "units": "m",
+  "texture": "d_site06_tex.jpg",
+  "texture_note": "grey hillshade of the observed DEM",
+  "target_tile_xyz_m": [
+   -1377.5,
+   1532.5,
+   5854.4
+  ],
+  "ghost_source": "runs/ghosts/lander_lola5m_site06.json -> website/assets/data/ghosts_site06.json (relative to target)",
+  "ghost_provenance": "MODELLED: PyTorch lander twin (parity-tested vs sim_jax) on NASA LOLA terrain; failures injected at raised rates for the visual",
+  "failure_rates": {
+   "engine_out": 0.3,
+   "nav_drift": 0.3,
+   "camera_blind": 0.15
+  },
+  "clip_above_target_m": 3000
+ },
+ "c": {
+  "height": "site23",
+  "atlas": "c_light_atlas.jpg",
+  "grid": [
+   4,
+   4
+  ],
+  "frame_px": 512,
+  "frames": [
+   {
+    "utc": "2027-09-01T00:00:00Z",
+    "sun_az_deg": 179.13,
+    "sun_elev_deg": -3.28,
+    "lit_fraction_tile": 0.4894,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-02T20:00:00Z",
+    "sun_az_deg": 156.66,
+    "sun_elev_deg": -2.911,
+    "lit_fraction_tile": 0.4702,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-04T16:00:00Z",
+    "sun_az_deg": 134.24,
+    "sun_elev_deg": -1.987,
+    "lit_fraction_tile": 0.3838,
+    "centre_sun_fraction_ours": 0.15,
+    "centre_sun_fraction_stored": 0.08
+   },
+   {
+    "utc": "2027-09-06T13:00:00Z",
+    "sun_az_deg": 111.36,
+    "sun_elev_deg": -0.609,
+    "lit_fraction_tile": 0.1678,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-08T09:00:00Z",
+    "sun_az_deg": 89.03,
+    "sun_elev_deg": 0.963,
+    "lit_fraction_tile": 0.0373,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-10T05:00:00Z",
+    "sun_az_deg": 66.71,
+    "sun_elev_deg": 2.524,
+    "lit_fraction_tile": 0.2929,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-12T02:00:00Z",
+    "sun_az_deg": 43.87,
+    "sun_elev_deg": 3.874,
+    "lit_fraction_tile": 0.4423,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-13T22:00:00Z",
+    "sun_az_deg": 21.49,
+    "sun_elev_deg": 4.756,
+    "lit_fraction_tile": 0.469,
+    "centre_sun_fraction_ours": 0.727,
+    "centre_sun_fraction_stored": 0.759
+   },
+   {
+    "utc": "2027-09-15T18:00:00Z",
+    "sun_az_deg": 359.09,
+    "sun_elev_deg": 5.076,
+    "lit_fraction_tile": 0.4871,
+    "centre_sun_fraction_ours": 1.0,
+    "centre_sun_fraction_stored": 1.0
+   },
+   {
+    "utc": "2027-09-17T14:00:00Z",
+    "sun_az_deg": 336.7,
+    "sun_elev_deg": 4.791,
+    "lit_fraction_tile": 0.4838,
+    "centre_sun_fraction_ours": 0.143,
+    "centre_sun_fraction_stored": 0.094
+   },
+   {
+    "utc": "2027-09-19T10:00:00Z",
+    "sun_az_deg": 314.33,
+    "sun_elev_deg": 3.948,
+    "lit_fraction_tile": 0.5019,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-21T07:00:00Z",
+    "sun_az_deg": 291.49,
+    "sun_elev_deg": 2.648,
+    "lit_fraction_tile": 0.4288,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-23T03:00:00Z",
+    "sun_az_deg": 269.19,
+    "sun_elev_deg": 1.148,
+    "lit_fraction_tile": 0.3707,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-24T23:00:00Z",
+    "sun_az_deg": 246.87,
+    "sun_elev_deg": -0.346,
+    "lit_fraction_tile": 0.3319,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-26T20:00:00Z",
+    "sun_az_deg": 224.01,
+    "sun_elev_deg": -1.629,
+    "lit_fraction_tile": 0.509,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   },
+   {
+    "utc": "2027-09-28T16:00:00Z",
+    "sun_az_deg": 201.61,
+    "sun_elev_deg": -2.446,
+    "lit_fraction_tile": 0.5011,
+    "centre_sun_fraction_ours": 0.0,
+    "centre_sun_fraction_stored": 0.0
+   }
+  ],
+  "provenance": "modelled",
+  "source": "Sun azimuth/elevation: data/light/lola5m_site23_2027-09-01_points.npz (NASA SPICE DE440, topocentric at the tile centre cell); shadows: our ray-cast of the observed LOLA 5 m DEM resampled to 10 m, Moon curvature included",
+  "approximation": "one Sun direction for the whole 5 km tile; terrain outside the tile is ignored (window-limited), so some distant-ridge shadows are missing; shadow drawn dark blue with faint relief for readability",
+  "check": {
+   "skyline_mean_abs_err_deg_vs_stored": 0.181,
+   "centre_lit_state_agreement": 1.0
+  },
+  "frame": "local tile ENU (south polar stereographic, row 0 = +y); grid azimuth = true azimuth + east longitude (unverified)",
+  "units": "lit fraction of the Sun disc (0..1), rendered as colour"
+ }
+}

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the models learn · Research · Adinfinitium</title>
+<meta name="description" content="Training curves from the real logs, including the frozen overnight run macmini_night: 14 stages, four networks trained on NASA LOLA terrain, how much of the planned training fitted, and what the logs show. Validation on Site 11.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="css/company.css">
+<link rel="stylesheet" href="css/curves.css">
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/training.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/training.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Training</p>
+    <h1>Watch it <span class="serif">learn.</span></h1>
+    <p class="lede">Training curves from the real logs, including the frozen overnight run that trained four of our networks. Validation is on Site 11, which no model trains on.</p>
+  </header>
+  <div class="post-body">
+    <h2>Three ways to land</h2>
+    <p>The same 320 simulated descents per policy on NASA LOLA Site 06, with engine-outs, navigation drift and blind cameras injected at raised rates: no guidance landed 0 / 320, classic guidance 314 / 320 and the AI pilot on top of it 315 / 320. This is a visual of the failure modes, not the benchmark; the paired benchmark is in the pilot post.</p>
+    <p class="src">Source: runs/ghosts_web/lander_lola5m_site06.json (python -m worldmodel.ghosts).</p>
+    <figure class="wide f3d" id="f3d-ghosts" data-f3d="training:ghosts">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="960 simulated lander descents in 3D over NASA LOLA Site 06, coloured green for landings and red for crashes, by policy: no guidance, classic guidance and the AI pilot.">
+        <img class="f3d-still" src="assets/fig3d/training/still_ghosts.jpg" width="1280" height="720" loading="lazy" alt="Hundreds of descent tracks over Site 06 terrain: green tracks converge on the landing target, red tracks of unguided descents scatter away.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption><span data-g="runs">960</span> simulated descents on NASA LOLA Site 06: no guidance <span data-g="okof:open_loop">0 / 320</span>, classic <span data-g="okof:classic">314 / 320</span>, AI pilot <span data-g="okof:pilot">315 / 320</span> landed. Engine-out <span data-g="rate:engine_out">30 %</span>, nav drift <span data-g="rate:nav_drift">30 %</span>, blind camera <span data-g="rate:camera_blind">15 %</span>, raised for the visual. Modelled (PyTorch lander twin on observed terrain). Source: runs/ghosts_web/lander_lola5m_site06.json → assets/data/ghosts_lander_site06.json/.bin.</figcaption>
+    </figure>
+
+    <h2>The frozen overnight run</h2>
+    <p>Four of our networks were trained in one unattended run, <code>macmini_night</code>, on a Mac mini (Apple M5 Pro, 18 cores, 64 GB, PyTorch on the Apple GPU), from Saturday 14 November 17:58 to Sunday 15 November 02:01 IST. In 14 stages it downloaded NASA LOLA 5 m terrain, trained the light, hazard, rover and terrain networks, and scored each against its physics backup on two sites it never saw (Site 23 and Site 42).</p>
+    <p><b>All 14 stages ended on the first attempt</b>, with no timeout and no retry, using 482.7 of the 717 budgeted minutes. The verification after the run reported 87 checks, 0 failed, 0 warnings. For the rover stage, "ended" means the program finished; it does not mean the rover learned.</p>
+    <p>Only part of the planned training fitted the time budgets:</p>
+    <div class="post-scroll">
+      <table class="post-table" style="min-width:600px">
+        <caption>Training actually reached in run macmini_night</caption>
+        <thead><tr><th scope="col">network</th><th scope="col">parameters</th><th scope="col">trained</th><th scope="col">of plan</th><th scope="col">minutes</th></tr></thead>
+        <tbody>
+          <tr><td>light</td><td>38,279,809</td><td>3,258 of 6,000 steps</td><td>54 %</td><td>53.5</td></tr>
+          <tr><td>hazard</td><td>60,361,561</td><td>37 of 40 epochs</td><td>93 %</td><td>91.3</td></tr>
+          <tr><td>rover</td><td>11,377,354</td><td>144 of 800 updates</td><td>18 %</td><td>121.5</td></tr>
+          <tr><td>terrain</td><td>49,943,681</td><td>7,671 of 8,000 steps</td><td>96 %</td><td>102.3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: records/RESULTS_FOR_TEAM.md sections 1, 2 and 7 (from runs/overnight/macmini_night/ledger.jsonl and logs/&lt;stage&gt;_0.log).</p>
+    <p>The run was then frozen: the SHA-256 checksums of the four checkpoints, the four evaluation files and the code are recorded in <code>runs/FROZEN.json</code>. Nothing was changed after the freeze. Every later experiment, from the rover drivers to the extra checks on fresh sites, is a separate addendum with its own rule written before its held-out numbers; none of them changes a number of this run.</p>
+
+    <h2>The curves</h2>
+    <div class="cv-grid-wrap" id="tr-curves"></div>
+    <p>These charts are drawn in the browser from the real training and validation logs. Each card names its model and metric. Validation is on Site 11, which no model trains on; the test sites are never in these curves.</p>
+    <p class="src">Source: assets/data/training_curves.json, exported from the training logs by website/tools/export_training_curves.py.</p>
+
+    <h2>What more training might buy</h2>
+    <p>We fitted a saturating curve to these validation logs and extrapolated it to two and five times the training we actually did. For the hazard, light and terrain networks it projects small gains; these are projections, not measurements, and when the light network really was trained on further, its measured error came out at the weak end of the range projected for twice the training. The <a href="research/benchmarks.html#projected">projected benchmarks and our roadmap</a> show each one next to the measured value, and the <a href="research/benchmarks.html#training">training record</a> lists every run of the two days.</p>
+    <p class="src">Source: assets/data/projections.json (copy of data/handoff_macmini_1115/projections.json).</p>
+
+    <h2>The raw log panels</h2>
+    <p>The panels below are the plots written by the frozen run itself, one row per network, by log entry. Flat lines are settings logged with each entry (slope limit, patch size, ray range), not results.</p>
+    <figure class="wide">
+      <img src="assets/img/results/curve_overnight_hazard.webp" loading="lazy" width="1600" height="300" alt="Four panels from the hazard network's training log: training loss falls steadily, best validation F1 rises, the slope limit stays at 12 degrees, validation precision rises with noise.">
+      <figcaption>Hazard network (37 epochs): training loss, best validation F1, the fixed 12° slope limit, validation precision. Source: runs/overnight/macmini_night/curve_hazard.png.</figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="assets/img/results/curve_overnight_light.webp" loading="lazy" width="1600" height="300" alt="Four panels from the light network's training log: training skyline error, best validation skyline error falling in steps, and two flat setting panels.">
+      <figcaption>Light network (3,258 steps): training skyline error, best validation skyline error in degrees, and two fixed settings (coarse factor 4, ray range 1,280 m). Source: runs/overnight/macmini_night/curve_light.png.</figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="assets/img/results/curve_overnight_terrain.webp" loading="lazy" width="1600" height="300" alt="Four panels from the terrain diffusion network's training log: training error, validation error and best validation error fall; patch size stays at 64.">
+      <figcaption>Terrain diffusion network (7,671 steps): training, validation and best validation denoising error, and the fixed patch size. This validation score is a denoising error, not the hide-and-check test used for the held-out result. Source: runs/overnight/macmini_night/curve_terrain.png.</figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="assets/img/results/curve_overnight_rover.webp" loading="lazy" width="1600" height="300" alt="Four panels from the rover network's training log: reached ice and returned stay at zero for all 144 log entries, died stays at 1.0 for almost every entry, mean reward rises towards zero.">
+      <figcaption>Rover network (144 updates): reached ice and returned stay at zero throughout; almost every logged batch died; mean reward rose without the mission being done. The rover network failed its held-out test. Source: runs/overnight/macmini_night/curve_rover.png.</figcaption>
+    </figure>
+    <p>During training the hazard, light and terrain networks improved their validation scores and the rover network did not. On unseen sites the hazard and light networks beat their physics backups, the terrain network lost to a classical kriging fill at predicting hidden laser heights, and the rover network failed. The details are in the <a href="research/hazard-model.html">hazard model</a>, <a href="research/terrain.html">terrain</a>, <a href="research/rover.html">rover</a> and <a href="research/benchmarks.html">benchmarks</a> posts.</p>
+
+    <h2>Limits</h2>
+    <ul>
+      <li>One validation site, Site 11, picked the best hazard, light and terrain checkpoints.</li>
+      <li>The rover's best checkpoint was picked on training rollouts; in this run that rule kept the update-1 network.</li>
+      <li>The Mac mini was shared with other work during the run, so the measured speeds are not those of an idle machine.</li>
+      <li>Everything here is training on real NASA LOLA terrain and evaluation in simulation.</li>
+    </ul>
+    <p class="src">Sources: records/RESULTS_FOR_TEAM.md sections 1, 2, 4, 7 and 8; runs/FROZEN.json; runs/overnight/macmini_night/curve_*.png; records/SUBMISSION_SUMMARY.md section 9.</p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+<script type="module">import { mountCurves } from './js/curves.js'; mountCurves(document.getElementById('tr-curves'));</script>
+<script type="module">import { loadGhostHead, fillCounts } from './js/ghostdata.js'; const f = document.getElementById('f3d-ghosts'); loadGhostHead('lander', 'site06').then(h => fillCounts(f.querySelector('figcaption'), h)).catch(e => console.warn('ghost counts', e));</script>
+</body>
+</html>

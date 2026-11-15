@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dream-RSI · Research · Adinfinitium</title>
+<meta name="description" content="Gated, offline self-improvement for the Adinfinitium planner, lander pilot and rover, with the real accept/reject logs: one planner generation accepted, 0 of 7 pilot candidates accepted, and a rover loop that did not learn the mission. Simulation.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/company.css">
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/dream-rsi.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/dream-rsi.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Dream-RSI</p>
+    <h1>Self-improvement, <span class="serif">behind a gate.</span></h1>
+    <p class="lede">After training stops, our models can keep practising offline. A frozen exam decides whether a new version replaces the old. Most attempts are rolled back; in the lander pilot's latest run, all of them were.</p>
+  </header>
+  <div class="post-body">
+    <h2>The loop</h2>
+    <p>The planner imagines missions on training terrain and picks the ones its two predictors disagree on most. The pilot finds where it fails (engine-out, navigation drift, blind camera) and practises those cases more often. Both play the cases out in the physics simulators, retrain from the current weights and sit a frozen exam on Site 11. Test sites are never used.</p>
+    <figure class="wide">
+      <div class="post-scroll rsi-wrap"><svg class="rsi-svg" viewBox="0 0 960 260" role="img" aria-label="Dream-RSI loop: imagine missions, choose by uncertainty, simulate, retrain from current weights, frozen exam gate; accept if better, otherwise reject and roll back; repeat." xmlns="http://www.w3.org/2000/svg"><defs><marker id="rsi-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4a4843"/></marker></defs><g class="rn sand"><rect x="16" y="40" width="164" height="92" rx="16"/><text x="98" y="74" class="rt">Imagine</text><text x="98" y="96" class="rs">missions on training</text><text x="98" y="113" class="rs">terrain only</text></g><line x1="184" y1="86" x2="203" y2="86" class="re" marker-end="url(#rsi-a)"/><g class="rn lavender"><rect x="207" y="40" width="164" height="92" rx="16"/><text x="289" y="74" class="rt">Choose</text><text x="289" y="96" class="rs">where predictors</text><text x="289" y="113" class="rs">disagree most</text></g><line x1="375" y1="86" x2="394" y2="86" class="re" marker-end="url(#rsi-a)"/><g class="rn sage"><rect x="398" y="40" width="164" height="92" rx="16"/><text x="480" y="74" class="rt">Simulate</text><text x="480" y="96" class="rs">in the physics</text><text x="480" y="113" class="rs">simulators</text></g><line x1="566" y1="86" x2="585" y2="86" class="re" marker-end="url(#rsi-a)"/><g class="rn lavender"><rect x="589" y="40" width="164" height="92" rx="16"/><text x="671" y="74" class="rt">Retrain</text><text x="671" y="96" class="rs">warm start from</text><text x="671" y="113" class="rs">current weights</text></g><line x1="757" y1="86" x2="776" y2="86" class="re" marker-end="url(#rsi-a)"/><g class="rn peach gate"><rect x="780" y="40" width="164" height="92" rx="16"/><text x="862" y="74" class="rt">Frozen exam</text><text x="862" y="96" class="rs">Site 11, fixed seeds</text><text x="862" y="113" class="rs">must improve</text></g><path d="M862 136 V154 M632 154 H862" class="re" fill="none"/><line x1="632" y1="154" x2="632" y2="174" class="re" marker-end="url(#rsi-a)"/><line x1="792" y1="154" x2="792" y2="174" class="re" marker-end="url(#rsi-a)"/><text x="632" y="148" class="rs">better</text><text x="792" y="148" class="rs">not better</text><g class="rn ok"><rect x="562" y="178" width="140" height="56" rx="14"/><text x="632" y="202" class="rt">Accept</text><text x="632" y="221" class="rs">new version ships</text></g><g class="rn no"><rect x="722" y="178" width="140" height="56" rx="14"/><text x="792" y="202" class="rt">Reject</text><text x="792" y="221" class="rs">roll back, keep old</text></g><path d="M562 206 H98 V136" class="re dash" fill="none" marker-end="url(#rsi-a)"/><text x="330" y="198" class="rs">repeat with the current version</text></svg></div>
+      <figcaption>Gated loop as implemented in worldmodel/planner/dream.py and worldmodel/lander/dream.py + rsi_targeted.py.</figcaption>
+    </figure>
+
+    <h2>The planner's real log</h2>
+    <p>Five generations sat the exam on the 4090; one dreamt world was skipped because it had no safe cells. One generation was accepted (validation Brier 0.0154 → 0.0135, lower is better); four were rolled back.</p>
+    <div class="post-scroll">
+      <table class="post-table">
+        <caption>Planner Dream-RSI log (frozen Site 11 exam, validation Brier, lower is better)</caption>
+        <thead><tr><th scope="col">gen</th><th scope="col">dreamt world</th><th scope="col">before</th><th scope="col">after</th><th scope="col">decision</th></tr></thead>
+        <tbody><tr class="rsk"><td>1</td><td>Site 04, 2027-01-01</td><td>—</td><td>—</td><td>skipped: no safe cells</td></tr><tr class="rej"><td>2</td><td>Site 06, 2027-07-15</td><td>0.0154</td><td>0.0171</td><td>rejected</td></tr><tr class="rej"><td>3</td><td>Site 01, 2027-07-15</td><td>0.0154</td><td>0.0179</td><td>rejected</td></tr><tr class="rej"><td>4</td><td>Site 01, 2027-03-01</td><td>0.0154</td><td>0.0160</td><td>rejected</td></tr><tr class="acc"><td>5</td><td>Site 01, 2027-06-01</td><td>0.0154</td><td>0.0135</td><td>accepted</td></tr><tr class="rej"><td>6</td><td>Site 06, 2027-07-15</td><td>0.0135</td><td>0.0163</td><td>rejected</td></tr></tbody>
+      </table>
+    </div>
+    <p class="src">Source: results_pc/extracted/planner_dream/history.jsonl (via assets/data/models.json).</p>
+
+    <h2>The pilot's gate: 0 of 7 accepted</h2>
+    <p>The pilot uses a stricter rule. On 1,024 fixed paired missions on Site 11 (normal and harsh failure rates), a candidate is accepted only if it loses no mission that the current pilot or classic guidance lands, and its total is strictly higher. The current pilot lands 990 of the 1,024; classic guidance lands 965.</p>
+    <p>On 15 November a job on the Mac mini mined the pilot's failures on the training maps, then sent seven candidates to the gate: four authority rules (how much of the pilot's correction is used, and when classic guidance takes over) and three short training rounds. <b>The gate rejected all seven.</b> The final pilot is the shipped pilot, with the same SHA-256 checksum before and after.</p>
+    <div class="post-scroll">
+      <table class="post-table" style="min-width:600px">
+        <caption>Lander self-improvement on the Site 11 gate (1,024 missions; current pilot 990, classic 965)</caption>
+        <thead><tr><th scope="col">candidate</th><th scope="col">what was tried</th><th scope="col">landed</th><th scope="col">missions lost</th><th scope="col">decision</th></tr></thead>
+        <tbody>
+          <tr class="rej"><td>rule 1</td><td>pilot at 80 % authority</td><td>990</td><td>13</td><td>rejected</td></tr>
+          <tr class="rej"><td>rule 2</td><td>classic flies after an engine failure, hand over below 5–15 m</td><td>989</td><td>13</td><td>rejected</td></tr>
+          <tr class="rej"><td>rule 3</td><td>hand over to classic below 5–15 m</td><td>990</td><td>12</td><td>rejected</td></tr>
+          <tr class="rej"><td>rule 4</td><td>pilot at 60 % authority</td><td>991</td><td>14</td><td>rejected</td></tr>
+          <tr class="rej"><td>training 1</td><td>5 updates, lr 5e-5</td><td>980</td><td>22</td><td>rejected</td></tr>
+          <tr class="rej"><td>training 2</td><td>4 updates, lr 3e-5, touchdown penalty 0.3</td><td>977</td><td>25</td><td>rejected</td></tr>
+          <tr class="rej"><td>training 3</td><td>5 updates, lr 2e-5, touchdown penalty 0.5</td><td>981</td><td>21</td><td>rejected</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: lander_mini/runs/lander/rsi_changelog.md, rsi_changelog_after_solve.md; records/lander/RESULTS_SUMMARY.md section 3; records/lander/LANDER_DIAGNOSIS_AND_RECOMMENDATIONS.md section 4. "Missions lost" counts gate missions that the current pilot or classic lands and the candidate does not.</p>
+    <p>Rule 4 landed one mission more than the current pilot and was still rejected, correctly by the rule: it lost 14 missions that classic or the current pilot lands. The three training rounds had only 4 or 5 updates each within their 12-minute budget, too short to matter, and all three came back worse than the pilot they started from. What worked: the gate never let a worse pilot through. What did not: no improvement was found. The pilot that sat the Site 23 final exam is this unchanged pilot (<a href="research/pilot-benchmark.html">pilot benchmark</a>).</p>
+
+    <h2>The rover: a loop in the style of Dream-RSI</h2>
+    <p>Google Research's Dream-RSI has a language model rewrite a small strategy program, then records, replays and scores each round and keeps the best. The original needs paid LLM API keys, so <b>we did not run it</b>. We built a key-free loop in its style for the rover: strategy variants come from a fixed grid of 54 settings written by a person, and a small learned world model is used for practice.</p>
+    <p>Each round drives 128 rovers for 100 steps, learns a small model from those steps, practises inside it, tests up to 6 candidates on 64 real simulator episodes, and accepts the best only if its gain is above 2 standard errors. It started from rover driver v2, which had already failed its held-out test, and ran by itself for 135 of its 140 minutes.</p>
+    <figure class="wide">
+      <img src="assets/img/results/selflearn_site42_blocked.webp" loading="lazy" width="1300" height="494" alt="Two line charts over 15 self-learning rounds on Site 42 with a synthetic blocked route. Mean episode return jumps from about -84.5 to -66.2 at round 2, then settles near -67.2. Share of rovers reaching ice stays between 1.6 and 2.7 percent, ending below the starting driver.">
+      <figcaption>Site 42, 2027-06-01, with a synthetic blocked route (simulation). Mean return per round (left) and share of rovers reaching ice (right); green dots are accepted rounds, grey rejected. These are online scores on the site the rover practised on, not held-out scores. Source: records/dream_rsi/selflearn_v2 (curve for Site 42, blocked route).</figcaption>
+    </figure>
+    <ul>
+      <li>Accepted: 2 of 23 rounds on Site 23 and 3 of 15 on Site 42; the other 33 rounds were rejected.</li>
+      <li>Mean return rose by 8.6 (se 0.8) and 17.4 (se 3.0). On Site 42 the share of rovers lost fell from 90.2 % to 81.6 %.</li>
+      <li><b>It did not learn the mission.</b> Rovers returned stayed at 0.0 % in all 38 rounds. Reached ice went from 0.0 % to 1.6 % on Site 23 and from 2.3 % to 2.0 % on Site 42.</li>
+      <li>One round on Site 42 (round 5) was accepted on its 64 test episodes while slightly worse on the 256 score starts (−66.2 to −68.1).</li>
+    </ul>
+    <p class="src">Source: records/ADDENDUM_AFTER_FREEZE.md section 3; records/dream_rsi/selflearn_v2/report.md and ledger.jsonl; records/SUBMISSION_SUMMARY.md section 5.</p>
+
+    <h2>The rover brain: a gated self-learning layer</h2>
+    <p>Rover brains v3 and v3.1 are scripted planners, not trained networks. Their self-learning layer changes no weights: it adjusts the belief map, the belief about solar output, an energy margin, charge thresholds and, in v3.1, a time shift of the light forecast and the measured battery capacity. Each proposal must beat the current brain on 128 paired real episodes (gain above 2 standard errors, no fewer returned, no more lost).</p>
+    <ul>
+      <li><b>v3:</b> of 72 rounds, 57 sent a proposal to the gate and 9 were accepted, all in round 1; rounds 2 to 4 accepted 0 of 54. A blocked route improved at 6 of 6 fresh sites, dusty panels at 2 of 6, an unchanged world at none (nothing was accepted). With a light forecast 12 hours late, 0 of 6 sites improved.</li>
+      <li><b>v3.1:</b> on four sites no rover experiment had touched, 36 rounds in 20 situations sent 23 proposals to the gate; 9 were accepted, 8 of them in round 1.</li>
+    </ul>
+    <div class="post-scroll">
+      <table class="post-table" style="min-width:600px">
+        <caption>Rover v3.1 self-learning on four untouched sites (simulation, 2 rounds per situation)</caption>
+        <thead><tr><th scope="col">changed world</th><th scope="col">sites improved</th><th scope="col">what happened</th></tr></thead>
+        <tbody>
+          <tr><td>light forecast 12 h late</td><td>3 of 4</td><td>shift of +12 h found at all four sites; under the strict rule, lost fell 81.6 → 72.3 %, 71.5 → 60.5 %, 65.6 → 53.1 %</td></tr>
+          <tr><td>blocked route (synthetic)</td><td>4 of 4</td><td>each site added the obstacle it had seen to its map in round 1</td></tr>
+          <tr><td>dusty panels</td><td>1 of 4</td><td>one site accepted the measured solar output</td></tr>
+          <tr><td>unchanged</td><td>0 of 4</td><td>nothing accepted, nothing worse</td></tr>
+          <tr><td>light forecast 8 h early</td><td>0 of 4</td><td>shift of −8 h measured at all four sites, but no fix accepted in two full rounds</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: records/SUBMISSION_SUMMARY.md section 5; records/rover_v3/ROVER_V3_REPORT.md; records/rover_v31/ROVER_V31_REPORT.md and COMPLETION_EARLY_LIGHT.md. The 8-hour-early row is the completion run with the registered 45-minute cap.</p>
+    <p>What works is narrow: a map correction for a blocked route, and a time shift of the light forecast when it is 12 hours late. Every change it can make has a hand-written proposal type; a change without one was never tested. Each situation got one useful change, almost always in the first round, and then the layer stopped. It spends real episodes and loses rovers while it learns.</p>
+
+    <h2>Limits</h2>
+    <ul>
+      <li><b>None of this is open-ended recursive self-improvement.</b> Each loop picks among options a person wrote (rules, settings, proposal types) and keeps a change only if a fixed gate says it is better. None of them changes how it learns.</li>
+      <li>Dreams and lander rounds run only on training sites (01, 04, 06, 07, 20) and the Site 11 gate; Site 23 and the unseen benchmark maps are never used.</li>
+      <li>A single frozen exam site can still be overfitted over many generations; the held-out benchmark is the final check.</li>
+      <li>If nothing passes the gate, nothing changes: the current version keeps flying. For the lander on 15 November, that is what happened.</li>
+      <li>All results are simulation on NASA LOLA terrain. The blocked route and dusty panels are synthetic changes to the simulated world.</li>
+    </ul>
+    <p class="src">Sources: results_pc/extracted/planner_dream/history.jsonl; lander_mini/runs/lander/rsi_changelog.md and rsi_changelog_after_solve.md; records/lander/RESULTS_SUMMARY.md sections 3 and 4; records/lander/LANDER_DIAGNOSIS_AND_RECOMMENDATIONS.md section 4; records/ADDENDUM_AFTER_FREEZE.md section 3; records/dream_rsi/selflearn_v2/; records/rover_v3/ROVER_V3_REPORT.md; records/rover_v31/ROVER_V31_REPORT.md and COMPLETION_EARLY_LIGHT.md; records/SUBMISSION_SUMMARY.md sections 5 and 8.</p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+<script type="module" src="js/nav.js"></script>
+</body>
+</html>

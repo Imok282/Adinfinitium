@@ -1,0 +1,44 @@
+/* company.html + research/hazard-model.html + research/dream-rsi.html (agent C). Page-scoped extras on top of
+   css/mission.css (company) and css/research.css (posts). */
+
+/* ---------- company ---------- */
+.page-company .co-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.page-company .co-grid .cp-card { margin: 0; }
+.page-company .co-grid h3, .page-company .cp-team h3 { font: 500 22px/1.2 var(--head); color: var(--ink); margin: 0 0 8px; }
+.page-company .cp-block h2 { margin-bottom: 18px; }
+.page-company .co-h3 { font: 600 18px/1.3 var(--head); color: var(--fg); margin: 32px 0 10px; }
+.page-company .co-mail { color: var(--fg); font-weight: 500; }
+.page-company .co-dim { color: var(--fg-3); font-size: 14px; }
+.page-company .cp-block .credits { font: 400 15px/1.6 var(--font); color: var(--fg-2); margin: 0 0 10px; }
+@media (max-width: 760px) { .page-company .co-grid { grid-template-columns: 1fr; gap: 14px; } }
+
+/* ---------- research posts ---------- */
+.page-research .post-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 20px; }
+.page-research .mc-inline .post-scroll { background: var(--sand); padding: 16px; }
+.page-research .mc-inline .mc-svg { min-width: 720px; }
+.page-research .post-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 8px 0 6px; }
+.page-research .post-stats .res-card { border-radius: 22px; padding: 22px; color: var(--ink); display: grid; gap: 8px; justify-items: start; align-content: start; text-align: left; min-height: 0; }
+.page-research .post-stats .sage { background: var(--sage); } .page-research .post-stats .peach { background: var(--peach); }
+.page-research .post-stats .lavender { background: var(--lavender); }
+.page-research .post-stats b { font: 400 clamp(34px, 3.4vw, 46px)/1 var(--display); color: var(--ink); }
+.page-research .post-stats span { font: 500 14px/1.4 var(--font); color: var(--ink-2); }
+.page-research .post-body figure img { display: block; width: 100%; height: auto; border-radius: 18px; }
+/* Dream-RSI loop */
+.page-research .rsi-wrap { background: var(--sand); padding: 12px; }
+.page-research .rsi-svg { display: block; width: 100%; min-width: 720px; height: auto; }
+.rsi-svg .rn rect { stroke: #4a4843; stroke-width: 1.4; }
+.rsi-svg .rn.sand rect { fill: #fbf6ec; } .rsi-svg .rn.lavender rect { fill: var(--lavender); }
+.rsi-svg .rn.sage rect { fill: var(--sage); } .rsi-svg .rn.peach rect { fill: var(--peach); }
+.rsi-svg .rn.gate rect { stroke: #1f1f1d; stroke-width: 2.6; }
+.rsi-svg .rn.ok rect { fill: var(--sage); } .rsi-svg .rn.no rect { fill: #f3d2c8; }
+.rsi-svg .rt { font: 600 16px var(--font); fill: #1f1f1d; text-anchor: middle; }
+.rsi-svg .rs { font: 400 12.5px var(--font); fill: #4a4843; text-anchor: middle; }
+.rsi-svg .re { stroke: #4a4843; stroke-width: 1.6; }
+.rsi-svg .re.dash { stroke-dasharray: 6 5; }
+.page-research .post-table caption { caption-side: top; text-align: left; font: 500 14px/1.4 var(--font); color: var(--fg-3); padding: 0 0 10px; }
+.page-research .post-table tr.acc td { color: var(--ok); }
+.page-research .post-table tr.acc td:last-child { font-weight: 600; }
+.page-research .post-table tr.rsk td { color: var(--fg-3); }
+@media (max-width: 760px) {
+  .page-research .post-stats { grid-template-columns: 1fr; }
+}

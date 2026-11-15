@@ -1,0 +1,36 @@
+/* "How the policy is trained" (js/neat.js). Modes: .neat-beat (landing.html, scrubbed), .neat-card (pilot.html), .neat-teaser. */
+.neat .neat-head { text-align: center; max-width: 760px; margin: 0 auto 24px; }
+.neat .neat-head h2 { margin: 0 0 14px; }
+.neat .neat-lede { margin: 0 auto; max-width: 640px; color: var(--fg-2); font-size: 17px; line-height: 1.55; }
+.neat .neat-note { margin: 12px 0 0; font-size: 13px; color: var(--fg-3); }
+.neat .neat-cv { display: block; width: 100%; }
+.neat .neat-gen { margin: 10px 0 0; text-align: center; font: 500 13px/1.4 var(--mono); color: var(--fg-3); min-height: 1.4em; }
+.neat .neat-handoff { margin: 14px auto 0; text-align: center; font-size: 15px; color: var(--fg-2); }
+.neat .neat-handoff span { color: var(--accent); padding: 0 .3em; }
+.neat .neat-handoff a { color: var(--fg); }
+
+/* beat: tall section with a sticky stage, scrubbed by scroll */
+#neat.neat-beat { display: block; height: 300vh; min-height: 0; padding: 0; gap: 0; position: relative; z-index: 5; background: var(--bg); }
+#neat.neat-beat > * { max-width: none; }
+.neat-beat .neat-stage { position: sticky; top: 0; height: 100vh; max-width: 1100px; margin: 0 auto; padding: 92px 24px 28px;
+  display: flex; flex-direction: column; justify-content: center; }
+.neat-beat .neat-cv { flex: 1 1 auto; min-height: 260px; max-height: 560px; }
+.neat-beat .neat-head h2 { font-size: clamp(28px, 2.6vw, 40px); }
+
+/* card / teaser: normal flow */
+.neat-card .neat-cv { height: 480px; }
+.neat-teaser .neat-cv { height: 300px; }
+.neat-card, .neat-teaser { background: var(--surface); border-radius: 28px; padding: 40px 36px 32px; }
+
+/* reduced motion / static: final state, normal height */
+#neat.neat-beat.neat-static { height: auto; }
+.neat-beat.neat-static .neat-stage { position: static; height: auto; }
+.neat-beat.neat-static .neat-cv { height: 480px; flex: none; }
+
+@media (max-width: 640px) {
+  .neat .neat-lede { font-size: 15px; }
+  .neat-beat .neat-stage { padding: 80px 16px 20px; }
+  .neat-card, .neat-teaser { padding: 26px 16px 22px; border-radius: 22px; }
+  .neat-card .neat-cv, .neat-beat.neat-static .neat-cv { height: 440px; }
+  .neat .neat-handoff { font-size: 14px; }
+}

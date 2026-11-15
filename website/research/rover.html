@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The rover brain · Research · Adinfinitium</title>
+<meta name="description" content="Two learned rover drivers failed in simulation. The brain we present, v3.1, is scripted, with no learned parameters: on four untouched lunar sites it lost 53.9% of rovers under the strict rule, against 61.0% for v3 and 81.8% for the best simple planner.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="css/company.css">
+<link rel="stylesheet" href="css/roverstats.css">
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/rover.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/rover.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Nov 2026 · Rover</p>
+    <h1>Two learned drivers failed. <span class="serif">The brain we kept is scripted.</span></h1>
+    <p class="lede">In simulation on real NASA LOLA terrain, a rover leaves the lander, drives to a shadow-edge target and comes back without running its battery flat. Both of our learned drivers failed at this. The brain we present, v3.1, has no learned parameters, and it still loses more than half of its rovers.</p>
+  </header>
+  <div class="post-body">
+    <h2>The task</h2>
+    <p>The rover drives on 5 m NASA LOLA terrain around the lander. Its target is the edge of a permanently shadowed region: dark and cold, not confirmed ice. It has a 100 Wh battery and draws 2 W while it idles, so a full battery lasts about 50 hours of waiting. Landing hours are random within a month in which the lander is often dark for more than 50 hours in a row. The rover's light forecast is a physics ray-cast with Sun directions from NASA SPICE. Its hazard map comes from our hazard U-Net; in the simulator a hazard costs route cost and score, it cannot lose a rover.</p>
+
+    <div class="callout">
+      <p><b>Two scoring rules.</b> <b>Strict</b>: a rover whose battery is empty at any hour, anywhere, is lost; it counts as returned only if it completed the trip without ever being empty. <b>Lenient</b> (the simulator's own rule): an empty battery within 20 m of the lander is forgiven, because the rover sits there and wakes when sunlight returns.</p>
+      <p>The lenient rule hides most losses, so the headline numbers on this page are strict. A strict number is never compared with a lenient one.</p>
+    </div>
+
+    <h2>Rover v1 and v2: learned drivers, both failed</h2>
+    <p>Both drivers are the same network, 11,377,354 parameters. v1 was trained with reinforcement learning (PPO) in the overnight run; v2, trained afterwards, learns by copying the physics planners (imitation with DAgger). Both were scored on 8 held-out worlds (the centre windows of Site23 and Site42 on 4 dates, 512 rovers per world) against the simple naive planner, under the simulator's own rule.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>driver (8 held-out worlds)</th><th>returned</th><th>battery died</th></tr></thead>
+        <tbody>
+          <tr><td>v1, PPO network</td><td>0.0%</td><td>95.5%</td></tr>
+          <tr><td>v2, imitation network</td><td>1.2%</td><td>95.3%</td></tr>
+          <tr><td>naive planner</td><td>9.3%</td><td>86.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Simulation, simulator's own rule. v1 also reached a target in 1.7% of runs against 19.6% for the naive planner. v2 returned 48 of 4,096 rovers; the naive planner returned 380.</p>
+    <ul>
+      <li><b>v1</b> never returned home in any world. The network that was scored is the one after update 1 of 144: training stopped at the time budget (144 of 800 planned updates).</li>
+      <li><b>v2</b> memorised routes. In every training world the lander and the 16 targets sat in the same places. It agrees with the planner on 86% to 93% of return-leg steps on trained terrain and on 15% to 26% on unseen terrain.</li>
+      <li>A self-learning loop in the style of Dream-RSI ran on v2 for 135 minutes. It raised the mean score, but returned stayed at 0.0% in all 38 rounds. It did not learn the mission (<a href="research/dream-rsi.html">more on that loop</a>).</li>
+    </ul>
+    <figure>
+      <img src="assets/img/results/params_rover.webp" width="1400" height="577" loading="lazy" alt="Bar chart on a log scale: parameters of our rover driver v1 and v2 (11,377,354) next to published learned navigation policies for Earth robots (GNM 8.7 M, NoMaD 19.0 M, ViNT 31.0 M, ViT-Base 86.0 M).">
+      <figcaption>Size only. Our failed driver next to published learned navigation policies for camera-equipped Earth robots. Different tasks and data; their scores cannot be read against ours. Source: records/benchmarks/params_rover.png.</figcaption>
+    </figure>
+
+    <h2>Rover v3: a scripted planner</h2>
+    <p>v3 has no network. For each rover it rolls 36 candidate plans forward inside an exact copy of the simulator (same map, same light forecast, same physics) and picks the best. Three of the 36 are the simple planners themselves, so in an unchanged world v3 cannot lose to them if the code is right. Its lead shows that planning the whole trip with a perfect forecast beats three short-sighted rules. It is not evidence of learning.</p>
+    <p>On six fresh sites (DM1, LM7, NPA, NPB, NPC, NPD; 24 worlds) v3 returned 59.6% of rovers under the simulator's rule. Counting every flat battery as a loss, it returned 42.0% and lost 56.7%, against 29.8% and 69.4% for the naive planner, the best planner under this rule. It was ahead at 6 of 6 sites. Most of its strict losses were rovers that sat at the lander until the battery went flat: v3 had one place to wait, the lander, and never looked for lit ground.</p>
+
+    <h2>Rover v3.1: the brain we present</h2>
+    <p>v3.1 is still scripted: 0 learned parameters and no change to the simulator. It adds three things to v3.</p>
+    <ul>
+      <li><b>Stay-alive route search.</b> For each rover it searches a grid of places around it (36 m apart, up to 432 m away) and every remaining hour for the highest battery level it can hold without ever going flat. Read backwards this gives a route: drive to ground that stays lit, wait there, move on when the light moves.</li>
+      <li><b>31 new candidate plans</b> next to v3's 36: shelter only, or shelter first and then go to the target and back.</li>
+      <li><b>Strict-first choice.</b> A plan that returns and is never flat beats a plan that only stays alive, which beats anything else.</li>
+    </ul>
+
+    <h3>Result on four untouched sites</h3>
+    <p>LM2, LM3, LM4 and LM5 had been used by no rover experiment before this test. 16 worlds, 8,192 rovers per method, strict rule, simulation.</p>
+    <div class="post-stats">
+      <div class="res-card tz sage"><b>33.7%</b><span>returned · v3 31.0% · naive planner 17.9%</span></div>
+      <div class="res-card tz peach"><b>53.9%</b><span>lost · v3 61.0% · naive planner 81.8%</span></div>
+      <div class="res-card tz lavender"><b>−7.1</b><span>points lost vs v3 · 95% interval [−13.8, −3.5]</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>method (strict rule)</th><th>returned</th><th>lost</th></tr></thead>
+        <tbody>
+          <tr><td>rover v3.1</td><td>33.7% [26.0, 42.2]</td><td>53.9% [46.8, 59.5]</td></tr>
+          <tr><td>rover v3</td><td>31.0% [24.3, 38.9]</td><td>61.0% [50.4, 72.8]</td></tr>
+          <tr><td>planner: naive</td><td>17.9% [15.4, 20.6]</td><td>81.8% [79.1, 84.4]</td></tr>
+          <tr><td>planner: cautious</td><td>12.2% [6.6, 17.9]</td><td>83.7% [78.6, 90.3]</td></tr>
+          <tr><td>planner: cautious, waits for light</td><td>14.0% [5.6, 22.3]</td><td>78.5% [72.2, 88.5]</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Brackets: 95% interval from resampling sites. The rest of a row (100% minus returned minus lost) is rovers alive at the end without a completed trip.</p>
+    <ul>
+      <li>v3.1 lost fewer rovers than v3 at 4 of 4 sites, and returned 2.7 points more [+1.9, +3.4].</li>
+      <li>Most of the gain is survival, not trips. Of the 583 rovers (of 8,192) that v3 lost and v3.1 did not, 164 are new completed trips and 419 stayed alive on lit ground without completing one (alive at hour 300, the end of the episode). v3.1 lost no rover that v3 kept.</li>
+      <li>The gain is uneven: LM4 −17.1 points, the other three sites −3.4 to −4.1. On the six earlier fresh sites it is smaller, −2.5 points [−3.7, −1.3].</li>
+      <li>As with v3, v3's plans are among v3.1's candidates and the forecast is perfect here, so v3.1 cannot score below v3 if the code is right. The result measures how much lit ground is within reach, not robustness. The four sites are neighbours (10 to 30 km apart), so the intervals are rough.</li>
+    </ul>
+
+    <h3>One v3.1 traverse in 3D</h3>
+    <p>This drive is from the <a href="research/end-to-end.html">end-to-end test</a> on site DM1 (2027-06-01), one of the six earlier fresh sites, not one of the four sites above. It is rover 0, the lowest-numbered rover that returned under the strict rule, not one picked by eye. Drag the slider to replay it hour by hour.</p>
+    <figure class="wide f3d" id="f3d-route" data-f3d="dm1:route">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site DM1 terrain in 3D with rover 0's 3,261 m v3.1 route from the lander to a shadow-edge target and back, coloured by battery level.">
+        <img class="f3d-still" src="assets/fig3d/dm1/still_route.jpg" width="1280" height="720" loading="lazy" alt="Site DM1 terrain in 3D with one rover route, coloured by battery, from the lander to a shadow-edge target about 1.5 km away and back.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption>Rover 0 on DM1: 3,261 m over 300 hours, reached its shadow-edge target (dark and cold, not confirmed ice) at hour 64 and ended 7.6 m from the lander with 89.8 Wh. Terrain: observed NASA LOLA 5 m, the rover's 2.56 km world, heights 2.5× exaggerated. Route and battery: simulated. Source: e2e test arrays via tools/export_fig3d_dm1.py.</figcaption>
+    </figure>
+
+    <h2>Why it still loses more than half</h2>
+    <p>A diagnosis of v3's strict losses, made on development and validation sites before v3.1 was tested, found that the lander is dark for more than 50 hours in a row in 78% of the 300-hour windows, and 98% of the strict losses are such starts. With a 100 Wh battery, 2 W idle draw and a random landing hour, most of these losses probably cannot be planned away in this simulator. How many is a range, not one number: 8% of the losses are proven unavoidable (a loose bound), an energy-only estimate puts the unavoidable share near two thirds, and the upper limit is about 80%. Thermal limits on lit ground are not modelled.</p>
+
+    <h2>The self-learning layer</h2>
+    <p>v3.1 has a gated self-learning layer. It can propose a corrected map, a corrected solar output, a time shift of the light forecast fitted from the rover's own solar readings, or the measured battery capacity. A proposal is accepted only if it beats the current brain on paired real episodes under the strict rule. It changes settings, not network weights. Four untouched sites, one date, 2 rounds, 256 score starts per world.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>changed world (rover not told)</th><th>sites improved</th></tr></thead>
+        <tbody>
+          <tr><td>light forecast 12 hours late</td><td>3 of 4</td></tr>
+          <tr><td>route blocked (synthetic obstacle)</td><td>4 of 4</td></tr>
+          <tr><td>light forecast 8 hours early</td><td>0 of 4 (not met)</td></tr>
+          <tr><td>dusty panels</td><td>1 of 4</td></tr>
+          <tr><td>unchanged world</td><td>nothing accepted, nothing worse</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li><b>12 hours late:</b> the rover fitted the +12 h shift at all four sites; the gate accepted it at three. Strict losses there fell from 81.6% to 72.3%, 71.5% to 60.5% and 65.6% to 53.1%.</li>
+      <li><b>8 hours early:</b> the shift was measured at all four sites, but no fix was accepted at any of them. A launcher mistake first cut this test short; we completed it afterwards with nothing changed and got the same answer.</li>
+      <li><b>Hand-written proposal types only.</b> Every change it handled has a proposal type a person wrote (map, solar output, forecast shift, battery capacity). Nothing outside that list was tested. In 36 rounds it accepted 9 changes, 8 of them in round 1 and 1 in round 2: each situation gets at most one useful change, and then the layer stops.</li>
+      <li>Learning costs real episodes, and rovers are lost while it runs. Before any learning, with a late forecast, v3.1 loses more rovers than v3 under the simulator's rule (32.2% against 19.9%): it leaves the lander to shelter on lit ground, and when the forecast is wrong the battery runs out away from the lander.</li>
+    </ul>
+
+    <h2>An earlier development run</h2>
+    <p>The charts below come from an early development run of the three simple planners on Site 23 (200 runs each, 2027-03-01, with Site 06 and a September date for comparison), made before the final evaluation. Its set-up and scoring differ from the tables above, so its numbers cannot be compared with them. It is kept here because it shows real simulated routes and a battery trace.</p>
+    <div class="rs-wide" id="rv-stats"></div>
+
+    <h2>Method &amp; data</h2>
+    <p>All results are simulation on NASA LOLA 5 m terrain with physics illumination; "target" means a shadow-edge target, not confirmed ice. v3 and v3.1 were evaluated once, under rules written before their test numbers; every v3.1 number was re-derived by an independent checker.</p>
+    <p class="src">Sources (hand-off records): records/SUBMISSION_SUMMARY.md sections 3, 3.1, 5, 6, 8; records/RESULTS_FOR_TEAM.md section 3.4 (rover v1 and the planners); records/ADDENDUM_AFTER_FREEZE.md sections 2.3 to 2.6 (rover v2 and its self-learning loop); records/rover_v3/ROVER_V3_REPORT.md and records/weak_flags/REPORT_rover.md (v3, both rules); records/rover_v31/ROVER_V31_REPORT.md, tables.md, eval.json (v3.1, section A and self-learning); records/rover_v31/COMPLETION_EARLY_LIGHT.md (8-hours-early completion run); records/rover_v31/diagnosis.md (unavoidable share); records/benchmarks/params_rover.png and params.json (parameter counts). Earlier development run: runs/ghosts_web/rover_lola5m_site23_2027-03-01.json, runs/ghosts/rover_lola5m_site23_2027-09-01.json, runs/ghosts/rover_lola5m_site06_2027-03-01.json, exported by website/tools/export_rover_stats.py to assets/data/rover_stats.json.</p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+<script type="module">import { mountRoverStats } from './js/roverstats.js'; mountRoverStats(document.getElementById('rv-stats'), { full: false });</script>
+</body>
+</html>
