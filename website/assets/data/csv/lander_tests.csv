@@ -1,0 +1,7 @@
+id,label,n_missions,pilot_only_landed,classic_only_landed,diff_pts,diff_ci95_lo,diff_ci95_hi,p_exact_mcnemar,p_holm,source
+unseen_nominal,"Pilot vs classic, unseen maps (Site42, Shoemaker, DM2), normal rates",2304,32,15,0.74,0.16,1.32,0.01862383661500644,0.11174301969003864,data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json
+unseen_harsh,"Pilot vs classic, unseen maps (Site42, Shoemaker, DM2), harsh (failure rates x3) rates",2304,55,41,0.61,-0.23,1.44,0.18428587288036472,0.9214293644018235,data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json
+site23_nominal,"Pilot vs classic, Site23 final exam, normal rates",1024,11,11,0.0,-0.9,0.9,1.0,1.0,data/handoff_macmini_1115/lander_mini/runs/lander/benchmark_site23_final.json
+site23_harsh,"Pilot vs classic, Site23 final exam, harsh (failure rates x3) rates",1024,19,21,-0.2,-1.41,1.02,0.8746293123804207,1.0,data/handoff_macmini_1115/lander_mini/runs/lander/benchmark_site23_final.json
+rehearsal_nominal,"Pilot vs classic, mission rehearsal at the planned Site23 cell, normal rates",512,5,2,0.59,-0.43,1.6,0.453125,1.0,runs/lander/mission_rehearsal.json (copied into website/assets/data/mission_bench.json)
+rehearsal_harsh,"Pilot vs classic, mission rehearsal at the planned Site23 cell, harsh (failure rates x3) rates",512,4,5,-0.2,-1.34,0.95,1.0,1.0,runs/lander/mission_rehearsal.json (copied into website/assets/data/mission_bench.json)

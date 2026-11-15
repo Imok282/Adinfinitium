@@ -1,0 +1,2122 @@
+{
+  "label": "Dream-RSI: measured effects (from logs) and projections",
+  "built": "2026-11-15 by the benchmark lead; logs only: no training, no evaluation, no flight",
+  "rules": "Measured values come from the gate logs. Projected values are labelled per row: tier A 'Projected — not measured' (from the model's own Dream-RSI log) or tier B 'Scenario — assumption, not measured, not a projection from this model's data'. Never mix them with measured benchmark values.",
+  "measured": {
+    "planner": {
+      "loop": "Planner Dream-RSI (imagine -> pick most-uncertain cells -> simulate -> warm-start retrain -> accept only if validation Brier on Site11 improves)",
+      "gate_metric": "validation Brier (Site11, 3 worlds), lower is better",
+      "source": "data/planner_dream/history.jsonl (identical to results_pc/extracted/planner_dream/history.jsonl)",
+      "accepted": 1,
+      "generations_evaluated": 5,
+      "series": [
+        {
+          "generation": 1,
+          "world": "lola5m_site04@2027-01-01",
+          "skipped": "no safe landing cells in this world"
+        },
+        {
+          "generation": 2,
+          "world": "lola5m_site06@2027-07-15",
+          "before": 0.01543,
+          "after_candidate": 0.01706,
+          "accepted": false,
+          "kept": 0.01543,
+          "missions_simulated": 1056
+        },
+        {
+          "generation": 3,
+          "world": "lola5m_site01@2027-07-15",
+          "before": 0.01543,
+          "after_candidate": 0.01786,
+          "accepted": false,
+          "kept": 0.01543,
+          "missions_simulated": 1056
+        },
+        {
+          "generation": 4,
+          "world": "lola5m_site01@2027-03-01",
+          "before": 0.01543,
+          "after_candidate": 0.016,
+          "accepted": false,
+          "kept": 0.01543,
+          "missions_simulated": 1056
+        },
+        {
+          "generation": 5,
+          "world": "lola5m_site01@2027-06-01",
+          "before": 0.01543,
+          "after_candidate": 0.01353,
+          "accepted": true,
+          "kept": 0.01353,
+          "missions_simulated": 1056
+        },
+        {
+          "generation": 6,
+          "world": "lola5m_site06@2027-07-15",
+          "before": 0.01353,
+          "after_candidate": 0.0163,
+          "accepted": false,
+          "kept": 0.01353,
+          "missions_simulated": 1056
+        }
+      ],
+      "net_effect": {
+        "before": 0.01543,
+        "after": 0.01353,
+        "relative_reduction": 0.1231367465975372
+      },
+      "note": "The benchmarked planner_set.pt (saved 23:52 IST) is the generation-5 accepted model; planner_set_prev.pt (23:42) is the pre-Dream model. The pre-Dream model was never scored on Site23, so the Dream effect on the test benchmark is NOT measured (it could be, in seconds, by scoring planner_set_prev.pt on the stored labels; not done under the no-evaluation rule)."
+    },
+    "lander": {
+      "loop": "Lander pilot targeted Dream-RSI + solve-then-learn authority rules",
+      "gate_metric": "Site11, 1,024 paired missions: accept only with 0 regressions vs current pilot and classic and strictly more landings",
+      "source": "data/handoff_macmini_1115/lander_mini/runs/lander/rsi_changelog.jsonl, rsi_changelog.md",
+      "accepted": 0,
+      "rounds": 7,
+      "series": [
+        {
+          "round": 1,
+          "kind": "authority rule (weights unchanged)",
+          "candidate": "pilot at 80 % authority",
+          "candidate_landed": 990,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 13,
+          "accepted": false
+        },
+        {
+          "round": 2,
+          "kind": "authority rule (weights unchanged)",
+          "candidate": "pilot, classic flies after an engine failure, hand over below 5-15 m",
+          "candidate_landed": 989,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 13,
+          "accepted": false
+        },
+        {
+          "round": 3,
+          "kind": "authority rule (weights unchanged)",
+          "candidate": "pilot, hand over to classic below 5-15 m",
+          "candidate_landed": 990,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 12,
+          "accepted": false
+        },
+        {
+          "round": 4,
+          "kind": "authority rule (weights unchanged)",
+          "candidate": "pilot at 60 % authority",
+          "candidate_landed": 991,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 14,
+          "accepted": false
+        },
+        {
+          "round": 5,
+          "kind": "training round (5 updates, lr 5e-05)",
+          "candidate": "training round 1",
+          "candidate_landed": 980,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 22,
+          "accepted": false
+        },
+        {
+          "round": 6,
+          "kind": "training round (4 updates, lr 3e-05)",
+          "candidate": "training round 2",
+          "candidate_landed": 977,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 25,
+          "accepted": false
+        },
+        {
+          "round": 7,
+          "kind": "training round (5 updates, lr 2e-05)",
+          "candidate": "training round 3",
+          "candidate_landed": 981,
+          "current_landed": 990,
+          "classic_landed": 965,
+          "n": 1024,
+          "regressions": 21,
+          "accepted": false
+        }
+      ],
+      "net_effect": {
+        "before": 990,
+        "after": 990,
+        "of": 1024,
+        "note": "production pilot unchanged (same sha256 at every step)"
+      }
+    },
+    "rover_addendum1": {
+      "loop": "Key-free Dream-RSI-style loop on the failed rover v2 driver (online, on the site itself)",
+      "gate_metric": "mean episode return on 64 paired starts, best-of-6 (optimistic)",
+      "source": "archive ./macbook/records/dream_rsi/selflearn_v2/report.md",
+      "accepted": 5,
+      "rounds": 38,
+      "series": {
+        "lola5m_site23@2027-06-01": {
+          "world": "lola5m_site23@2027-06-01, change",
+          "rounds": [
+            {
+              "round": 0,
+              "accepted": false,
+              "reached_ice_pct": 0.0,
+              "returned_pct": 0.0,
+              "died_pct": 100.0,
+              "mean_return": -48.5
+            },
+            {
+              "round": 1,
+              "accepted": true,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 2,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 3,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 4,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 5,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 6,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 7,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 8,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 9,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 10,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 11,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 12,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 13,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 14,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 15,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 16,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 17,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 18,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 19,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 20,
+              "accepted": false,
+              "reached_ice_pct": 0.8,
+              "returned_pct": 0.0,
+              "died_pct": 99.2,
+              "mean_return": -40.4
+            },
+            {
+              "round": 21,
+              "accepted": true,
+              "reached_ice_pct": 1.6,
+              "returned_pct": 0.0,
+              "died_pct": 98.8,
+              "mean_return": -39.9
+            },
+            {
+              "round": 22,
+              "accepted": false,
+              "reached_ice_pct": 1.6,
+              "returned_pct": 0.0,
+              "died_pct": 98.8,
+              "mean_return": -39.9
+            },
+            {
+              "round": 23,
+              "accepted": false,
+              "reached_ice_pct": 1.6,
+              "returned_pct": 0.0,
+              "died_pct": 98.8,
+              "mean_return": -39.9
+            }
+          ]
+        },
+        "lola5m_site42@2027-06-01": {
+          "world": "lola5m_site42@2027-06-01, change",
+          "rounds": [
+            {
+              "round": 0,
+              "accepted": false,
+              "reached_ice_pct": 2.3,
+              "returned_pct": 0.0,
+              "died_pct": 90.2,
+              "mean_return": -84.5
+            },
+            {
+              "round": 1,
+              "accepted": false,
+              "reached_ice_pct": 2.3,
+              "returned_pct": 0.0,
+              "died_pct": 90.2,
+              "mean_return": -84.5
+            },
+            {
+              "round": 2,
+              "accepted": true,
+              "reached_ice_pct": 2.7,
+              "returned_pct": 0.0,
+              "died_pct": 85.9,
+              "mean_return": -66.2
+            },
+            {
+              "round": 3,
+              "accepted": false,
+              "reached_ice_pct": 2.7,
+              "returned_pct": 0.0,
+              "died_pct": 85.9,
+              "mean_return": -66.2
+            },
+            {
+              "round": 4,
+              "accepted": false,
+              "reached_ice_pct": 2.7,
+              "returned_pct": 0.0,
+              "died_pct": 85.9,
+              "mean_return": -66.2
+            },
+            {
+              "round": 5,
+              "accepted": true,
+              "reached_ice_pct": 1.6,
+              "returned_pct": 0.0,
+              "died_pct": 84.8,
+              "mean_return": -68.1
+            },
+            {
+              "round": 6,
+              "accepted": false,
+              "reached_ice_pct": 1.6,
+              "returned_pct": 0.0,
+              "died_pct": 84.8,
+              "mean_return": -68.1
+            },
+            {
+              "round": 7,
+              "accepted": true,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 8,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 9,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 10,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 11,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 12,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 13,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 14,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            },
+            {
+              "round": 15,
+              "accepted": false,
+              "reached_ice_pct": 2.0,
+              "returned_pct": 0.0,
+              "died_pct": 81.6,
+              "mean_return": -67.2
+            }
+          ]
+        }
+      },
+      "net_effect": {
+        "Site23 unchanged": "mean return -48.5 -> -39.9, returned 0.0% -> 0.0%",
+        "Site42 blocked route": "mean return -84.5 -> -67.2, returned 0.0% -> 0.0%"
+      },
+      "note": "Online on the site being driven, not held-out. Returned stayed 0.0% in all 38 rounds."
+    },
+    "rover_v3": {
+      "loop": "Rover v3 gated self-learning (map, solar belief, energy margin, charge thresholds)",
+      "gate_metric": "gain on 128 paired real episodes; before/after on 256 separate score starts (lenient rule)",
+      "source": "archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-4 (from rover_v3/eval.json)",
+      "accepted": 9,
+      "rounds": 72,
+      "accepted_by_round": {
+        "1": 9,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "series": [
+        {
+          "change": "blocked_route",
+          "site": "DM1",
+          "rounds_accepted": 1,
+          "returned_before": 0.254,
+          "returned_after": 0.668
+        },
+        {
+          "change": "blocked_route",
+          "site": "LM7",
+          "rounds_accepted": 1,
+          "returned_before": 0.254,
+          "returned_after": 0.457
+        },
+        {
+          "change": "blocked_route",
+          "site": "NPA",
+          "rounds_accepted": 1,
+          "returned_before": 0,
+          "returned_after": 0.008
+        },
+        {
+          "change": "blocked_route",
+          "site": "NPB",
+          "rounds_accepted": 1,
+          "returned_before": 0.59,
+          "returned_after": 0.703
+        },
+        {
+          "change": "blocked_route",
+          "site": "NPC",
+          "rounds_accepted": 1,
+          "returned_before": 0.254,
+          "returned_after": 0.457
+        },
+        {
+          "change": "blocked_route",
+          "site": "NPD",
+          "rounds_accepted": 1,
+          "returned_before": 0.398,
+          "returned_after": 0.711
+        },
+        {
+          "change": "dusty_panels",
+          "site": "DM1",
+          "rounds_accepted": 1,
+          "returned_before": 0.598,
+          "returned_after": 0.613
+        },
+        {
+          "change": "dusty_panels",
+          "site": "LM7",
+          "rounds_accepted": 1,
+          "returned_before": 0.375,
+          "returned_after": 0.426
+        },
+        {
+          "change": "dusty_panels",
+          "site": "NPA",
+          "rounds_accepted": 0,
+          "returned_before": 0,
+          "returned_after": 0
+        },
+        {
+          "change": "dusty_panels",
+          "site": "NPB",
+          "rounds_accepted": 0,
+          "returned_before": 0.551,
+          "returned_after": 0.551
+        },
+        {
+          "change": "dusty_panels",
+          "site": "NPC",
+          "rounds_accepted": 0,
+          "returned_before": 0.449,
+          "returned_after": 0.449
+        },
+        {
+          "change": "dusty_panels",
+          "site": "NPD",
+          "rounds_accepted": 1,
+          "returned_before": 0.559,
+          "returned_after": 0.688
+        },
+        {
+          "change": "none",
+          "site": "DM1",
+          "rounds_accepted": 0,
+          "returned_before": 0.664,
+          "returned_after": 0.664
+        },
+        {
+          "change": "none",
+          "site": "LM7",
+          "rounds_accepted": 0,
+          "returned_before": 0.496,
+          "returned_after": 0.496
+        },
+        {
+          "change": "none",
+          "site": "NPA",
+          "rounds_accepted": 0,
+          "returned_before": 0.008,
+          "returned_after": 0.008
+        },
+        {
+          "change": "none",
+          "site": "NPB",
+          "rounds_accepted": 0,
+          "returned_before": 0.68,
+          "returned_after": 0.68
+        },
+        {
+          "change": "none",
+          "site": "NPC",
+          "rounds_accepted": 0,
+          "returned_before": 0.434,
+          "returned_after": 0.434
+        },
+        {
+          "change": "none",
+          "site": "NPD",
+          "rounds_accepted": 0,
+          "returned_before": 0.684,
+          "returned_after": 0.684
+        }
+      ],
+      "by_change": {
+        "blocked route": "6 of 6 sites improved",
+        "dusty panels": "2 of 6 improved (DM1 NO CHANGE by label)",
+        "unchanged world": "0 of 6 (nothing accepted)"
+      }
+    },
+    "rover_v31": {
+      "loop": "Rover v3.1 gated self-learning (+ time-shifted light forecast, battery capacity, rejected-proposal memory, strict-rule gate)",
+      "gate_metric": "strict score gain > 2 SE on 128 paired episodes; before/after on 256 score starts",
+      "source": "archive ./macbook/records/rover_v31/eval.json D_dream, tables.md; COMPLETION_EARLY_LIGHT.md (via HANDOFF_FOR_CLAUDE.md 4.20)",
+      "accepted": 9,
+      "rounds": 36,
+      "accepted_by_round": {
+        "1": 8,
+        "2": 1
+      },
+      "completion_run_early_light": {
+        "rounds": 8,
+        "accepted": 0,
+        "note": "LM4 round 1 reached the gate: strict lost 87 -> 81 but gain 4.25 < 5.47 needed; run after the numbers had been seen"
+      },
+      "series": [
+        {
+          "site": "LM2",
+          "change": "late_light",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.1015625,
+          "strict_returned_after": 0.1640625,
+          "strict_lost_before": 0.81640625,
+          "strict_lost_after": 0.72265625
+        },
+        {
+          "site": "LM2",
+          "change": "dusty_panels",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            2
+          ],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.1328125,
+          "strict_returned_after": 0.1484375,
+          "strict_lost_before": 0.703125,
+          "strict_lost_after": 0.66796875
+        },
+        {
+          "site": "LM2",
+          "change": "blocked_route",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.10546875,
+          "strict_returned_after": 0.1875,
+          "strict_lost_before": 0.73828125,
+          "strict_lost_after": 0.71875
+        },
+        {
+          "site": "LM2",
+          "change": "none",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.1953125,
+          "strict_returned_after": 0.1953125,
+          "strict_lost_before": 0.68359375,
+          "strict_lost_after": 0.68359375
+        },
+        {
+          "site": "LM3",
+          "change": "late_light",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.28125,
+          "strict_returned_after": 0.3828125,
+          "strict_lost_before": 0.71484375,
+          "strict_lost_after": 0.60546875
+        },
+        {
+          "site": "LM3",
+          "change": "dusty_panels",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.265625,
+          "strict_returned_after": 0.265625,
+          "strict_lost_before": 0.72265625,
+          "strict_lost_after": 0.72265625
+        },
+        {
+          "site": "LM3",
+          "change": "blocked_route",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.26171875,
+          "strict_returned_after": 0.3359375,
+          "strict_lost_before": 0.71875,
+          "strict_lost_after": 0.6484375
+        },
+        {
+          "site": "LM3",
+          "change": "none",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.3671875,
+          "strict_returned_after": 0.3671875,
+          "strict_lost_before": 0.62890625,
+          "strict_lost_after": 0.62890625
+        },
+        {
+          "site": "LM4",
+          "change": "late_light",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.16015625,
+          "strict_returned_after": 0.23046875,
+          "strict_lost_before": 0.65625,
+          "strict_lost_after": 0.53125
+        },
+        {
+          "site": "LM4",
+          "change": "dusty_panels",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.05859375,
+          "strict_returned_after": 0.109375,
+          "strict_lost_before": 0.671875,
+          "strict_lost_after": 0.5859375
+        },
+        {
+          "site": "LM4",
+          "change": "blocked_route",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.09375,
+          "strict_returned_after": 0.17578125,
+          "strict_lost_before": 0.6484375,
+          "strict_lost_after": 0.56640625
+        },
+        {
+          "site": "LM4",
+          "change": "none",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.13671875,
+          "strict_returned_after": 0.13671875,
+          "strict_lost_before": 0.53515625,
+          "strict_lost_after": 0.53515625
+        },
+        {
+          "site": "LM5",
+          "change": "late_light",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.046875,
+          "strict_returned_after": 0.046875,
+          "strict_lost_before": 0.953125,
+          "strict_lost_after": 0.953125
+        },
+        {
+          "site": "LM5",
+          "change": "dusty_panels",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.015625,
+          "strict_returned_after": 0.015625,
+          "strict_lost_before": 0.984375,
+          "strict_lost_after": 0.984375
+        },
+        {
+          "site": "LM5",
+          "change": "blocked_route",
+          "rounds_run": 2,
+          "accepted_rounds": [
+            1
+          ],
+          "label": "IMPROVED",
+          "strict_returned_before": 0.03515625,
+          "strict_returned_after": 0.05078125,
+          "strict_lost_before": 0.96484375,
+          "strict_lost_after": 0.94921875
+        },
+        {
+          "site": "LM5",
+          "change": "none",
+          "rounds_run": 2,
+          "accepted_rounds": [],
+          "label": "NO CHANGE",
+          "strict_returned_before": 0.05078125,
+          "strict_returned_after": 0.05078125,
+          "strict_lost_before": 0.94921875,
+          "strict_lost_after": 0.94921875
+        },
+        {
+          "site": "LM2",
+          "change": "early_light",
+          "rounds_run": 1,
+          "accepted_rounds": [],
+          "label": "NOT FINISHED (counts as NO CHANGE)",
+          "strict_returned_before": 0.1640625,
+          "strict_returned_after": 0.1640625,
+          "strict_lost_before": 0.7578125,
+          "strict_lost_after": 0.7578125
+        },
+        {
+          "site": "LM3",
+          "change": "early_light",
+          "rounds_run": 1,
+          "accepted_rounds": [],
+          "label": "NOT FINISHED (counts as NO CHANGE)",
+          "strict_returned_before": 0.3671875,
+          "strict_returned_after": 0.3671875,
+          "strict_lost_before": 0.6015625,
+          "strict_lost_after": 0.6015625
+        },
+        {
+          "site": "LM4",
+          "change": "early_light",
+          "rounds_run": 1,
+          "accepted_rounds": [],
+          "label": "NOT FINISHED (counts as NO CHANGE)",
+          "strict_returned_before": 0.09375,
+          "strict_returned_after": 0.09375,
+          "strict_lost_before": 0.6953125,
+          "strict_lost_after": 0.6953125
+        },
+        {
+          "site": "LM5",
+          "change": "early_light",
+          "rounds_run": 1,
+          "accepted_rounds": [],
+          "label": "NOT FINISHED (counts as NO CHANGE)",
+          "strict_returned_before": 0.04296875,
+          "strict_returned_after": 0.04296875,
+          "strict_lost_before": 0.95703125,
+          "strict_lost_after": 0.95703125
+        }
+      ],
+      "by_change": {
+        "late_light": {
+          "situations": 4,
+          "improved": 3,
+          "no_change": 1,
+          "rounds_run": 8,
+          "rounds_accepted": 3
+        },
+        "dusty_panels": {
+          "situations": 4,
+          "improved": 1,
+          "no_change": 3,
+          "rounds_run": 8,
+          "rounds_accepted": 2
+        },
+        "blocked_route": {
+          "situations": 4,
+          "improved": 4,
+          "no_change": 0,
+          "rounds_run": 8,
+          "rounds_accepted": 4
+        },
+        "none": {
+          "situations": 4,
+          "improved": 0,
+          "no_change": 4,
+          "rounds_run": 8,
+          "rounds_accepted": 0
+        },
+        "early_light": {
+          "situations": 4,
+          "improved": 0,
+          "no_change": 4,
+          "rounds_run": 4,
+          "rounds_accepted": 0
+        }
+      },
+      "brain_upgrade_v3_to_v31_note": "v3.1 vs v3 strict lost -7.1 pts [-13.8, -3.5] on LM2-LM5 is a hand-designed brain change informed by v3's self-learning diagnosis, not a Dream-RSI acceptance."
+    }
+  },
+  "pooled_evidence": {
+    "relative_gain_per_accepted_round": {
+      "values": [
+        {
+          "loop": "planner",
+          "rel": 0.1231
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.555
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.2721
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.008
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.2756
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.2721
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.5199
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.0373
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.0816
+        },
+        {
+          "loop": "rover_v3",
+          "rel": 0.2925
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0696
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.018
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0917
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.1413
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.1005
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0837
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0539
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0905
+        },
+        {
+          "loop": "rover_v31",
+          "rel": 0.0162
+        },
+        {
+          "loop": "rover_addendum1",
+          "rel": 0.0
+        },
+        {
+          "loop": "rover_addendum1",
+          "rel": 0.0
+        },
+        {
+          "loop": "rover_addendum1",
+          "rel": 0.0
+        },
+        {
+          "loop": "rover_addendum1",
+          "rel": 0.0
+        },
+        {
+          "loop": "rover_addendum1",
+          "rel": 0.0
+        }
+      ],
+      "mean": 0.12928334835204647,
+      "median": 0.08266046511627902,
+      "n": 24,
+      "definition": "fractional reduction of the loop's own error (1 - success score, or Brier) in one accepted round"
+    },
+    "acceptance": {
+      "first_round": {
+        "accepted": 18,
+        "of": 42,
+        "rate": 0.42857142857142855
+      },
+      "later_rounds": {
+        "accepted": 6,
+        "of": 120,
+        "rate": 0.05
+      },
+      "rover_unchanged_worlds": {
+        "accepted": 0,
+        "of": 32
+      }
+    },
+    "caveat": "17 of the 18 accepted rover rounds repaired a planted fault (blocked route, dusty panels, shifted light); in unchanged rover worlds 0 of 32 rounds were accepted. The pooled gain is therefore optimistic for an unstressed benchmark."
+  },
+  "projections": [
+    {
+      "family": "hazard",
+      "model": "Hazard U-Net (ours, 60.4 M)",
+      "metric": "F1, fresh sites",
+      "metric_id": "f1_fresh",
+      "unit": "",
+      "better": "higher",
+      "measured_now": 0.757,
+      "after_5_generations": {
+        "point": 0.757,
+        "band95": [
+          0.757,
+          0.892
+        ]
+      },
+      "after_20_generations": {
+        "point": 0.779,
+        "band95": [
+          0.757,
+          0.916
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json hazard / 'Hazard U-Net (ours, 60.4 M)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "hazard",
+      "model": "Hazard U-Net (ours, 60.4 M)",
+      "metric": "F1, Site23+42",
+      "metric_id": "f1_heldout",
+      "unit": "",
+      "better": "higher",
+      "measured_now": 0.951,
+      "after_5_generations": {
+        "point": 0.951,
+        "band95": [
+          0.951,
+          0.978
+        ]
+      },
+      "after_20_generations": {
+        "point": 0.955,
+        "band95": [
+          0.951,
+          0.983
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json hazard / 'Hazard U-Net (ours, 60.4 M)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "hazard",
+      "model": "Hazard U-Net (ours, 60.4 M)",
+      "metric": "Recall, fresh",
+      "metric_id": "recall_fresh",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 81.3,
+      "after_5_generations": {
+        "point": 81.3,
+        "band95": [
+          81.3,
+          91.68
+        ]
+      },
+      "after_20_generations": {
+        "point": 82.91,
+        "band95": [
+          81.3,
+          93.5
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json hazard / 'Hazard U-Net (ours, 60.4 M)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "hazard",
+      "model": "Hazard U-Net (ours, 60.4 M)",
+      "metric": "False alarms, fresh",
+      "metric_id": "false_alarm_fresh",
+      "unit": "%",
+      "better": "lower",
+      "measured_now": 5.1,
+      "after_5_generations": {
+        "point": 5.1,
+        "band95": [
+          2.27,
+          5.1
+        ]
+      },
+      "after_20_generations": {
+        "point": 4.64,
+        "band95": [
+          1.77,
+          5.1
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json hazard / 'Hazard U-Net (ours, 60.4 M)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "light",
+      "model": "Skyline transformer (ours, 38.3 M, 3,258 steps; presented)",
+      "metric": "Skyline error, Site23+42",
+      "metric_id": "skyline_err",
+      "unit": "°",
+      "better": "lower",
+      "measured_now": 0.45,
+      "after_5_generations": {
+        "point": 0.45,
+        "band95": [
+          0.2,
+          0.45
+        ]
+      },
+      "after_20_generations": {
+        "point": 0.41,
+        "band95": [
+          0.157,
+          0.45
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json light / 'Skyline transformer (ours, 38.3 M, 3,258 steps; presented)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "light",
+      "model": "Skyline transformer (ours, 38.3 M, 3,258 steps; presented)",
+      "metric": "Skyline error, fresh",
+      "metric_id": "skyline_err_fresh",
+      "unit": "°",
+      "better": "lower",
+      "measured_now": 0.243,
+      "after_5_generations": {
+        "point": 0.243,
+        "band95": [
+          0.108,
+          0.243
+        ]
+      },
+      "after_20_generations": {
+        "point": 0.222,
+        "band95": [
+          0.085,
+          0.243
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json light / 'Skyline transformer (ours, 38.3 M, 3,258 steps; presented)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "light",
+      "model": "Skyline transformer (ours, 38.3 M, 3,258 steps; presented)",
+      "metric": "Sunlit-hours error",
+      "metric_id": "hours_err",
+      "unit": "h",
+      "better": "lower",
+      "measured_now": 7.6,
+      "after_5_generations": {
+        "point": 7.6,
+        "band95": [
+          3.382,
+          7.6
+        ]
+      },
+      "after_20_generations": {
+        "point": 6.944,
+        "band95": [
+          2.634,
+          7.6
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json light / 'Skyline transformer (ours, 38.3 M, 3,258 steps; presented)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "light",
+      "model": "Skyline transformer (ours, 38.3 M, 3,258 steps; presented)",
+      "metric": "Runtime per window",
+      "metric_id": "runtime",
+      "unit": "s",
+      "better": "lower",
+      "measured_now": null,
+      "after_5_generations": null,
+      "after_20_generations": "not applicable: Dream-RSI changes weights, not the architecture; runtime stays 7.41 s",
+      "tier": "n/a",
+      "label": "Scenario — assumption, not measured",
+      "method": 7.41,
+      "source": "benchmarks_final.json light",
+      "note": ""
+    },
+    {
+      "family": "terrain",
+      "model": "Diffusion U-Net (ours, 49.9 M; experiment)",
+      "metric": "Height RMSE, Site23+42",
+      "metric_id": "rmse_heldout",
+      "unit": "m",
+      "better": "lower",
+      "measured_now": 2.01,
+      "after_5_generations": {
+        "point": 2.01,
+        "band95": [
+          0.89,
+          2.01
+        ]
+      },
+      "after_20_generations": {
+        "point": 1.84,
+        "band95": [
+          0.7,
+          2.01
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. Kriging (0.97 m) is shown for comparison, not used as a cap.",
+      "source": "benchmarks_final.json terrain / 'Diffusion U-Net (ours, 49.9 M; experiment)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "terrain",
+      "model": "Diffusion U-Net (ours, 49.9 M; experiment)",
+      "metric": "Height RMSE, fresh",
+      "metric_id": "rmse_fresh",
+      "unit": "m",
+      "better": "lower",
+      "measured_now": 1.62,
+      "after_5_generations": {
+        "point": 1.62,
+        "band95": [
+          0.72,
+          1.62
+        ]
+      },
+      "after_20_generations": {
+        "point": 1.48,
+        "band95": [
+          0.57,
+          1.62
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. Kriging (0.97 m) is shown for comparison, not used as a cap.",
+      "source": "benchmarks_final.json terrain / 'Diffusion U-Net (ours, 49.9 M; experiment)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "terrain",
+      "model": "Kriging (Matern 3/2; presented estimator, 0 params)",
+      "metric": "Height RMSE, Site23+42",
+      "metric_id": "rmse_heldout",
+      "unit": "m",
+      "better": "lower",
+      "measured_now": null,
+      "after_5_generations": null,
+      "after_20_generations": "not applicable: kriging has no learned parameters for Dream-RSI to change (its 3 settings were fixed on Site11)",
+      "tier": "n/a",
+      "label": "Scenario — assumption, not measured",
+      "method": 0.97,
+      "source": "benchmarks_final.json terrain",
+      "note": ""
+    },
+    {
+      "family": "terrain",
+      "model": "Kriging (Matern 3/2; presented estimator, 0 params)",
+      "metric": "Height RMSE, fresh",
+      "metric_id": "rmse_fresh",
+      "unit": "m",
+      "better": "lower",
+      "measured_now": null,
+      "after_5_generations": null,
+      "after_20_generations": "not applicable: kriging has no learned parameters for Dream-RSI to change (its 3 settings were fixed on Site11)",
+      "tier": "n/a",
+      "label": "Scenario — assumption, not measured",
+      "method": 0.97,
+      "source": "benchmarks_final.json terrain",
+      "note": ""
+    },
+    {
+      "family": "terrain",
+      "model": "Kriging (Matern 3/2; presented estimator, 0 params)",
+      "metric": "90% band coverage",
+      "metric_id": "band_cov",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": null,
+      "after_5_generations": null,
+      "after_20_generations": "not applicable: kriging has no learned parameters for Dream-RSI to change (its 3 settings were fixed on Site11)",
+      "tier": "n/a",
+      "label": "Scenario — assumption, not measured",
+      "method": 86.2,
+      "source": "benchmarks_final.json terrain",
+      "note": ""
+    },
+    {
+      "family": "terrain",
+      "model": "Kriging (Matern 3/2; presented estimator, 0 params)",
+      "metric": "Band width",
+      "metric_id": "band_width",
+      "unit": "m",
+      "better": "lower",
+      "measured_now": null,
+      "after_5_generations": null,
+      "after_20_generations": "not applicable: kriging has no learned parameters for Dream-RSI to change (its 3 settings were fixed on Site11)",
+      "tier": "n/a",
+      "label": "Scenario — assumption, not measured",
+      "method": 2.38,
+      "source": "benchmarks_final.json terrain",
+      "note": ""
+    },
+    {
+      "family": "pilot",
+      "model": "Lander pilot (ours, 14,842,567 params; residual on classic)",
+      "metric": "Landing success, unseen",
+      "metric_id": "success",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 98.39,
+      "after_5_generations": {
+        "point": 98.39,
+        "band95": [
+          98.39,
+          98.39
+        ]
+      },
+      "after_20_generations": {
+        "point": 98.39,
+        "band95": [
+          98.39,
+          98.39
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log: 0 of 7 candidates accepted (authority rules and 3 training rounds all lost 12-25 gate missions). The zero-regression gate keeps the pilot unchanged unless a candidate loses no mission, so the projection is no change; band = none observed.",
+      "source": "lander_mini/runs/lander/rsi_changelog.jsonl",
+      "note": "Target instead: a candidate that passes the gate; first sub-goal engine-out success >= classic 98.4%."
+    },
+    {
+      "family": "pilot",
+      "model": "Lander pilot (ours, 14,842,567 params; residual on classic)",
+      "metric": "Success, harsh",
+      "metric_id": "success_harsh",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 96.92,
+      "after_5_generations": {
+        "point": 96.92,
+        "band95": [
+          96.92,
+          96.92
+        ]
+      },
+      "after_20_generations": {
+        "point": 96.92,
+        "band95": [
+          96.92,
+          96.92
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log: 0 of 7 candidates accepted (authority rules and 3 training rounds all lost 12-25 gate missions). The zero-regression gate keeps the pilot unchanged unless a candidate loses no mission, so the projection is no change; band = none observed.",
+      "source": "lander_mini/runs/lander/rsi_changelog.jsonl",
+      "note": "Target instead: a candidate that passes the gate; first sub-goal engine-out success >= classic 98.4%."
+    },
+    {
+      "family": "pilot",
+      "model": "Lander pilot (ours, 14,842,567 params; residual on classic)",
+      "metric": "Success, Site23 exam",
+      "metric_id": "success_exam",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 97.95,
+      "after_5_generations": {
+        "point": 97.95,
+        "band95": [
+          97.95,
+          97.95
+        ]
+      },
+      "after_20_generations": {
+        "point": 97.95,
+        "band95": [
+          97.95,
+          97.95
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log: 0 of 7 candidates accepted (authority rules and 3 training rounds all lost 12-25 gate missions). The zero-regression gate keeps the pilot unchanged unless a candidate loses no mission, so the projection is no change; band = none observed.",
+      "source": "lander_mini/runs/lander/rsi_changelog.jsonl",
+      "note": "Target instead: a candidate that passes the gate; first sub-goal engine-out success >= classic 98.4%."
+    },
+    {
+      "family": "pilot",
+      "model": "Lander pilot (ours, 14,842,567 params; residual on classic)",
+      "metric": "Success after engine-out",
+      "metric_id": "engine_out",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 95.9,
+      "after_5_generations": {
+        "point": 95.9,
+        "band95": [
+          95.9,
+          95.9
+        ]
+      },
+      "after_20_generations": {
+        "point": 95.9,
+        "band95": [
+          95.9,
+          95.9
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log: 0 of 7 candidates accepted (authority rules and 3 training rounds all lost 12-25 gate missions). The zero-regression gate keeps the pilot unchanged unless a candidate loses no mission, so the projection is no change; band = none observed.",
+      "source": "lander_mini/runs/lander/rsi_changelog.jsonl",
+      "note": "Target instead: a candidate that passes the gate; first sub-goal engine-out success >= classic 98.4%."
+    },
+    {
+      "family": "planner",
+      "model": "PlannerSetNet (ours, 646,401 params)",
+      "metric": "Brier score",
+      "metric_id": "brier",
+      "unit": "",
+      "better": "lower",
+      "measured_now": 0.0145,
+      "after_5_generations": {
+        "point": 0.013,
+        "band95": [
+          0.0094,
+          0.0145
+        ]
+      },
+      "after_20_generations": {
+        "point": 0.0094,
+        "band95": [
+          0.0043,
+          0.0145
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured",
+      "method": "Own log: 1 of 5 generations accepted (rate bootstrapped from the 5 outcomes), the one accepted generation cut validation Brier by 12.3%; each accepted generation removes that fraction of the Brier above the label-noise floor (test floor 0.002, from 32 missions per label); the generation-5 gain is already inside the measured value. 20,000 Monte Carlo runs; median and 95% band.",
+      "source": "data/planner_dream/history.jsonl; benchmarks_final.json planner",
+      "note": "Assumes test Brier moves like validation Brier did; constant-mean predictor scores 0.0125."
+    },
+    {
+      "family": "planner",
+      "model": "PlannerSetNet (ours, 646,401 params)",
+      "metric": "Chosen-candidate success",
+      "metric_id": "chosen_p",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 12.2,
+      "after_5_generations": {
+        "point": 12.2,
+        "band95": [
+          12.2,
+          28.96
+        ]
+      },
+      "after_20_generations": {
+        "point": 14.93,
+        "band95": [
+          12.2,
+          31.93
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. Capped at the best-candidate ceiling 42.4%. The planner's own Dream-RSI gate scores Brier, not decisions, so no tier-A projection exists for this metric.",
+      "source": "benchmarks_final.json planner / 'PlannerSetNet (ours, 646,401 params)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "planner",
+      "model": "PlannerSetNet (ours, 646,401 params)",
+      "metric": "Regret",
+      "metric_id": "regret",
+      "unit": "pts",
+      "better": "lower",
+      "measured_now": 30.2,
+      "after_5_generations": {
+        "point": 30.2,
+        "band95": [
+          13.44,
+          30.2
+        ]
+      },
+      "after_20_generations": {
+        "point": 27.51,
+        "band95": [
+          10.12,
+          30.2
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. Regret >= 0.",
+      "source": "benchmarks_final.json planner / 'PlannerSetNet (ours, 646,401 params)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "planner",
+      "model": "PlannerSetNet (ours, 646,401 params)",
+      "metric": "Top-1 hit rate",
+      "metric_id": "hit",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 0.0,
+      "after_5_generations": {
+        "point": 0.0,
+        "band95": [
+          0.0,
+          55.5
+        ]
+      },
+      "after_20_generations": {
+        "point": 8.63,
+        "band95": [
+          0.0,
+          65.06
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. Hit rate is a count out of 7 worlds; shown as a continuous share.",
+      "source": "benchmarks_final.json planner / 'PlannerSetNet (ours, 646,401 params)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3.1 (ours, scripted, 0 params)",
+      "metric": "Returned (strict)",
+      "metric_id": "return_strict",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 33.7,
+      "after_5_generations": {
+        "point": 33.7,
+        "band95": [
+          33.7,
+          33.7
+        ]
+      },
+      "after_20_generations": {
+        "point": 33.7,
+        "band95": [
+          33.7,
+          33.7
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3.1 (ours, scripted, 0 params)",
+      "metric": "Lost (strict)",
+      "metric_id": "lost_strict",
+      "unit": "%",
+      "better": "lower",
+      "measured_now": 53.9,
+      "after_5_generations": {
+        "point": 53.9,
+        "band95": [
+          53.9,
+          53.9
+        ]
+      },
+      "after_20_generations": {
+        "point": 53.9,
+        "band95": [
+          53.9,
+          53.9
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3.1 (ours, scripted, 0 params)",
+      "metric": "Returned (lenient)",
+      "metric_id": "return_lenient",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 48.1,
+      "after_5_generations": {
+        "point": 48.1,
+        "band95": [
+          48.1,
+          48.1
+        ]
+      },
+      "after_20_generations": {
+        "point": 48.1,
+        "band95": [
+          48.1,
+          48.1
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3.1 (ours, scripted, 0 params)",
+      "metric": "Reached target",
+      "metric_id": "reached",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 50.4,
+      "after_5_generations": {
+        "point": 50.4,
+        "band95": [
+          50.4,
+          50.4
+        ]
+      },
+      "after_20_generations": {
+        "point": 50.4,
+        "band95": [
+          50.4,
+          50.4
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3 (ours, scripted, frozen)",
+      "metric": "Returned (strict)",
+      "metric_id": "return_strict",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 31.0,
+      "after_5_generations": {
+        "point": 31.0,
+        "band95": [
+          31.0,
+          31.0
+        ]
+      },
+      "after_20_generations": {
+        "point": 31.0,
+        "band95": [
+          31.0,
+          31.0
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3 (ours, scripted, frozen)",
+      "metric": "Lost (strict)",
+      "metric_id": "lost_strict",
+      "unit": "%",
+      "better": "lower",
+      "measured_now": 61.0,
+      "after_5_generations": {
+        "point": 61.0,
+        "band95": [
+          61.0,
+          61.0
+        ]
+      },
+      "after_20_generations": {
+        "point": 61.0,
+        "band95": [
+          61.0,
+          61.0
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3 (ours, scripted, frozen)",
+      "metric": "Returned (lenient)",
+      "metric_id": "return_lenient",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 46.7,
+      "after_5_generations": {
+        "point": 46.7,
+        "band95": [
+          46.7,
+          46.7
+        ]
+      },
+      "after_20_generations": {
+        "point": 46.7,
+        "band95": [
+          46.7,
+          46.7
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3 (ours, scripted, frozen)",
+      "metric": "Reached target",
+      "metric_id": "reached",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 49.0,
+      "after_5_generations": {
+        "point": 49.0,
+        "band95": [
+          49.0,
+          49.0
+        ]
+      },
+      "after_20_generations": {
+        "point": 49.0,
+        "band95": [
+          49.0,
+          49.0
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log, unchanged worlds (the benchmark condition): v3 0 of 24 rounds and v3.1 0 of 8 rounds accepted; later-round acceptance of v3.1 overall 1 of 20. Projection: no change; band = none observed.",
+      "source": "rover_v31/eval.json D_dream (none rows); BENCHMARKS.md table 5A-4",
+      "note": "Dream-RSI helps this brain only when the world differs from its map; see stressed_world_projections."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v2, imitation transformer (ours, 11.4 M; FAILED)",
+      "metric": "Returned (lenient)",
+      "metric_id": "returned",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 1.2,
+      "after_5_generations": {
+        "point": 1.2,
+        "band95": [
+          1.2,
+          1.2
+        ]
+      },
+      "after_20_generations": {
+        "point": 1.2,
+        "band95": [
+          1.2,
+          1.2
+        ]
+      },
+      "tier": "A: no change (own log: gate accepted nothing relevant)",
+      "label": "Projected — not measured",
+      "method": "Own log (addendum 1, 38 rounds online on Site23/Site42): returned 0.0% in every round including the 5 accepted ones; Site42's 3 accepted rounds gave +18.3, then -1.9, then +1.0 mean return (diminishing to ~0). Projection: no change.",
+      "source": "archive ./macbook/records/dream_rsi/selflearn_v2/report.md",
+      "note": "Reached-ice rose 0.0% -> 1.6% online on Site23 only; not held-out."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v2, imitation transformer (ours, 11.4 M; FAILED)",
+      "metric": "Reached target",
+      "metric_id": "reached",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 7.4,
+      "after_5_generations": {
+        "point": 7.4,
+        "band95": [
+          7.4,
+          7.4
+        ]
+      },
+      "after_20_generations": {
+        "point": 7.4,
+        "band95": [
+          7.4,
+          7.4
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured",
+      "method": "Own log (addendum 1, 38 rounds online on Site23/Site42): returned 0.0% in every round including the 5 accepted ones; Site42's 3 accepted rounds gave +18.3, then -1.9, then +1.0 mean return (diminishing to ~0). Projection: no change.",
+      "source": "archive ./macbook/records/dream_rsi/selflearn_v2/report.md",
+      "note": "Reached-ice rose 0.0% -> 1.6% online on Site23 only; not held-out."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v2, imitation transformer (ours, 11.4 M; FAILED)",
+      "metric": "Died (lenient)",
+      "metric_id": "died",
+      "unit": "%",
+      "better": "lower",
+      "measured_now": 95.3,
+      "after_5_generations": {
+        "point": 95.3,
+        "band95": [
+          95.3,
+          95.3
+        ]
+      },
+      "after_20_generations": {
+        "point": 95.3,
+        "band95": [
+          95.3,
+          95.3
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured",
+      "method": "Own log (addendum 1, 38 rounds online on Site23/Site42): returned 0.0% in every round including the 5 accepted ones; Site42's 3 accepted rounds gave +18.3, then -1.9, then +1.0 mean return (diminishing to ~0). Projection: no change.",
+      "source": "archive ./macbook/records/dream_rsi/selflearn_v2/report.md",
+      "note": "Reached-ice rose 0.0% -> 1.6% online on Site23 only; not held-out."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v1, PPO transformer (ours, 11.4 M; FAILED)",
+      "metric": "Returned (lenient)",
+      "metric_id": "returned",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 0.0,
+      "after_5_generations": {
+        "point": 0.0,
+        "band95": [
+          0.0,
+          55.5
+        ]
+      },
+      "after_20_generations": {
+        "point": 9.05,
+        "band95": [
+          0.0,
+          65.22
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound. v1 succeeded 0 times in 22,621 training episodes, so a gate would have nothing to accept; the scenario is an upper bound.",
+      "source": "benchmarks_final.json rover_learned / 'Rover v1, PPO transformer (ours, 11.4 M; FAILED)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v1, PPO transformer (ours, 11.4 M; FAILED)",
+      "metric": "Reached target",
+      "metric_id": "reached",
+      "unit": "%",
+      "better": "higher",
+      "measured_now": 1.7,
+      "after_5_generations": {
+        "point": 1.7,
+        "band95": [
+          1.7,
+          56.25
+        ]
+      },
+      "after_20_generations": {
+        "point": 10.6,
+        "band95": [
+          1.7,
+          65.81
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json rover_learned / 'Rover v1, PPO transformer (ours, 11.4 M; FAILED)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v1, PPO transformer (ours, 11.4 M; FAILED)",
+      "metric": "Died (lenient)",
+      "metric_id": "died",
+      "unit": "%",
+      "better": "lower",
+      "measured_now": 95.5,
+      "after_5_generations": {
+        "point": 95.5,
+        "band95": [
+          42.5,
+          95.5
+        ]
+      },
+      "after_20_generations": {
+        "point": 87.01,
+        "band95": [
+          33.21,
+          95.5
+        ]
+      },
+      "tier": "B: Scenario — assumption, not measured, not a projection from this model's data",
+      "label": "Scenario — assumption, not measured",
+      "method": "Scenario: generation 1 accepted with the pooled first-round rate (18/42), later generations with the pooled later-round rate (6/120); each accepted generation removes a fraction of the remaining error drawn from the 24 observed accepted rounds (planner + rover; mean 0.13); 20,000 Monte Carlo runs with bootstrapped rates; median and 95% band; capped at the metric's bound.",
+      "source": "benchmarks_final.json rover_learned / 'Rover v1, PPO transformer (ours, 11.4 M; FAILED)' + pooled Dream-RSI evidence (this file, pooled_evidence)",
+      "note": "Unstressed-only evidence (0 of 32 unchanged-world rover rounds accepted) would give no change."
+    }
+  ],
+  "stressed_world_projections_rover_v31": [
+    {
+      "world": "late_light",
+      "metric": "strict returned, mean of LM2-LM5 (%)",
+      "measured_before_learning": 14.7,
+      "measured_after_learning": 20.6,
+      "after_5_more": {
+        "point": 20.61,
+        "band95": [
+          20.61,
+          31.82
+        ]
+      },
+      "after_20_more": {
+        "point": 20.61,
+        "band95": [
+          20.61,
+          45.54
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured"
+    },
+    {
+      "world": "dusty_panels",
+      "metric": "strict returned, mean of LM2-LM5 (%)",
+      "measured_before_learning": 11.8,
+      "measured_after_learning": 13.5,
+      "after_5_more": {
+        "point": 13.48,
+        "band95": [
+          13.48,
+          25.7
+        ]
+      },
+      "after_20_more": {
+        "point": 13.48,
+        "band95": [
+          13.48,
+          41.17
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured"
+    },
+    {
+      "world": "blocked_route",
+      "metric": "strict returned, mean of LM2-LM5 (%)",
+      "measured_before_learning": 12.4,
+      "measured_after_learning": 18.8,
+      "after_5_more": {
+        "point": 18.75,
+        "band95": [
+          18.75,
+          30.23
+        ]
+      },
+      "after_20_more": {
+        "point": 18.75,
+        "band95": [
+          18.75,
+          45.11
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured"
+    },
+    {
+      "world": "early_light",
+      "metric": "strict returned, mean of LM2-LM5 (%)",
+      "measured_before_learning": 16.7,
+      "measured_after_learning": 16.7,
+      "after_5_more": {
+        "point": 16.7,
+        "band95": [
+          16.7,
+          28.47
+        ]
+      },
+      "after_20_more": {
+        "point": 16.7,
+        "band95": [
+          16.7,
+          42.85
+        ]
+      },
+      "tier": "A: projected from this model's own Dream-RSI log",
+      "label": "Projected — not measured"
+    }
+  ],
+  "targets": {
+    "pilot": "A candidate that passes the zero-regression Site11 gate; engine-out success >= classic (98.4%).",
+    "swarm": "No run and no metric exist: nothing to project. Target: a first logged TensorNEAT run.",
+    "planner": "Chosen success above the Navigator (12.8%) with a paired CI excluding 0."
+  },
+  "not_projected": [
+    {
+      "family": "swarm",
+      "why": "no run, no metric"
+    }
+  ]
+}

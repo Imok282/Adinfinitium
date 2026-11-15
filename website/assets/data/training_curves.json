@@ -1,0 +1,402 @@
+{
+ "meta": {
+  "provenance": "modelled",
+  "created_by": "website/tools/export_training_curves.py",
+  "note": "Real training / validation logs only; validation = Site 11. Test Site 23 is never in these curves."
+ },
+ "curves": {
+  "pilot": {
+   "title": "Landing pilot",
+   "x": "update",
+   "y": "validation success (Site 11)",
+   "series": [
+    {
+     "name": "AI pilot",
+     "points": [
+      [
+       0,
+       0.945
+      ],
+      [
+       20,
+       0.945
+      ],
+      [
+       40,
+       0.969
+      ],
+      [
+       50,
+       0.953
+      ],
+      [
+       60,
+       0.953
+      ],
+      [
+       70,
+       0.93
+      ],
+      [
+       80,
+       0.938
+      ],
+      [
+       90,
+       0.938
+      ],
+      [
+       100,
+       0.945
+      ],
+      [
+       110,
+       0.945
+      ]
+     ]
+    },
+    {
+     "name": "classic guidance",
+     "points": [
+      [
+       0,
+       0.945
+      ],
+      [
+       20,
+       0.945
+      ],
+      [
+       40,
+       0.945
+      ],
+      [
+       50,
+       0.945
+      ],
+      [
+       60,
+       0.945
+      ],
+      [
+       70,
+       0.945
+      ],
+      [
+       80,
+       0.945
+      ],
+      [
+       90,
+       0.945
+      ],
+      [
+       100,
+       0.945
+      ],
+      [
+       110,
+       0.945
+      ]
+     ],
+     "baseline": true
+    }
+   ],
+   "note": "Run restarted from the update-40 best checkpoint (d53a162df9, the one that ships); later updates did not beat it.",
+   "source": "results_pc/extracted/runs/pilot.log (validation lines of the last two runs)"
+  },
+  "hazard": {
+   "title": "Hazard model",
+   "x": "epoch",
+   "y": "validation F1 (Site 11)",
+   "series": [
+    {
+     "name": "U-Net",
+     "points": [
+      [
+       1,
+       0.925
+      ],
+      [
+       2,
+       0.9182
+      ],
+      [
+       3,
+       0.9299
+      ],
+      [
+       4,
+       0.9265
+      ],
+      [
+       5,
+       0.9374
+      ],
+      [
+       6,
+       0.9461
+      ],
+      [
+       7,
+       0.949
+      ],
+      [
+       8,
+       0.9509
+      ],
+      [
+       9,
+       0.9526
+      ],
+      [
+       10,
+       0.9532
+      ],
+      [
+       11,
+       0.9555
+      ],
+      [
+       12,
+       0.9549
+      ],
+      [
+       13,
+       0.9563
+      ],
+      [
+       14,
+       0.9533
+      ],
+      [
+       15,
+       0.9582
+      ],
+      [
+       16,
+       0.9584
+      ],
+      [
+       17,
+       0.9575
+      ],
+      [
+       18,
+       0.9593
+      ],
+      [
+       19,
+       0.9578
+      ],
+      [
+       20,
+       0.9603
+      ],
+      [
+       21,
+       0.9608
+      ],
+      [
+       22,
+       0.9607
+      ],
+      [
+       23,
+       0.9608
+      ],
+      [
+       24,
+       0.9609
+      ],
+      [
+       25,
+       0.9613
+      ],
+      [
+       26,
+       0.9612
+      ],
+      [
+       27,
+       0.9615
+      ],
+      [
+       28,
+       0.9616
+      ],
+      [
+       29,
+       0.9616
+      ],
+      [
+       30,
+       0.9616
+      ]
+     ]
+    }
+   ],
+   "source": "runs/hazard/train_log.jsonl (longest run)"
+  },
+  "light": {
+   "title": "Light model",
+   "x": "step",
+   "y": "skyline error, deg (Site 11, lower is better)",
+   "series": [
+    {
+     "name": "skyline net",
+     "points": [
+      [
+       250,
+       0.5919
+      ],
+      [
+       500,
+       0.5692
+      ],
+      [
+       750,
+       0.5636
+      ],
+      [
+       1000,
+       0.5735
+      ],
+      [
+       1250,
+       0.5589
+      ],
+      [
+       1500,
+       0.556
+      ],
+      [
+       1750,
+       0.5551
+      ],
+      [
+       2000,
+       0.5507
+      ],
+      [
+       2250,
+       0.5472
+      ],
+      [
+       2500,
+       0.5487
+      ],
+      [
+       2750,
+       0.545
+      ],
+      [
+       3000,
+       0.5445
+      ]
+     ]
+    },
+    {
+     "name": "coarse ray-cast",
+     "points": [
+      [
+       250,
+       0.7367
+      ],
+      [
+       500,
+       0.7367
+      ],
+      [
+       750,
+       0.7367
+      ],
+      [
+       1000,
+       0.7367
+      ],
+      [
+       1250,
+       0.7367
+      ],
+      [
+       1500,
+       0.7367
+      ],
+      [
+       1750,
+       0.7367
+      ],
+      [
+       2000,
+       0.7367
+      ],
+      [
+       2250,
+       0.7367
+      ],
+      [
+       2500,
+       0.7367
+      ],
+      [
+       2750,
+       0.7367
+      ],
+      [
+       3000,
+       0.7367
+      ]
+     ],
+     "baseline": true
+    }
+   ],
+   "lower_is_better": true,
+   "source": "runs/light/train_log.jsonl (longest run)"
+  },
+  "dream": {
+   "title": "Dream-RSI (planner)",
+   "x": "generation",
+   "y": "validation Brier (lower is better)",
+   "steps": [
+    {
+     "generation": 2,
+     "accepted": false,
+     "before": 0.01543,
+     "after": 0.01706
+    },
+    {
+     "generation": 3,
+     "accepted": false,
+     "before": 0.01543,
+     "after": 0.01786
+    },
+    {
+     "generation": 4,
+     "accepted": false,
+     "before": 0.01543,
+     "after": 0.016
+    },
+    {
+     "generation": 5,
+     "accepted": true,
+     "before": 0.01543,
+     "after": 0.01353
+    },
+    {
+     "generation": 6,
+     "accepted": false,
+     "before": 0.01353,
+     "after": 0.0163
+    }
+   ],
+   "lower_is_better": true,
+   "source": "results_pc/extracted/planner_dream/history.jsonl"
+  },
+  "neat": {
+   "title": "Evolution swarm (next)",
+   "pending": true,
+   "note": "Designed and tested, not yet run: no swarm curve exists. The pilot above was trained by PPO."
+  }
+ }
+}

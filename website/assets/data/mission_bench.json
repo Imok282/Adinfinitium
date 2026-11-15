@@ -1,0 +1,3105 @@
+{
+ "rehearsal": {
+  "label": "MISSION REHEARSAL (one planned cell; not the random-cell Site23 final exam)",
+  "meta": {
+   "provenance": "modelled",
+   "source": "plan plan_001.json (exact Navigator ranking (forced); light NASA SPICE DE440 + exact skyline; terrain NASA LOLA; ice goals: NASA LOLA PSR ed); terrain NASA LOLA 5 m lola5m_site23; lander physics worldmodel.lander.env",
+   "frame": "tile ENU m (centre origin)",
+   "units": {
+    "miss": "m",
+    "td_vz": "m/s",
+    "success": "fraction"
+   },
+   "created_by": "worldmodel.lander.mission_bench rehearsal",
+   "created_at": "2026-11-15T14:15:42.763612+00:00",
+   "schema_version": 1
+  },
+  "plan_file": "results_pc/extracted/runs/demo/plan_001.json",
+  "plan": {
+   "decision": "go",
+   "region": "lola5m_site23",
+   "landing_time_utc": "2027-03-17T00:00:00Z",
+   "target_cell_rc": [
+    124.0,
+    326.0
+   ],
+   "scatter_radius_m": 31.770780563354492,
+   "backup_used": true
+  },
+  "target": {
+   "region": "lola5m_site23",
+   "cell_rc_rover_window": [
+    124.0,
+    326.0
+   ],
+   "window_origin_rc": [
+    256,
+    256
+   ],
+   "cell_rc_tile": [
+    380.0,
+    582.0
+   ],
+   "xy_m": [
+    352.5,
+    657.5
+   ],
+   "truth_slope_deg": 4.271409034729004,
+   "truth_hazard": 0.0,
+   "belief_hazard": 0.0,
+   "truth_hazard_frac_within_15m": 0.0,
+   "belief_hazard_frac_within_15m": 0.0,
+   "truth_hazard_frac_within_50m": 0.0022675737272948027,
+   "in_safe_target_cells": true
+  },
+  "pilot": "lander_pilot",
+  "checkpoint_id": "d53a162df9",
+  "parameters": 14842567,
+  "trained_on": [
+   "lola5m_site01",
+   "lola5m_site04",
+   "lola5m_site06",
+   "lola5m_site07",
+   "lola5m_site20"
+  ],
+  "missions_per_condition": 512,
+  "conditions": {
+   "nominal": 1.0,
+   "harsh": 3.0
+  },
+  "results": {
+   "nominal": {
+    "n": 512,
+    "classic": {
+     "n": 512,
+     "success_rate": 0.990234375,
+     "failures": {
+      "ok": 507,
+      "hard_horizontal": 4,
+      "timeout": 1
+     },
+     "mean_target_dist_m_success": 3.3073203563690186,
+     "mean_fuel_kg_success": 70.32733917236328,
+     "success_when_engine_failed": 1.0,
+     "n_engine_failed": 59,
+     "success_when_nav_drift": 0.9130434782608695,
+     "n_nav_drift": 46,
+     "success_when_camera_blind": 1.0,
+     "n_camera_blind": 14,
+     "ci95": [
+      0.9773,
+      0.9958
+     ],
+     "miss_p95_m_success": 32.70771026611328,
+     "td_vz_mean_success": 0.9998169541358948,
+     "td_vh_mean_success": 0.14160451292991638
+    },
+    "pilot": {
+     "n": 512,
+     "success_rate": 0.99609375,
+     "failures": {
+      "ok": 510,
+      "hard_horizontal": 2
+     },
+     "mean_target_dist_m_success": 3.454798460006714,
+     "mean_fuel_kg_success": 63.69892501831055,
+     "success_when_engine_failed": 0.9830508474576272,
+     "n_engine_failed": 59,
+     "success_when_nav_drift": 0.9565217391304348,
+     "n_nav_drift": 46,
+     "success_when_camera_blind": 1.0,
+     "n_camera_blind": 14,
+     "ci95": [
+      0.9859,
+      0.9989
+     ],
+     "miss_p95_m_success": 28.966896057128906,
+     "td_vz_mean_success": 1.1170134544372559,
+     "td_vh_mean_success": 0.1479543000459671
+    },
+    "only_pilot_landed": 5,
+    "only_classic_landed": 2,
+    "sign_test_p": 0.453125,
+    "diff": 0.005859375,
+    "diff_ci95": [
+     -0.00425616689134644,
+     0.01597491689134644
+    ]
+   },
+   "harsh": {
+    "n": 512,
+    "classic": {
+     "n": 512,
+     "success_rate": 0.9921875,
+     "failures": {
+      "ok": 508,
+      "hard_horizontal": 4
+     },
+     "mean_target_dist_m_success": 10.453215599060059,
+     "mean_fuel_kg_success": 70.58811950683594,
+     "success_when_engine_failed": 1.0,
+     "n_engine_failed": 145,
+     "success_when_nav_drift": 0.9733333333333334,
+     "n_nav_drift": 150,
+     "success_when_camera_blind": 0.9855072463768116,
+     "n_camera_blind": 69,
+     "ci95": [
+      0.9801,
+      0.997
+     ],
+     "miss_p95_m_success": 39.666961669921875,
+     "td_vz_mean_success": 0.9999961256980896,
+     "td_vh_mean_success": 0.18229743838310242
+    },
+    "pilot": {
+     "n": 512,
+     "success_rate": 0.990234375,
+     "failures": {
+      "ok": 507,
+      "hard_horizontal": 5
+     },
+     "mean_target_dist_m_success": 9.440601348876953,
+     "mean_fuel_kg_success": 64.06932067871094,
+     "success_when_engine_failed": 0.9862068965517241,
+     "n_engine_failed": 145,
+     "success_when_nav_drift": 0.9666666666666667,
+     "n_nav_drift": 150,
+     "success_when_camera_blind": 0.9855072463768116,
+     "n_camera_blind": 69,
+     "ci95": [
+      0.9773,
+      0.9958
+     ],
+     "miss_p95_m_success": 34.85089111328125,
+     "td_vz_mean_success": 1.1174198389053345,
+     "td_vh_mean_success": 0.1826736479997635
+    },
+    "only_pilot_landed": 4,
+    "only_classic_landed": 5,
+    "sign_test_p": 1.0,
+    "diff": -0.001953125,
+    "diff_ci95": [
+     -0.01343625379794544,
+     0.00953000379794544
+    ]
+   }
+  },
+  "partial": false,
+  "stopped_because": null,
+  "wall_s": 1304.5,
+  "notes": [
+   "Every mission targets the plan's cell; start offset, velocity, failures and sensor noise are random (seeded) and identical for both pilots.",
+   "Touchdown truth = official LOLA slope rule; the pilot's camera sees the slope-rule backup belief from the sparse laser pixels.",
+   "Lighting/time of landing does not enter the lander simulation; the plan's landing time is carried for reference only.",
+   "Site23 is this pilot's final-exam site: this rehearsal flies ONE cell there and does not replace the random-cell final exam."
+  ],
+  "guard": {
+   "min_free_gb_seen": 30.58,
+   "peak_rss_gb": 0.68,
+   "device": "mps"
+  }
+ },
+ "meta": {
+  "provenance": "modelled (rehearsal: NASA LOLA terrain) / generated (procedural maps: GENERATED \u2014 NOT OBSERVED)",
+  "source": "runs/lander/mission_rehearsal.json (worldmodel.lander.mission_bench rehearsal); procedural results appear under 'procedural' only when that job has run",
+  "frame": "tile ENU m",
+  "units": "success fraction, m",
+  "built": "2026-11-15T15:11:27+00:00",
+  "label": "Mission rehearsal at our chosen landing site \u2014 one planned cell; Site 23 was the final-exam site; not an exam."
+ },
+ "procedural": {
+  "label": "PROCEDURAL MAPS - GENERATED \u2014 NOT OBSERVED",
+  "meta": {
+   "provenance": "generated",
+   "source": "worldmodel.lander.mission_bench procedural crater maps (data_tools.make_demo_tile generator, made realistic as described); laser masks borrowed from NASA LOLA tiles; lander physics worldmodel.lander.env",
+   "frame": "local tile ENU (synthetic)",
+   "units": {
+    "slope": "deg",
+    "miss": "m",
+    "success": "fraction"
+   },
+   "created_by": "worldmodel.lander.mission_bench procedural",
+   "created_at": "2026-11-15T14:15:45.782543+00:00",
+   "schema_version": 1
+  },
+  "pilot": "lander_pilot",
+  "checkpoint_id": "d53a162df9",
+  "trained_on": [
+   "lola5m_site01",
+   "lola5m_site04",
+   "lola5m_site06",
+   "lola5m_site07",
+   "lola5m_site20"
+  ],
+  "missions_per_map_per_condition": 32,
+  "conditions": {
+   "nominal": 1.0,
+   "harsh": 3.0
+  },
+  "generator_max_abs_height_diff_vs_make_demo_tile_m": 0.0,
+  "real_lola_slope_stats": {
+   "lola5m_site01": {
+    "median": 12.766998291015625,
+    "p90": 20.150035858154297,
+    "hazard_frac": 0.5415287017822266
+   },
+   "lola5m_site04": {
+    "median": 30.417720794677734,
+    "p90": 34.93988037109375,
+    "hazard_frac": 0.9144134521484375
+   },
+   "lola5m_site06": {
+    "median": 15.234325408935547,
+    "p90": 23.642654418945312,
+    "hazard_frac": 0.696894645690918
+   },
+   "lola5m_site07": {
+    "median": 10.223371505737305,
+    "p90": 20.089111328125,
+    "hazard_frac": 0.37738800048828125
+   },
+   "lola5m_site20": {
+    "median": 9.875974655151367,
+    "p90": 16.964763641357422,
+    "hazard_frac": 0.3569822311401367
+   },
+   "lola5m_site11": {
+    "median": 14.850915908813477,
+    "p90": 24.325742721557617,
+    "hazard_frac": 0.6938343048095703
+   },
+   "lola5m_site23": {
+    "median": 11.928833961486816,
+    "p90": 19.699180603027344,
+    "hazard_frac": 0.4957437515258789
+   },
+   "lola5m_site42": {
+    "median": 12.802070617675781,
+    "p90": 19.871606826782227,
+    "hazard_frac": 0.5565242767333984
+   },
+   "lola5m_shoemaker": {
+    "median": 5.979107856750488,
+    "p90": 11.155235290527344,
+    "hazard_frac": 0.07299613952636719
+   },
+   "lola5m_dm2": {
+    "median": 6.885098934173584,
+    "p90": 14.187368392944336,
+    "hazard_frac": 0.1613016128540039
+   }
+  },
+  "maps": [
+   {
+    "region": "proc_00",
+    "seed": 7000,
+    "craters_drawn": 2015,
+    "craters_placed": 2011,
+    "tilt_deg": 5.79,
+    "tilt_azimuth_deg": 331.6,
+    "laser_mask_from": "lola5m_site01",
+    "laser_mask_rot_deg": 0,
+    "laser_coverage": 0.09994316101074219,
+    "slope_median_deg": 11.318241119384766,
+    "slope_p90_deg": 28.701255798339844,
+    "truth_hazard_frac": 0.479034423828125,
+    "belief_hazard_frac": 0.45510196685791016,
+    "belief_truth_disagree_frac": 0.13209056854248047,
+    "safe_target_cells": 166866,
+    "build_s": 1.8,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_vertical": 1
+       },
+       "mean_target_dist_m_success": 5.352083206176758,
+       "mean_fuel_kg_success": 70.41303253173828,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 41.72123718261719,
+       "td_vz_mean_success": 1.0011423826217651,
+       "td_vh_mean_success": 0.18535961210727692
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_vertical": 1,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 5.01361608505249,
+       "mean_fuel_kg_success": 63.49081039428711,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 34.86833572387695,
+       "td_vz_mean_success": 1.117505431175232,
+       "td_vh_mean_success": 0.14685361087322235
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 7.827707290649414,
+       "mean_fuel_kg_success": 73.13723754882812,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 0.8571428571428571,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 0.875,
+       "n_camera_blind": 8,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 38.937904357910156,
+       "td_vz_mean_success": 0.9996277093887329,
+       "td_vh_mean_success": 0.15917031466960907
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 8.465330123901367,
+       "mean_fuel_kg_success": 66.03294372558594,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 8,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 36.6663818359375,
+       "td_vz_mean_success": 1.1181368827819824,
+       "td_vh_mean_success": 0.17365075647830963
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_01",
+    "seed": 7001,
+    "craters_drawn": 2200,
+    "craters_placed": 2196,
+    "tilt_deg": 1.25,
+    "tilt_azimuth_deg": 110.6,
+    "laser_mask_from": "lola5m_site04",
+    "laser_mask_rot_deg": 0,
+    "laser_coverage": 0.08645915985107422,
+    "slope_median_deg": 3.3224544525146484,
+    "slope_p90_deg": 21.77863311767578,
+    "truth_hazard_frac": 0.24154186248779297,
+    "belief_hazard_frac": 0.1959981918334961,
+    "belief_truth_disagree_frac": 0.10949897766113281,
+    "safe_target_cells": 338262,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 2.929469108581543,
+       "mean_fuel_kg_success": 70.74568176269531,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 18.285511016845703,
+       "td_vz_mean_success": 0.9997677206993103,
+       "td_vh_mean_success": 0.12495861947536469
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 2.8747594356536865,
+       "mean_fuel_kg_success": 63.10492706298828,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 15.599237442016602,
+       "td_vz_mean_success": 1.1137537956237793,
+       "td_vh_mean_success": 0.1392081081867218
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 11.96828842163086,
+       "mean_fuel_kg_success": 71.30533599853516,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 14,
+       "success_when_nav_drift": 0.9,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 47.48711395263672,
+       "td_vz_mean_success": 1.0018101930618286,
+       "td_vh_mean_success": 0.18118827044963837
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 10.297647476196289,
+       "mean_fuel_kg_success": 63.3292121887207,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 14,
+       "success_when_nav_drift": 0.9,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 38.47768020629883,
+       "td_vz_mean_success": 1.1164143085479736,
+       "td_vh_mean_success": 0.16717593371868134
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_02",
+    "seed": 7002,
+    "craters_drawn": 2008,
+    "craters_placed": 1996,
+    "tilt_deg": 3.93,
+    "tilt_azimuth_deg": 80.9,
+    "laser_mask_from": "lola5m_site06",
+    "laser_mask_rot_deg": 0,
+    "laser_coverage": 0.06288433074951172,
+    "slope_median_deg": 6.880516052246094,
+    "slope_p90_deg": 24.384410858154297,
+    "truth_hazard_frac": 0.3579263687133789,
+    "belief_hazard_frac": 0.3165264129638672,
+    "belief_truth_disagree_frac": 0.18007946014404297,
+    "safe_target_cells": 260164,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.90625,
+       "failures": {
+        "ok": 29,
+        "hard_horizontal": 1,
+        "timeout": 2
+       },
+       "mean_target_dist_m_success": 0.3819471299648285,
+       "mean_fuel_kg_success": 73.01506805419922,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": null,
+       "n_nav_drift": 0,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7578,
+        0.9676
+       ],
+       "miss_p95_m_success": 0.6796157360076904,
+       "td_vz_mean_success": 0.9978321194648743,
+       "td_vh_mean_success": 0.1311323344707489
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_vertical": 2
+       },
+       "mean_target_dist_m_success": 0.8578461408615112,
+       "mean_fuel_kg_success": 65.08363342285156,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": null,
+       "n_nav_drift": 0,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 1.4788620471954346,
+       "td_vz_mean_success": 1.1161348819732666,
+       "td_vh_mean_success": 0.13330255448818207
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "timeout": 1
+       },
+       "mean_target_dist_m_success": 10.547388076782227,
+       "mean_fuel_kg_success": 72.031494140625,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 6,
+       "success_when_nav_drift": 0.7777777777777778,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 46.20778274536133,
+       "td_vz_mean_success": 1.0040638446807861,
+       "td_vh_mean_success": 0.17718781530857086
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_vertical": 1,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 8.850420951843262,
+       "mean_fuel_kg_success": 64.70857238769531,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 6,
+       "success_when_nav_drift": 0.7777777777777778,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 37.16281509399414,
+       "td_vz_mean_success": 1.1182128190994263,
+       "td_vh_mean_success": 0.1872592568397522
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       -0.08662058069535207,
+       0.08662058069535207
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_03",
+    "seed": 7003,
+    "craters_drawn": 1719,
+    "craters_placed": 1711,
+    "tilt_deg": 5.67,
+    "tilt_azimuth_deg": 89.7,
+    "laser_mask_from": "lola5m_site07",
+    "laser_mask_rot_deg": 0,
+    "laser_coverage": 0.08497810363769531,
+    "slope_median_deg": 6.3002753257751465,
+    "slope_p90_deg": 21.562602996826172,
+    "truth_hazard_frac": 0.23310375213623047,
+    "belief_hazard_frac": 0.2103099822998047,
+    "belief_truth_disagree_frac": 0.10303783416748047,
+    "safe_target_cells": 338982,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 5.81366491317749,
+       "mean_fuel_kg_success": 70.74652099609375,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 36.299869537353516,
+       "td_vz_mean_success": 1.0004585981369019,
+       "td_vh_mean_success": 0.16350440680980682
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 5.477226257324219,
+       "mean_fuel_kg_success": 64.2487564086914,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 30.64508628845215,
+       "td_vz_mean_success": 1.1125361919403076,
+       "td_vh_mean_success": 0.17337319254875183
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 13.275284767150879,
+       "mean_fuel_kg_success": 72.00543212890625,
+       "success_when_engine_failed": 0.9333333333333333,
+       "n_engine_failed": 15,
+       "success_when_nav_drift": 0.9090909090909091,
+       "n_nav_drift": 11,
+       "success_when_camera_blind": 0.8,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 49.920936584472656,
+       "td_vz_mean_success": 1.005967140197754,
+       "td_vh_mean_success": 0.1743868887424469
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 12.377004623413086,
+       "mean_fuel_kg_success": 64.0974349975586,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 15,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 11,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 41.54240417480469,
+       "td_vz_mean_success": 1.1138863563537598,
+       "td_vh_mean_success": 0.18241576850414276
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_04",
+    "seed": 7004,
+    "craters_drawn": 1804,
+    "craters_placed": 1792,
+    "tilt_deg": 3.35,
+    "tilt_azimuth_deg": 355.7,
+    "laser_mask_from": "lola5m_site20",
+    "laser_mask_rot_deg": 0,
+    "laser_coverage": 0.07629680633544922,
+    "slope_median_deg": 5.932947158813477,
+    "slope_p90_deg": 21.690673828125,
+    "truth_hazard_frac": 0.23954296112060547,
+    "belief_hazard_frac": 0.21225261688232422,
+    "belief_truth_disagree_frac": 0.1300983428955078,
+    "safe_target_cells": 336220,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 3.7109146118164062,
+       "mean_fuel_kg_success": 71.39800262451172,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 3,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 32.67536163330078,
+       "td_vz_mean_success": 1.0011990070343018,
+       "td_vh_mean_success": 0.17141249775886536
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 3.665968894958496,
+       "mean_fuel_kg_success": 64.51432037353516,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 3,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 27.71592903137207,
+       "td_vz_mean_success": 1.1150332689285278,
+       "td_vh_mean_success": 0.14971931278705597
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 8.97711181640625,
+       "mean_fuel_kg_success": 69.95480346679688,
+       "success_when_engine_failed": 0.9166666666666666,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 37.46653366088867,
+       "td_vz_mean_success": 0.9996460676193237,
+       "td_vh_mean_success": 0.16789856553077698
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 9.035737991333008,
+       "mean_fuel_kg_success": 63.32396697998047,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 34.595401763916016,
+       "td_vz_mean_success": 1.1138408184051514,
+       "td_vh_mean_success": 0.19127041101455688
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_05",
+    "seed": 7005,
+    "craters_drawn": 1518,
+    "craters_placed": 1510,
+    "tilt_deg": 5.17,
+    "tilt_azimuth_deg": 300.9,
+    "laser_mask_from": "lola5m_site01",
+    "laser_mask_rot_deg": 90,
+    "laser_coverage": 0.09994316101074219,
+    "slope_median_deg": 7.8329925537109375,
+    "slope_p90_deg": 24.724838256835938,
+    "truth_hazard_frac": 0.3205375671386719,
+    "belief_hazard_frac": 0.30413818359375,
+    "belief_truth_disagree_frac": 0.10955619812011719,
+    "safe_target_cells": 283757,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "timeout": 1
+       },
+       "mean_target_dist_m_success": 6.502688407897949,
+       "mean_fuel_kg_success": 71.49724578857422,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 39.176483154296875,
+       "td_vz_mean_success": 0.9969706535339355,
+       "td_vh_mean_success": 0.15072697401046753
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 5.863950729370117,
+       "mean_fuel_kg_success": 64.6541976928711,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 32.862632751464844,
+       "td_vz_mean_success": 1.1142420768737793,
+       "td_vh_mean_success": 0.16841945052146912
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_vertical": 1
+       },
+       "mean_target_dist_m_success": 10.38526725769043,
+       "mean_fuel_kg_success": 69.07168579101562,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 14,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 36.67830276489258,
+       "td_vz_mean_success": 0.9974062442779541,
+       "td_vh_mean_success": 0.18355387449264526
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_vertical": 1,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 9.685029983520508,
+       "mean_fuel_kg_success": 64.84243774414062,
+       "success_when_engine_failed": 0.9285714285714286,
+       "n_engine_failed": 14,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 31.59446144104004,
+       "td_vz_mean_success": 1.112585425376892,
+       "td_vh_mean_success": 0.21843765676021576
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_06",
+    "seed": 7006,
+    "craters_drawn": 966,
+    "craters_placed": 963,
+    "tilt_deg": 1.26,
+    "tilt_azimuth_deg": 191.6,
+    "laser_mask_from": "lola5m_site04",
+    "laser_mask_rot_deg": 90,
+    "laser_coverage": 0.08645915985107422,
+    "slope_median_deg": 2.2281494140625,
+    "slope_p90_deg": 15.511760711669922,
+    "truth_hazard_frac": 0.12256336212158203,
+    "belief_hazard_frac": 0.10111141204833984,
+    "belief_truth_disagree_frac": 0.05433082580566406,
+    "safe_target_cells": 446770,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 1.393845796585083,
+       "mean_fuel_kg_success": 73.00491333007812,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 1,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 0.8530323505401611,
+       "td_vz_mean_success": 0.9978800415992737,
+       "td_vh_mean_success": 0.1395268738269806
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 1.8632949590682983,
+       "mean_fuel_kg_success": 64.34481811523438,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 1,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 1.629024863243103,
+       "td_vz_mean_success": 1.1198670864105225,
+       "td_vh_mean_success": 0.1287517547607422
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 4.714222431182861,
+       "mean_fuel_kg_success": 69.94080352783203,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 9,
+       "success_when_nav_drift": 0.8,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 32.8215446472168,
+       "td_vz_mean_success": 0.9991586208343506,
+       "td_vh_mean_success": 0.1685655564069748
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 5.1765594482421875,
+       "mean_fuel_kg_success": 63.11094665527344,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 9,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 28.7535400390625,
+       "td_vz_mean_success": 1.1127368211746216,
+       "td_vh_mean_success": 0.1584242880344391
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_07",
+    "seed": 7007,
+    "craters_drawn": 1736,
+    "craters_placed": 1733,
+    "tilt_deg": 1.32,
+    "tilt_azimuth_deg": 45.9,
+    "laser_mask_from": "lola5m_site06",
+    "laser_mask_rot_deg": 90,
+    "laser_coverage": 0.06288433074951172,
+    "slope_median_deg": 3.8473174571990967,
+    "slope_p90_deg": 21.579845428466797,
+    "truth_hazard_frac": 0.2319345474243164,
+    "belief_hazard_frac": 0.19163990020751953,
+    "belief_truth_disagree_frac": 0.15826034545898438,
+    "safe_target_cells": 332359,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 3.959359645843506,
+       "mean_fuel_kg_success": 69.34879302978516,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 0.8,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 26.210039138793945,
+       "td_vz_mean_success": 0.9961899518966675,
+       "td_vh_mean_success": 0.12590689957141876
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 4.803117275238037,
+       "mean_fuel_kg_success": 62.50269317626953,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 26.523357391357422,
+       "td_vz_mean_success": 1.1153349876403809,
+       "td_vh_mean_success": 0.15753859281539917
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 8.165600776672363,
+       "mean_fuel_kg_success": 71.66654205322266,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 0.8571428571428571,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 44.46460723876953,
+       "td_vz_mean_success": 1.000436782836914,
+       "td_vh_mean_success": 0.1464558243751526
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 2
+       },
+       "mean_target_dist_m_success": 6.175821781158447,
+       "mean_fuel_kg_success": 64.07923126220703,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 0.7142857142857143,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 35.993896484375,
+       "td_vz_mean_success": 1.114654302597046,
+       "td_vh_mean_success": 0.17981001734733582
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 2,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.13678412325819075,
+       0.07428412325819075
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_08",
+    "seed": 7008,
+    "craters_drawn": 2027,
+    "craters_placed": 2024,
+    "tilt_deg": 1.26,
+    "tilt_azimuth_deg": 180.5,
+    "laser_mask_from": "lola5m_site07",
+    "laser_mask_rot_deg": 90,
+    "laser_coverage": 0.08497810363769531,
+    "slope_median_deg": 6.847740173339844,
+    "slope_p90_deg": 24.198925018310547,
+    "truth_hazard_frac": 0.3825664520263672,
+    "belief_hazard_frac": 0.3458881378173828,
+    "belief_truth_disagree_frac": 0.11441802978515625,
+    "safe_target_cells": 227459,
+    "build_s": 1.8,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.90625,
+       "failures": {
+        "ok": 29,
+        "timeout": 3
+       },
+       "mean_target_dist_m_success": 4.166894435882568,
+       "mean_fuel_kg_success": 71.75321960449219,
+       "success_when_engine_failed": 0.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 0.75,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7578,
+        0.9676
+       ],
+       "miss_p95_m_success": 33.28444290161133,
+       "td_vz_mean_success": 0.9979723691940308,
+       "td_vh_mean_success": 0.17559026181697845
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_vertical": 2
+       },
+       "mean_target_dist_m_success": 5.695104598999023,
+       "mean_fuel_kg_success": 65.81135559082031,
+       "success_when_engine_failed": 0.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 33.338436126708984,
+       "td_vz_mean_success": 1.1180305480957031,
+       "td_vh_mean_success": 0.14928974211215973
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 9.139178276062012,
+       "mean_fuel_kg_success": 70.076171875,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 17,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 38.67753601074219,
+       "td_vz_mean_success": 1.0045666694641113,
+       "td_vh_mean_success": 0.16116727888584137
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 8.284235954284668,
+       "mean_fuel_kg_success": 63.28280258178711,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 17,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 32.43962097167969,
+       "td_vz_mean_success": 1.1150405406951904,
+       "td_vh_mean_success": 0.16906750202178955
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_09",
+    "seed": 7009,
+    "craters_drawn": 748,
+    "craters_placed": 746,
+    "tilt_deg": 4.76,
+    "tilt_azimuth_deg": 10.8,
+    "laser_mask_from": "lola5m_site20",
+    "laser_mask_rot_deg": 90,
+    "laser_coverage": 0.07629680633544922,
+    "slope_median_deg": 6.717443466186523,
+    "slope_p90_deg": 19.501970291137695,
+    "truth_hazard_frac": 0.1900005340576172,
+    "belief_hazard_frac": 0.1887378692626953,
+    "belief_truth_disagree_frac": 0.10454177856445312,
+    "safe_target_cells": 426799,
+    "build_s": 1.8,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 0.46265709400177,
+       "mean_fuel_kg_success": 69.67715454101562,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": null,
+       "n_nav_drift": 0,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 0.8949266672134399,
+       "td_vz_mean_success": 1.0000633001327515,
+       "td_vh_mean_success": 0.12031544744968414
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 1.0257108211517334,
+       "mean_fuel_kg_success": 62.20721435546875,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": null,
+       "n_nav_drift": 0,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 1.3362923860549927,
+       "td_vz_mean_success": 1.119077444076538,
+       "td_vh_mean_success": 0.1497056484222412
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 9.505271911621094,
+       "mean_fuel_kg_success": 70.93756103515625,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 6,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 38.19770431518555,
+       "td_vz_mean_success": 1.001127004623413,
+       "td_vh_mean_success": 0.18758447468280792
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 8.128836631774902,
+       "mean_fuel_kg_success": 65.02364349365234,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 6,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 32.84088897705078,
+       "td_vz_mean_success": 1.116853952407837,
+       "td_vh_mean_success": 0.17994186282157898
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_10",
+    "seed": 7010,
+    "craters_drawn": 1995,
+    "craters_placed": 1989,
+    "tilt_deg": 0.52,
+    "tilt_azimuth_deg": 218.7,
+    "laser_mask_from": "lola5m_site01",
+    "laser_mask_rot_deg": 180,
+    "laser_coverage": 0.09994316101074219,
+    "slope_median_deg": 8.206416130065918,
+    "slope_p90_deg": 25.859716415405273,
+    "truth_hazard_frac": 0.42035388946533203,
+    "belief_hazard_frac": 0.3849058151245117,
+    "belief_truth_disagree_frac": 0.10756492614746094,
+    "safe_target_cells": 169240,
+    "build_s": 2.1,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 5.293630599975586,
+       "mean_fuel_kg_success": 70.49677276611328,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 39.00751495361328,
+       "td_vz_mean_success": 1.0052534341812134,
+       "td_vh_mean_success": 0.14812539517879486
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 4.081374645233154,
+       "mean_fuel_kg_success": 62.8118896484375,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 0.75,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 31.887128829956055,
+       "td_vz_mean_success": 1.1208934783935547,
+       "td_vh_mean_success": 0.12781763076782227
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 16.544919967651367,
+       "mean_fuel_kg_success": 72.5757827758789,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 0.9285714285714286,
+       "n_nav_drift": 14,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 45.40256118774414,
+       "td_vz_mean_success": 1.0082341432571411,
+       "td_vh_mean_success": 0.19936349987983704
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 15.237064361572266,
+       "mean_fuel_kg_success": 65.25714111328125,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 14,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 36.46154022216797,
+       "td_vz_mean_success": 1.1168391704559326,
+       "td_vh_mean_success": 0.2210586667060852
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_11",
+    "seed": 7011,
+    "craters_drawn": 2327,
+    "craters_placed": 2319,
+    "tilt_deg": 2.22,
+    "tilt_azimuth_deg": 325.3,
+    "laser_mask_from": "lola5m_site04",
+    "laser_mask_rot_deg": 180,
+    "laser_coverage": 0.08645915985107422,
+    "slope_median_deg": 7.714821815490723,
+    "slope_p90_deg": 25.0682373046875,
+    "truth_hazard_frac": 0.384521484375,
+    "belief_hazard_frac": 0.3508319854736328,
+    "belief_truth_disagree_frac": 0.1226348876953125,
+    "safe_target_cells": 212728,
+    "build_s": 1.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 5.39381217956543,
+       "mean_fuel_kg_success": 70.97702026367188,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 35.79240036010742,
+       "td_vz_mean_success": 0.9991155862808228,
+       "td_vh_mean_success": 0.15049122273921967
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 4.8627166748046875,
+       "mean_fuel_kg_success": 64.27854919433594,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 30.663999557495117,
+       "td_vz_mean_success": 1.1161222457885742,
+       "td_vh_mean_success": 0.147917240858078
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 9.166441917419434,
+       "mean_fuel_kg_success": 73.05525970458984,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 6,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 38.26348114013672,
+       "td_vz_mean_success": 1.003865122795105,
+       "td_vh_mean_success": 0.17301328480243683
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 9.198644638061523,
+       "mean_fuel_kg_success": 67.58333587646484,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 0.8888888888888888,
+       "n_nav_drift": 9,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 6,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 35.454246520996094,
+       "td_vz_mean_success": 1.1179174184799194,
+       "td_vh_mean_success": 0.20350220799446106
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_12",
+    "seed": 7012,
+    "craters_drawn": 1754,
+    "craters_placed": 1744,
+    "tilt_deg": 4.6,
+    "tilt_azimuth_deg": 46.4,
+    "laser_mask_from": "lola5m_site06",
+    "laser_mask_rot_deg": 180,
+    "laser_coverage": 0.06288433074951172,
+    "slope_median_deg": 6.737702369689941,
+    "slope_p90_deg": 22.83358383178711,
+    "truth_hazard_frac": 0.2838630676269531,
+    "belief_hazard_frac": 0.2594108581542969,
+    "belief_truth_disagree_frac": 0.16614151000976562,
+    "safe_target_cells": 330836,
+    "build_s": 2.6,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 6.738306045532227,
+       "mean_fuel_kg_success": 72.68630981445312,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 45.38691711425781,
+       "td_vz_mean_success": 0.9985553026199341,
+       "td_vh_mean_success": 0.16685009002685547
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 5.444895267486572,
+       "mean_fuel_kg_success": 64.57504272460938,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 0.8,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 37.32219696044922,
+       "td_vz_mean_success": 1.1160773038864136,
+       "td_vh_mean_success": 0.16457170248031616
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 7.451918601989746,
+       "mean_fuel_kg_success": 71.15507507324219,
+       "success_when_engine_failed": 0.9,
+       "n_engine_failed": 10,
+       "success_when_nav_drift": 0.75,
+       "n_nav_drift": 8,
+       "success_when_camera_blind": 0.875,
+       "n_camera_blind": 8,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 37.40752029418945,
+       "td_vz_mean_success": 1.0009595155715942,
+       "td_vh_mean_success": 0.14854007959365845
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 7.522708892822266,
+       "mean_fuel_kg_success": 63.29983139038086,
+       "success_when_engine_failed": 0.9,
+       "n_engine_failed": 10,
+       "success_when_nav_drift": 0.875,
+       "n_nav_drift": 8,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 8,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 32.3042106628418,
+       "td_vz_mean_success": 1.118088960647583,
+       "td_vh_mean_success": 0.17098213732242584
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_13",
+    "seed": 7013,
+    "craters_drawn": 1897,
+    "craters_placed": 1890,
+    "tilt_deg": 3.89,
+    "tilt_azimuth_deg": 69.2,
+    "laser_mask_from": "lola5m_site07",
+    "laser_mask_rot_deg": 180,
+    "laser_coverage": 0.08497810363769531,
+    "slope_median_deg": 6.721092224121094,
+    "slope_p90_deg": 24.264163970947266,
+    "truth_hazard_frac": 0.34165000915527344,
+    "belief_hazard_frac": 0.3097715377807617,
+    "belief_truth_disagree_frac": 0.12085247039794922,
+    "safe_target_cells": 266760,
+    "build_s": 2.6,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 1.3149096965789795,
+       "mean_fuel_kg_success": 73.07632446289062,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 1,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 0.7225242257118225,
+       "td_vz_mean_success": 0.9981467723846436,
+       "td_vh_mean_success": 0.12759408354759216
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 1.696282148361206,
+       "mean_fuel_kg_success": 64.79708862304688,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 3,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 1,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 1.6313837766647339,
+       "td_vz_mean_success": 1.1136162281036377,
+       "td_vh_mean_success": 0.1195068433880806
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 10.612726211547852,
+       "mean_fuel_kg_success": 70.83877563476562,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 11,
+       "success_when_nav_drift": 0.9,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 39.046321868896484,
+       "td_vz_mean_success": 1.001758098602295,
+       "td_vh_mean_success": 0.17562335729599
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 9.981355667114258,
+       "mean_fuel_kg_success": 63.054161071777344,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 11,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 33.53615951538086,
+       "td_vz_mean_success": 1.116231918334961,
+       "td_vh_mean_success": 0.22609245777130127
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_14",
+    "seed": 7014,
+    "craters_drawn": 1849,
+    "craters_placed": 1837,
+    "tilt_deg": 4.86,
+    "tilt_azimuth_deg": 249.1,
+    "laser_mask_from": "lola5m_site20",
+    "laser_mask_rot_deg": 180,
+    "laser_coverage": 0.07629680633544922,
+    "slope_median_deg": 7.4957075119018555,
+    "slope_p90_deg": 24.56424331665039,
+    "truth_hazard_frac": 0.34683990478515625,
+    "belief_hazard_frac": 0.3127908706665039,
+    "belief_truth_disagree_frac": 0.15417766571044922,
+    "safe_target_cells": 245045,
+    "build_s": 2.6,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 4.2063093185424805,
+       "mean_fuel_kg_success": 70.696044921875,
+       "success_when_engine_failed": 0.75,
+       "n_engine_failed": 4,
+       "success_when_nav_drift": 0.6,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 37.01321029663086,
+       "td_vz_mean_success": 1.0004171133041382,
+       "td_vh_mean_success": 0.16391602158546448
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 4.809736251831055,
+       "mean_fuel_kg_success": 63.548553466796875,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 4,
+       "success_when_nav_drift": 0.8,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 31.039348602294922,
+       "td_vz_mean_success": 1.1151000261306763,
+       "td_vh_mean_success": 0.14973601698875427
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "timeout": 1
+       },
+       "mean_target_dist_m_success": 4.999460697174072,
+       "mean_fuel_kg_success": 69.27083587646484,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 11,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 30.736074447631836,
+       "td_vz_mean_success": 1.0035823583602905,
+       "td_vh_mean_success": 0.1733696162700653
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 4.715868949890137,
+       "mean_fuel_kg_success": 63.58914566040039,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 11,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 5,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 5,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 27.455890655517578,
+       "td_vz_mean_success": 1.1134979724884033,
+       "td_vh_mean_success": 0.18205487728118896
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_15",
+    "seed": 7015,
+    "craters_drawn": 1080,
+    "craters_placed": 1076,
+    "tilt_deg": 3.98,
+    "tilt_azimuth_deg": 249.0,
+    "laser_mask_from": "lola5m_site01",
+    "laser_mask_rot_deg": 270,
+    "laser_coverage": 0.09994316101074219,
+    "slope_median_deg": 5.614072799682617,
+    "slope_p90_deg": 21.80006217956543,
+    "truth_hazard_frac": 0.2382965087890625,
+    "belief_hazard_frac": 0.22184181213378906,
+    "belief_truth_disagree_frac": 0.07953643798828125,
+    "safe_target_cells": 367876,
+    "build_s": 2.5,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "hard_horizontal": 1
+       },
+       "mean_target_dist_m_success": 3.8693439960479736,
+       "mean_fuel_kg_success": 70.69305419921875,
+       "success_when_engine_failed": null,
+       "n_engine_failed": 0,
+       "success_when_nav_drift": 0.75,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 33.61365509033203,
+       "td_vz_mean_success": 1.000636100769043,
+       "td_vh_mean_success": 0.14681334793567657
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 4.863950729370117,
+       "mean_fuel_kg_success": 63.295291900634766,
+       "success_when_engine_failed": null,
+       "n_engine_failed": 0,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 2,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 32.059207916259766,
+       "td_vz_mean_success": 1.11811363697052,
+       "td_vh_mean_success": 0.16081637144088745
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.90625,
+       "failures": {
+        "ok": 29,
+        "hard_horizontal": 1,
+        "steep_slope": 2
+       },
+       "mean_target_dist_m_success": 9.03288745880127,
+       "mean_fuel_kg_success": 70.14480590820312,
+       "success_when_engine_failed": 0.8461538461538461,
+       "n_engine_failed": 13,
+       "success_when_nav_drift": 0.7,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.7578,
+        0.9676
+       ],
+       "miss_p95_m_success": 41.210872650146484,
+       "td_vz_mean_success": 1.0024182796478271,
+       "td_vh_mean_success": 0.163116917014122
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 8.831391334533691,
+       "mean_fuel_kg_success": 62.429752349853516,
+       "success_when_engine_failed": 0.8461538461538461,
+       "n_engine_failed": 13,
+       "success_when_nav_drift": 0.8,
+       "n_nav_drift": 10,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 37.09062194824219,
+       "td_vz_mean_success": 1.1136679649353027,
+       "td_vh_mean_success": 0.182856947183609
+      },
+      "only_pilot_landed": 2,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.07428412325819075,
+       0.13678412325819075
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_16",
+    "seed": 7016,
+    "craters_drawn": 902,
+    "craters_placed": 898,
+    "tilt_deg": 1.5,
+    "tilt_azimuth_deg": 45.5,
+    "laser_mask_from": "lola5m_site04",
+    "laser_mask_rot_deg": 270,
+    "laser_coverage": 0.08645915985107422,
+    "slope_median_deg": 4.267446517944336,
+    "slope_p90_deg": 22.384891510009766,
+    "truth_hazard_frac": 0.2519826889038086,
+    "belief_hazard_frac": 0.23496532440185547,
+    "belief_truth_disagree_frac": 0.07209968566894531,
+    "safe_target_cells": 338086,
+    "build_s": 2.1,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 2.4872353076934814,
+       "mean_fuel_kg_success": 72.27935028076172,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 4,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 13.720081329345703,
+       "td_vz_mean_success": 1.00046968460083,
+       "td_vh_mean_success": 0.14904862642288208
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 2.6052889823913574,
+       "mean_fuel_kg_success": 64.05014038085938,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 4,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 12.743965148925781,
+       "td_vz_mean_success": 1.1140198707580566,
+       "td_vh_mean_success": 0.13741496205329895
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 7.479288101196289,
+       "mean_fuel_kg_success": 70.56529998779297,
+       "success_when_engine_failed": 0.8571428571428571,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 0.8571428571428571,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 6,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 38.56223678588867,
+       "td_vz_mean_success": 1.0003448724746704,
+       "td_vh_mean_success": 0.15573002398014069
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "hard_horizontal": 1,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 5.734652519226074,
+       "mean_fuel_kg_success": 62.96985626220703,
+       "success_when_engine_failed": 0.8571428571428571,
+       "n_engine_failed": 7,
+       "success_when_nav_drift": 0.7142857142857143,
+       "n_nav_drift": 7,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 6,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 30.670846939086914,
+       "td_vz_mean_success": 1.1176260709762573,
+       "td_vh_mean_success": 0.1535920649766922
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 1,
+      "sign_test_p": 1.0,
+      "diff": -0.03125,
+      "diff_ci95": [
+       -0.09153537278540293,
+       0.029035372785402927
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_17",
+    "seed": 7017,
+    "craters_drawn": 1465,
+    "craters_placed": 1454,
+    "tilt_deg": 1.39,
+    "tilt_azimuth_deg": 91.4,
+    "laser_mask_from": "lola5m_site06",
+    "laser_mask_rot_deg": 270,
+    "laser_coverage": 0.06288433074951172,
+    "slope_median_deg": 3.1768274307250977,
+    "slope_p90_deg": 21.08440589904785,
+    "truth_hazard_frac": 0.20576858520507812,
+    "belief_hazard_frac": 0.1761035919189453,
+    "belief_truth_disagree_frac": 0.1367969512939453,
+    "safe_target_cells": 400550,
+    "build_s": 2.5,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 1.3679783344268799,
+       "mean_fuel_kg_success": 71.21151733398438,
+       "success_when_engine_failed": 0.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 0.5,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 0.9682829976081848,
+       "td_vz_mean_success": 1.0010517835617065,
+       "td_vh_mean_success": 0.1403597742319107
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 1.685743808746338,
+       "mean_fuel_kg_success": 63.350868225097656,
+       "success_when_engine_failed": 0.0,
+       "n_engine_failed": 1,
+       "success_when_nav_drift": 0.5,
+       "n_nav_drift": 2,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 1.7665514945983887,
+       "td_vz_mean_success": 1.1147475242614746,
+       "td_vh_mean_success": 0.1245683953166008
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 7.565584182739258,
+       "mean_fuel_kg_success": 72.80482482910156,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 6,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 38.8827018737793,
+       "td_vz_mean_success": 0.9987953901290894,
+       "td_vh_mean_success": 0.16468092799186707
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 6.772698402404785,
+       "mean_fuel_kg_success": 64.32992553710938,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 6,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 7,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 32.71068572998047,
+       "td_vz_mean_success": 1.116123914718628,
+       "td_vh_mean_success": 0.15889377892017365
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_18",
+    "seed": 7018,
+    "craters_drawn": 1874,
+    "craters_placed": 1864,
+    "tilt_deg": 3.38,
+    "tilt_azimuth_deg": 125.6,
+    "laser_mask_from": "lola5m_site07",
+    "laser_mask_rot_deg": 270,
+    "laser_coverage": 0.08497810363769531,
+    "slope_median_deg": 5.016121864318848,
+    "slope_p90_deg": 23.648387908935547,
+    "truth_hazard_frac": 0.30669116973876953,
+    "belief_hazard_frac": 0.2721672058105469,
+    "belief_truth_disagree_frac": 0.10711383819580078,
+    "safe_target_cells": 300110,
+    "build_s": 2.2,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 3.8093321323394775,
+       "mean_fuel_kg_success": 74.83573150634766,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 3,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 33.04108428955078,
+       "td_vz_mean_success": 0.9990053772926331,
+       "td_vh_mean_success": 0.150149866938591
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 3.73714017868042,
+       "mean_fuel_kg_success": 65.53457641601562,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 2,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 3,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 1,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 28.575653076171875,
+       "td_vz_mean_success": 1.1135354042053223,
+       "td_vh_mean_success": 0.15035417675971985
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 7.8163228034973145,
+       "mean_fuel_kg_success": 71.18496704101562,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 0.875,
+       "n_nav_drift": 8,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 36.16420364379883,
+       "td_vz_mean_success": 1.0011851787567139,
+       "td_vh_mean_success": 0.19645625352859497
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "steep_slope": 1
+       },
+       "mean_target_dist_m_success": 7.201746463775635,
+       "mean_fuel_kg_success": 63.8895263671875,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 12,
+       "success_when_nav_drift": 0.875,
+       "n_nav_drift": 8,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 4,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 31.750911712646484,
+       "td_vz_mean_success": 1.112822413444519,
+       "td_vh_mean_success": 0.1720903217792511
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   {
+    "region": "proc_19",
+    "seed": 7019,
+    "craters_drawn": 957,
+    "craters_placed": 951,
+    "tilt_deg": 5.71,
+    "tilt_azimuth_deg": 74.1,
+    "laser_mask_from": "lola5m_site20",
+    "laser_mask_rot_deg": 270,
+    "laser_coverage": 0.07629680633544922,
+    "slope_median_deg": 6.216454029083252,
+    "slope_p90_deg": 17.589557647705078,
+    "truth_hazard_frac": 0.14916133880615234,
+    "belief_hazard_frac": 0.14541244506835938,
+    "belief_truth_disagree_frac": 0.10115528106689453,
+    "safe_target_cells": 439472,
+    "build_s": 2.7,
+    "results": {
+     "nominal": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 0.9375,
+       "failures": {
+        "ok": 30,
+        "timeout": 1,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 4.405269145965576,
+       "mean_fuel_kg_success": 69.49454498291016,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.7985,
+        0.9827
+       ],
+       "miss_p95_m_success": 30.567033767700195,
+       "td_vz_mean_success": 1.0007469654083252,
+       "td_vh_mean_success": 0.15019673109054565
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 0.96875,
+       "failures": {
+        "ok": 31,
+        "out_of_bounds": 1
+       },
+       "mean_target_dist_m_success": 4.269538402557373,
+       "mean_fuel_kg_success": 63.229270935058594,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 5,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 4,
+       "success_when_camera_blind": null,
+       "n_camera_blind": 0,
+       "ci95": [
+        0.8426,
+        0.9945
+       ],
+       "miss_p95_m_success": 27.389686584472656,
+       "td_vz_mean_success": 1.118386149406433,
+       "td_vh_mean_success": 0.15784740447998047
+      },
+      "only_pilot_landed": 1,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.03125,
+      "diff_ci95": [
+       -0.029035372785402927,
+       0.09153537278540293
+      ]
+     },
+     "harsh": {
+      "n": 32,
+      "classic": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 13.358800888061523,
+       "mean_fuel_kg_success": 72.89158630371094,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 10,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 11,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 42.84850311279297,
+       "td_vz_mean_success": 0.9996817111968994,
+       "td_vh_mean_success": 0.20512047410011292
+      },
+      "pilot": {
+       "n": 32,
+       "success_rate": 1.0,
+       "failures": {
+        "ok": 32
+       },
+       "mean_target_dist_m_success": 11.460651397705078,
+       "mean_fuel_kg_success": 64.29280853271484,
+       "success_when_engine_failed": 1.0,
+       "n_engine_failed": 10,
+       "success_when_nav_drift": 1.0,
+       "n_nav_drift": 11,
+       "success_when_camera_blind": 1.0,
+       "n_camera_blind": 3,
+       "ci95": [
+        0.8928,
+        1.0
+       ],
+       "miss_p95_m_success": 35.95032501220703,
+       "td_vz_mean_success": 1.1136255264282227,
+       "td_vh_mean_success": 0.18921373784542084
+      },
+      "only_pilot_landed": 0,
+      "only_classic_landed": 0,
+      "sign_test_p": 1.0,
+      "diff": 0.0,
+      "diff_ci95": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   }
+  ],
+  "skipped": [],
+  "partial": false,
+  "stopped_because": null,
+  "notes": [
+   "GENERATED \u2014 NOT OBSERVED: synthetic terrain; never used alone for a safety claim.",
+   "Craters evaluated only within 2.5 radii of their centre (same output as make_demo_tile, checked above).",
+   "Per map: 500-2500 craters, regional tilt 0-7 deg (random azimuth), real LOLA laser-coverage mask (pilot training tiles, rotated) so the camera's backup belief is gap-filled from ~10 % of pixels; truth = gap-free slope >= limit. Targets = random truth-safe cells.",
+   "Nothing is written to data/tiles/; the maps exist only in memory and are reproducible from the seeds.",
+   "Merged from 5 runs on disjoint map ids (same seeds per map as a serial run); pooled statistics recomputed from the per-map paired counts."
+  ],
+  "pooled": {
+   "nominal": {
+    "maps": 20,
+    "missions": 640,
+    "classic": 0.975,
+    "pilot": 0.98125,
+    "classic_ci95_wilson": [
+     0.9597775036774289,
+     0.9845541455977965
+    ],
+    "pilot_ci95_wilson": [
+     0.9675146935663795,
+     0.9892423721466778
+    ],
+    "classic_ci95_map_bootstrap": [
+     0.9609375,
+     0.9875
+    ],
+    "pilot_ci95_map_bootstrap": [
+     0.9703125,
+     0.9921875
+    ],
+    "diff": 0.00625,
+    "diff_ci95": [
+     -0.0034223621646291766,
+     0.015922362164629177
+    ],
+    "diff_ci95_map_bootstrap": [
+     -0.003125,
+     0.015625
+    ],
+    "only_pilot_landed": 7,
+    "only_classic_landed": 3,
+    "sign_test_p": 0.34375,
+    "maps_pilot_better": 7,
+    "maps_classic_better": 3
+   },
+   "harsh": {
+    "maps": 20,
+    "missions": 640,
+    "classic": 0.9671875,
+    "pilot": 0.975,
+    "classic_ci95_wilson": [
+     0.9503597024352342,
+     0.9784401762927015
+    ],
+    "pilot_ci95_wilson": [
+     0.9597775036774289,
+     0.9845541455977965
+    ],
+    "classic_ci95_map_bootstrap": [
+     0.9578125,
+     0.9750390625000002
+    ],
+    "pilot_ci95_map_bootstrap": [
+     0.9640625,
+     0.9859375
+    ],
+    "diff": 0.0078125,
+    "diff_ci95": [
+     -0.005522898577643241,
+     0.02114789857764324
+    ],
+    "diff_ci95_map_bootstrap": [
+     -0.003125,
+     0.01875
+    ],
+    "only_pilot_landed": 12,
+    "only_classic_landed": 7,
+    "sign_test_p": 0.359283447265625,
+    "maps_pilot_better": 9,
+    "maps_classic_better": 4
+   }
+  },
+  "guard": {
+   "min_free_gb_seen": 27.84,
+   "peak_rss_gb": 0.72,
+   "device": "mps"
+  },
+  "wall_s": null,
+  "merged_from": [
+   {
+    "file": "procedural_part_0.json",
+    "maps": [
+     "proc_00",
+     "proc_01",
+     "proc_02",
+     "proc_03",
+     "proc_04",
+     "proc_05",
+     "proc_06",
+     "proc_07",
+     "proc_08",
+     "proc_09",
+     "proc_10",
+     "proc_11"
+    ],
+    "wall_s": null,
+    "device": "mps",
+    "partial": false
+   },
+   {
+    "file": "procedural_part_1.json",
+    "maps": [
+     "proc_12",
+     "proc_16"
+    ],
+    "wall_s": 534.3,
+    "device": "mps",
+    "partial": false
+   },
+   {
+    "file": "procedural_part_2.json",
+    "maps": [
+     "proc_13",
+     "proc_17"
+    ],
+    "wall_s": 580.9,
+    "device": "mps",
+    "partial": false
+   },
+   {
+    "file": "procedural_part_3.json",
+    "maps": [
+     "proc_14",
+     "proc_18"
+    ],
+    "wall_s": 597.3,
+    "device": "mps",
+    "partial": false
+   },
+   {
+    "file": "procedural_part_4.json",
+    "maps": [
+     "proc_15",
+     "proc_19"
+    ],
+    "wall_s": 603.6,
+    "device": "mps",
+    "partial": false
+   }
+  ]
+ }
+}

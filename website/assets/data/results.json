@@ -1,0 +1,217 @@
+{
+ "meta": {
+  "provenance": "modelled",
+  "source": "runs/lander/benchmark.json + runs/lander/benchmark.md (pilot checkpoint d53a162df9); results_pc/extracted/runs/planner/eval.json; mirrored in assets/data/numbers.json; lander_mini/runs/lander/benchmark_site23_final.json; lander_mini/runs/lander/rsi_changelog.md (Mac mini hand-off 15 Nov 2026)",
+  "frame": "n/a",
+  "units": "percent of simulated missions unless stated",
+  "note": "Single source for the Results section (rendered by js/results.js). All numbers are simulation results. Edit values here, reload the page; no code change needed. Text fields accept **bold**."
+ },
+ "hero_stats": [
+  {
+   "value": "98.39 %",
+   "label": "unseen-terrain landings"
+  },
+  {
+   "value": "14.8 M",
+   "label": "parameter pilot"
+  },
+  {
+   "value": "2,304",
+   "label": "paired missions per condition"
+  }
+ ],
+ "intro": "The same missions are flown twice — once by classic guidance, once by the pilot — on **3 unseen maps, 2,304 paired missions per condition**, with engine-outs, navigation drift and blind cameras injected.",
+ "headline_stats": [
+  {
+   "value": "98.39 %",
+   "title": "Landings on unseen terrain",
+   "body": "Pilot success over 2,304 paired missions on 3 maps it never saw; classic guidance scored 97.66 %.",
+   "source": "runs/lander/benchmark.md"
+  },
+  {
+   "value": "+0.74 pts",
+   "title": "Better than classic guidance",
+   "body": "95 % CI [+0.2, +1.3], exact McNemar p = 0.019: 32 missions only the pilot landed, 15 only classic.",
+   "source": "runs/lander/benchmark.json"
+  },
+  {
+   "value": "≈4 m",
+   "title": "Mean miss on touchdown",
+   "body": "Successful landings at normal failure rates (≈10 m harsh), terminal ~2 km of a simplified 3-DOF simulation.",
+   "source": "runs/lander/benchmark.json · miss_m"
+  },
+  {
+   "value": "14.8 M",
+   "title": "Parameters in the pilot",
+   "body": "A transformer residual on ZEM/ZEV guidance; with zero authority the lander flies pure physics.",
+   "source": "data/models/lander_pilot.pt · d53a162df9"
+  }
+ ],
+ "bar_axis": {
+  "min": 94,
+  "max": 100,
+  "label": "bar axis 94–100 %"
+ },
+ "cards": [
+  {
+   "id": "normal",
+   "type": "paired",
+   "title": "Normal failure rates",
+   "baseline": {
+    "label": "Classic ZEM/ZEV",
+    "success_pct": 97.66
+   },
+   "candidate": {
+    "label": "Pilot",
+    "success_pct": 98.39
+   },
+   "diff_points": 0.74,
+   "ci95_points": [
+    0.2,
+    1.3
+   ],
+   "test": "exact McNemar",
+   "p_value": 0.019,
+   "significant": true,
+   "only_candidate": 32,
+   "only_baseline": 15,
+   "note": "32 missions only the pilot landed, 15 only classic landed. The whole gain comes from one map: Site 42 (95.05 % → 97.01 %, p = 0.008); Shoemaker and DM2 are ties. Replicated byte for byte on the Mac mini.",
+   "source": "runs/lander/benchmark.md, POOLED (3 maps), nominal, 2,304 missions"
+  },
+  {
+   "id": "harsh",
+   "type": "paired",
+   "title": "Harsh (3× failure rates)",
+   "baseline": {
+    "label": "Classic ZEM/ZEV",
+    "success_pct": 96.31
+   },
+   "candidate": {
+    "label": "Pilot",
+    "success_pct": 96.92
+   },
+   "diff_points": 0.61,
+   "ci95_points": [
+    -0.2,
+    1.4
+   ],
+   "test": "exact McNemar",
+   "p_value": 0.18,
+   "significant": false,
+   "only_candidate": 55,
+   "only_baseline": 41,
+   "note": "55 pilot-only vs 41 classic-only landings.",
+   "source": "runs/lander/benchmark.md, POOLED (3 maps), harsh, 2,304 missions"
+  },
+  {
+   "id": "accuracy",
+   "type": "kpis",
+   "title": "Accuracy",
+   "kpis": [
+    {
+     "value": "≈4 m",
+     "label": "mean miss, normal"
+    },
+    {
+     "value": "≈10 m",
+     "label": "mean miss, harsh"
+    },
+    {
+     "value": "14.8 M",
+     "label": "pilot parameters (14,842,567)"
+    }
+   ],
+   "note": "Successful landings only. This is the **terminal descent phase (from ~2 km) in a simplified 3-DOF simulation**, not a full descent from orbit.",
+   "source": "runs/lander/benchmark.json, per-map miss_m; parameter count from the checkpoint"
+  },
+  {
+   "id": "planner",
+   "type": "kpis",
+   "title": "Planner: the backup won",
+   "kpis": [
+    {
+     "value": "12.8 %",
+     "label": "Navigator ranking"
+    },
+    {
+     "value": "12.2 %",
+     "label": "learned set planner"
+    },
+    {
+     "value": "42.4 %",
+     "label": "best possible pick"
+    }
+   ],
+   "note": "Mean simulated mission success of the chosen cell, held-out Site 23, 7 dates, 672 candidates. The learned planner did not beat the Navigator ranking, so the **Navigator ranking ships**. (A logistic baseline scored 15.2 % here but lost clearly on validation.)",
+   "source": "results_pc/extracted/runs/planner/eval.json, test split"
+  },
+  {
+   "id": "site23-exam",
+   "type": "kpis",
+   "title": "Final exam · Site 23 (flown once)",
+   "note": "A **tie**: 1,024 paired missions per condition; normal 11 only-pilot vs 11 only-classic landings (exact McNemar p = 1.000); harsh 19 vs 21 (p = 0.875). The pilot is **not better** than classic guidance on the final exam.",
+   "source": "lander_mini/runs/lander/benchmark_site23_final.json (flown once on the Mac mini, 15 Nov; never re-flown)",
+   "kpis": [
+    {
+     "value": "97.95 %",
+     "label": "pilot, normal rates"
+    },
+    {
+     "value": "97.95 %",
+     "label": "classic, normal rates"
+    },
+    {
+     "value": "96.29 %",
+     "label": "pilot, harsh (classic 96.48 %)"
+    }
+   ]
+  },
+  {
+   "id": "rehearsal",
+   "type": "paired",
+   "title": "At our landing site (mission rehearsal)",
+   "baseline": {
+    "label": "Classic ZEM/ZEV",
+    "success_pct": 99.02
+   },
+   "candidate": {
+    "label": "Pilot",
+    "success_pct": 99.61
+   },
+   "diff_points": 0.59,
+   "ci95_points": [
+    -0.4,
+    1.6
+   ],
+   "test": "exact McNemar",
+   "p_value": 0.453,
+   "significant": false,
+   "only_candidate": 5,
+   "only_baseline": 2,
+   "note": "Every mission targets the one cell the Navigator planned on Site 23 for 2027-03-17 (slope 4.3°, no hazard); 512 paired missions per condition. Harsh rates: pilot 99.02 %, classic 99.22 % (p = 1.00). Miss p95: pilot 29.0 m, classic 32.7 m. A rehearsal of one planned cell after the final exam, **not an exam**.",
+   "source": "runs/lander/mission_rehearsal.json (python -m worldmodel.lander.mission_bench rehearsal --n 512, reconstructed from missions_per_condition), nominal"
+  },
+  {
+   "id": "self-improvement",
+   "type": "kpis",
+   "title": "Self-improvement job: nothing accepted",
+   "kpis": [
+    {
+     "value": "0 of 7",
+     "label": "candidates accepted"
+    },
+    {
+     "value": "990 / 1,024",
+     "label": "current pilot at the Site 11 gate"
+    },
+    {
+     "value": "unchanged",
+     "label": "shipped pilot (same SHA-256)"
+    }
+   ],
+   "note": "Four authority rules and three short training rounds (4–5 updates each) went to a zero-regression gate; each lost 12–25 gate missions that classic or the current pilot lands, so all were rejected.",
+   "source": "lander_mini/runs/lander/rsi_changelog.md + RESULTS_SUMMARY.md §3"
+  }
+ ],
+ "footnote": "Sources: runs/lander/benchmark.json + benchmark.md (pilot checkpoint d53a162df9 = SHA-256 2501e02b…, 768 missions per map per condition, maps Site42 / Shoemaker / DM2), replicated in lander_mini/runs/lander/benchmark_replication_macmini.md; Site 23 final exam lander_mini/runs/lander/benchmark_site23_final.json; self-improvement lander_mini/runs/lander/rsi_changelog.md; results_pc/extracted/runs/planner/eval.json. All results are simulation — modelled."
+}
