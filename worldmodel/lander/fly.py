@@ -8,7 +8,7 @@ import torch
 from contracts.runs import FAILURE_REASONS
 from worldmodel.lander.env import EnvParams, LanderBatch
 from worldmodel.lander.guidance import GuidanceParams, classic_action
-from worldmodel.lander.pilot import pilot_features, residual_action
+from worldmodel.lander.pilot import authority, pilot_features, residual_action
 from worldmodel.lander.scenes import Scene
 
 
@@ -27,7 +27,7 @@ def fly(scene: Scene, params: EnvParams, gp: GuidanceParams, model, n: int, seed
             if i % repeat == 0:
                 mu, _ = model(pilot_features(obs, classic), env.crop(crop))
                 r = mu                                                    # deterministic: the mean residual
-            act = residual_action(classic, r)
+            act = residual_action(classic, r, authority(obs, getattr(model, "rule", None)))
         else:
             act = classic
         obs, _, _ = env.step(act)

@@ -90,8 +90,19 @@ def pilot_features(obs: torch.Tensor, classic: torch.Tensor) -> torch.Tensor:
     return torch.cat([obs, classic], dim=1)
 
 
-def residual_action(classic: torch.Tensor, r: torch.Tensor) -> torch.Tensor:
-    return (classic + RESIDUAL_SCALE * r.clamp(-1.0, 1.0)).clamp(-1.0, 1.0)
+def authority(obs: torch.Tensor, rule: dict | None) -> torch.Tensor | float:
+    """How much of the learned residual is applied, 0..1 per lander. `rule` (learned by worldmodel.lander.solve, stored in the checkpoint):
+    below fade_lo metres (measured altitude) the pilot hands over fully to classic guidance, above fade_hi it has full authority, linear between;
+    `scale` multiplies everything. No rule = full authority (the original behaviour)."""
+    if not rule:
+        return 1.0
+    lo, hi = rule.get("fade_lo", -1.0), rule.get("fade_hi", 0.0)
+    alt = obs[:, 2:3] * 1000.0
+    return rule.get("scale", 1.0) * ((alt - lo) / (hi - lo + 1e-6)).clamp(0.0, 1.0)
+
+
+def residual_action(classic: torch.Tensor, r: torch.Tensor, w: torch.Tensor | float = 1.0) -> torch.Tensor:
+    return (classic + RESIDUAL_SCALE * w * r.clamp(-1.0, 1.0)).clamp(-1.0, 1.0)
 
 
 def checkpoint_id(model: nn.Module) -> str:
@@ -116,4 +127,5 @@ def load_checkpoint(path: str | Path, device: torch.device | None = None) -> tup
     model = build_model(arch.pop("kind"), **arch)
     model.load_state_dict(st["state_dict"])
     model.eval()
+    model.rule = st["info"].get("residual_rule")            # learned authority rule (None = full authority)
     return model.to(device or torch.device("cpu")), st["info"]

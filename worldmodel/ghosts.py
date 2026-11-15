@@ -107,7 +107,7 @@ def export_rover(region: str, date: str, n: int, seed: int = 7, learned: str | N
 def export_lander(region: str, n: int, seed: int = 11, pilot: str | None = None) -> dict:
     from worldmodel.lander.env import LanderBatch, make_params
     from worldmodel.lander.guidance import classic_action, guidance_params
-    from worldmodel.lander.pilot import pilot_features, residual_action
+    from worldmodel.lander.pilot import authority, pilot_features, residual_action
     from worldmodel.lander.scenes import scene_for_region
 
     cfg = load_mission()
@@ -140,7 +140,7 @@ def export_lander(region: str, n: int, seed: int = 11, pilot: str | None = None)
                 if i % 5 == 0:
                     with torch.no_grad():
                         r = model(pilot_features(obs, classic), env.crop(32))[0]
-                act = residual_action(classic, r)
+                act = residual_action(classic, r, authority(obs, getattr(model, "rule", None)))
             else:
                 act = classic
             obs, _, _ = env.step(act)

@@ -34,3 +34,4 @@ Thumbs.db
 .env
 *.key
 vizard/*.obj
+results_pc/

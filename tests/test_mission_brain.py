@@ -117,3 +117,48 @@ def test_pilot_dream_gate_needs_a_real_gain():
 
     assert accept(0.950, 0.955, 0.002)
     assert not accept(0.950, 0.951, 0.002) and not accept(0.950, 0.940, 0.002) and not accept(0.95, float("nan"), 0.002)
+
+
+def test_authority_rule_fades_the_residual_by_measured_altitude():
+    from worldmodel.lander.pilot import authority
+
+    obs = torch.zeros(4, 21)
+    obs[:, 2] = torch.tensor([0.002, 0.020, 0.030, 0.500])                            # measured altitude 2, 20, 30, 500 m (obs is in km)
+    assert authority(obs, None) == 1.0 and authority(obs, {}) == 1.0                  # no rule: full authority (the original behaviour)
+    w = authority(obs, {"fade_lo": 10.0, "fade_hi": 30.0, "scale": 0.6})
+    assert w.shape == (4, 1)
+    assert torch.allclose(w[:, 0], torch.tensor([0.0, 0.3, 0.6, 0.6]), atol=1e-4)     # 0 below fade_lo, linear between, `scale` above fade_hi
+    assert torch.allclose(authority(obs, {"scale": 0.6}), torch.full((4, 1), 0.6), atol=1e-4)
+    classic, r = torch.rand(4, 3) * 2 - 1, torch.rand(4, 3) * 2 - 1
+    assert torch.equal(residual_action(classic, r, 0.0), classic)                     # weight 0 == classic guidance
+    act = residual_action(classic, r, authority(obs, {"fade_lo": 10.0, "fade_hi": 30.0}))
+    assert torch.equal(act[0], classic[0]) and not torch.equal(act[3], classic[3])
+
+
+def test_checkpoint_rule_is_applied_in_flight_and_the_solve_ladder_matches_it(tmp_path):
+    from worldmodel.lander.analysis import fly_recorded
+    from worldmodel.lander.pilot import load_checkpoint, save_checkpoint
+    from worldmodel.lander.solve import fly_ladder
+
+    p = make_params(CFG, failures=False, noise=False)                                  # no sensor noise: replays are exact
+    gp = guidance_params(p)
+    scene = Scene(flat_terrain(), np.array([[32, 32]]), "flat")
+    torch.manual_seed(0)
+    m = build_model("mlp", hidden=32)
+    torch.nn.init.normal_(m.mu.weight, std=0.5)                                        # a pilot whose residual is NOT zero
+    never = {"fade_lo": 1e6, "fade_hi": 2e6}                                           # hands over to classic everywhere
+    full, _ = load_checkpoint(save_checkpoint(tmp_path / "a.pt", m, {}))
+    off, info = load_checkpoint(save_checkpoint(tmp_path / "b.pt", m, {"residual_rule": never}))
+    assert full.rule is None and off.rule == never and info["residual_rule"] == never
+    n = 4
+    c = fly_recorded(scene, p, gp, None, n, 5)
+    a = fly_recorded(scene, p, gp, full, n, 5, scenarios=c["init"])
+    b = fly_recorded(scene, p, gp, off, n, 5, scenarios=c["init"])
+    assert np.array_equal(b["path"], c["path"])                                        # rule with weight 0 flies exactly like classic guidance
+    assert not np.allclose(a["m"]["target_dist_m"], c["m"]["target_dist_m"], atol=1e-2)   # ... and without the rule the residual does act
+    ladder = {"current pilot": None, "classic guidance only": "classic", "full authority": {"scale": 1.0}}
+    lad = fly_ladder(scene, p, gp, off, c["init"], ladder, 5, torch.device("cpu"))    # `off` already carries a rule: "current pilot" must keep it
+    assert lad["ok"].shape == (3, n)
+    for row, ref in ((0, c), (1, c), (2, a)):                                          # row k of the ladder == the same missions flown one strategy at a time
+        assert np.array_equal(lad["ok"][row], ref["m"]["success"].astype(bool))
+        assert np.allclose(lad["miss"][row], ref["m"]["target_dist_m"], rtol=1e-3, atol=0.05) and np.allclose(lad["td_vh"][row], ref["m"]["td_vh"], atol=1e-2)
