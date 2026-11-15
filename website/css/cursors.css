@@ -1,0 +1,136 @@
+/* #built: multiplayer cursors assemble the simulation software in a mock IDE (js/cursors.js). */
+#built.cur-sec { height: 420vh; min-height: 0; padding: 0; display: block; gap: 0; position: relative; }
+#built.cur-sec > * { max-width: none; width: auto; }
+#built .cur-sticky { position: sticky; top: 0; height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 14px; padding: 84px 24px 16px; box-sizing: border-box; overflow: hidden; }
+#built .cur-head { text-align: center; max-width: 980px; margin: 0 auto; }
+#built .cur-head .eyebrow { margin-bottom: 10px; }
+#built .cur-h { font: 600 clamp(26px, 2.5vw, 40px)/1.12 var(--head); letter-spacing: -0.015em; margin: 0 0 10px; color: var(--fg); }
+#built .cur-h .serif { font-weight: 300; }
+#built .cur-w { display: inline-block; will-change: transform, opacity; }
+#built .cur-sub { font: 400 15px/1.5 var(--font); color: var(--fg-2); max-width: 780px; margin: 0 auto; }
+#built .cur-foot { display: grid; gap: 6px; justify-items: center; }
+#built .cur-foot .src { margin: 0; font-size: 11.5px; text-align: center; max-width: 900px; }
+
+/* ---------- window ---------- */
+/* sand stage: a big pastel block the dark IDE window sits on */
+#built .cur-ide { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0;
+  width: min(1240px, 94vw); margin: 0 auto; box-sizing: border-box; padding: 22px; border-radius: 28px; background: var(--sand); }
+#built .ide-win { width: 100%; height: min(100%, 640px); display: flex; flex-direction: column; border-radius: 18px;
+  background: var(--bg-alt); box-shadow: 0 30px 60px rgba(31, 31, 29, .35), 0 0 0 1px rgba(31, 31, 29, .25);
+  transform-origin: 50% 0; will-change: transform; }
+#built .ide-bar { height: 34px; flex: none; display: flex; align-items: center; gap: 7px; padding: 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, .07); font: 500 12px/1 var(--font); color: var(--fg-3); }
+#built .ide-bar .d { width: 10px; height: 10px; border-radius: 50%; background: #3a3a37; }
+#built .ide-ttl { margin-left: 10px; } #built .ide-ttl b { color: var(--fg-2); font-weight: 600; }
+#built .ide-pres { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+#built .ide-pres i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2px var(--bg-alt); }
+#built .ide-pres span { margin-left: 8px; font-size: 11.5px; }
+#built .ide-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 172px 1fr; }
+#built .ide-side { border-right: 1px solid rgba(255, 255, 255, .06); padding: 12px 8px; font: 400 11.5px/1 var(--mono); color: var(--fg-3); overflow: hidden; }
+#built .ide-side .tr { padding: 4px 6px 4px calc(6px + var(--d) * 12px); border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .3s, color .3s; }
+#built .ide-side .dir { color: var(--fg-2); }
+#built .ide-side .f.on { color: var(--fg); background: rgba(217, 119, 87, .16); }
+#built .ide-side .f.on::after { content: " M"; color: var(--ok); font-size: 10px; }
+#built .ide-main { position: relative; min-width: 0; min-height: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px); background-size: 18px 18px; border-radius: 0 0 18px 0; }
+
+/* slots + pieces share positions */
+#built .slot, #built .piece { position: absolute; box-sizing: border-box; border-radius: 14px; }
+#built [data-k="map"] { left: 1.5%; top: 3%; width: 38%; height: 52%; }
+#built [data-k="sim"] { left: 1.5%; top: 58%; width: 38%; height: 39%; }
+#built [data-k="code"] { left: 41.5%; top: 3%; width: 57%; height: 58%; }
+#built [data-k="chart"] { left: 41.5%; top: 64%; width: 57%; height: 33%; }
+#built .slot { border: 1.5px dashed rgba(159, 195, 214, .55); background: rgba(159, 195, 214, .04); opacity: 0; }
+#built .piece { display: flex; flex-direction: column; background: var(--surface); overflow: visible; visibility: hidden; opacity: 0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .08); will-change: transform, opacity; transform-origin: 50% 30%; }
+#built .piece.lifted { box-shadow: 0 34px 70px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .14); z-index: 3; }
+#built .pc-h { flex: none; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; font: 500 11.5px/1 var(--mono); color: var(--fg-2); }
+#built .pc-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#built .pc-cap { flex: none; padding: 6px 12px 9px; font: 400 10.5px/1.35 var(--font); color: var(--fg-3); }
+#built .map-img, #built .sim-img { flex: 1; min-height: 0; margin: 0 8px; border-radius: 6px; position: relative; overflow: hidden; background: var(--sunken); }
+/* middle panel (slope >= 12 deg red, PSR blue) of the observed Site 23 figure, cropped square */
+/* first two panels (hillshade | slope >= 12 deg red, PSR blue) of the observed Site 23 figure, each cropped square */
+#built .map-img::before, #built .map-img::after { content: ""; position: absolute; top: 0; bottom: 0; aspect-ratio: 1;
+  background: url(../assets/img/terrain_site23.jpg) 2.1% 74.6% / 322% 115.4% no-repeat; }
+#built .map-img::before { right: calc(50% + 2px); }
+#built .map-img::after { left: calc(50% + 2px); background-position: 50.2% 74.6%; }
+#built .sim-img { background: var(--sunken) url(../assets/models3d/still_ghosts.jpg) 50% 62% / cover no-repeat; }
+#built .pc-sel { position: absolute; inset: -5px; border: 1.5px solid var(--c); border-radius: 17px; pointer-events: none; opacity: 0; }
+#built .pc-sel::before { content: ""; position: absolute; inset: -4px; background:
+  linear-gradient(var(--c), var(--c)) 0 0 / 7px 7px no-repeat, linear-gradient(var(--c), var(--c)) 100% 0 / 7px 7px no-repeat,
+  linear-gradient(var(--c), var(--c)) 0 100% / 7px 7px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 7px 7px no-repeat; }
+
+/* code */
+#built .code-tabs { flex: none; display: flex; height: 30px; border-bottom: 1px solid rgba(255, 255, 255, .07); padding-left: 6px; }
+#built .code-tab { font: 400 11.5px/30px var(--mono); color: var(--fg-3); padding: 0 12px; display: none; border-bottom: 2px solid transparent; }
+#built .code-tab.open { display: block; }
+#built .code-tab.on { color: var(--fg); border-bottom-color: var(--lavender); background: rgba(200, 195, 224, .08); }
+#built .code-path { flex: none; font: 400 10.5px/1 var(--mono); color: var(--fg-3); padding: 8px 14px 4px; }
+#built .code-view { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+#built .code-body { position: absolute; left: 0; right: 0; top: 0; padding: 2px 0 0; visibility: hidden; }
+#built .code-body.on { visibility: visible; }
+#built .cl { display: flex; font: 400 11px/15px var(--mono); color: var(--fg-2); white-space: pre; overflow: hidden; }
+#built .code-body:not(.on) .cl { visibility: hidden !important; }
+#built .cl .no { flex: none; width: 34px; text-align: right; padding-right: 12px; color: #6b6862; }
+#built .cl .tx { display: inline-block; overflow: hidden; vertical-align: top; }
+#built .cl.typing .tx { box-shadow: 1.5px 0 0 var(--lavender); }
+#built .tk-c { color: #8b877d; font-style: italic; } #built .tk-n { color: var(--peach); } #built .tk-kw { color: var(--accent); }
+#built .tk-f { color: var(--sage); } #built .tk-k { color: var(--lavender); }
+
+/* chart */
+#built .bars { flex: 1; display: grid; align-content: center; gap: 12px; padding: 4px 14px; }
+#built .bar-r { display: grid; grid-template-columns: minmax(0, 34%) 1fr 48px; align-items: center; gap: 12px; font: 500 12px/1.2 var(--font); color: var(--fg-2); }
+#built .bar-t { height: 14px; border-radius: 4px; background: rgba(255, 255, 255, .05); overflow: hidden; }
+#built .bar-t i { display: block; height: 100%; transform-origin: 0 50%; transform: scaleX(0); border-radius: 4px; }
+#built .bar-v { font: 600 13px/1 var(--mono); color: var(--fg); opacity: 0; }
+
+/* cursors */
+#built .cur-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+#built .cur { position: absolute; left: 0; top: 0; will-change: transform; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45)); opacity: 0; }
+#built .cur svg { display: block; position: absolute; left: -2px; top: -2px; }
+#built .cur-pill { position: absolute; left: 13px; top: 17px; white-space: nowrap; font: 600 11.5px/1 var(--head); color: var(--ink);
+  background: var(--c); padding: 4px 8px 5px; border-radius: 3px 10px 10px 10px; }
+
+/* ticker spacing */
+#built #buildlog { margin: 0 auto; }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  #built.cur-sec { height: 380vh; }
+  #built .cur-sticky { padding: 76px 12px 12px; gap: 10px; }
+  #built .cur-ide { padding: 10px; border-radius: 20px; width: 100%; }
+  #built .ide-win { width: 100%; height: 100%; }
+  #built .ide-body { grid-template-columns: 1fr; }
+  #built .ide-side, #built .ide-ttl, #built .ide-pres span { display: none; }
+  #built [data-k="map"] { left: 2%; top: 2%; width: 47%; height: 31%; }
+  #built [data-k="sim"] { left: 51%; top: 2%; width: 47%; height: 31%; }
+  #built [data-k="code"] { left: 2%; top: 35.5%; width: 96%; height: 37%; }
+  #built [data-k="chart"] { left: 2%; top: 75%; width: 96%; height: 23%; }
+  #built .pc-cap { display: none; }
+  #built .cur-sticky { padding-top: 70px; gap: 8px; }
+  #built .cur-head .eyebrow { margin-bottom: 6px; font-size: 11px; }
+  #built .cur-h { font-size: 20px; margin-bottom: 6px; }
+  #built .cur-sub { font-size: 12px; line-height: 1.4; }
+  #built .bl-tick .bl-last { display: none; }
+  #built .cur-foot .src { font-size: 9.5px; line-height: 1.35; }
+  #built .cl { font-size: 9.5px; line-height: 13px; }
+  #built .cl .no { width: 26px; padding-right: 8px; }
+  #built .bar-r { font-size: 10.5px; gap: 8px; grid-template-columns: minmax(0, 38%) 1fr 40px; }
+  #built .bars { gap: 6px; }
+  #built .cur-pill { font-size: 10px; padding: 3px 6px 4px; }
+    #built .cur-foot .src { font-size: 10.5px; }
+}
+
+/* ---------- static fallback (reduced motion / no WebGL / ?static) ---------- */
+#built.cur-sec.cur-static { height: auto; }
+#built.cur-static .cur-sticky { position: relative; height: auto; min-height: 100vh; overflow: visible; }
+#built.cur-static .cur-ide { height: min(64vh, 640px); }
+@media (max-width: 760px) { #built.cur-static .cur-ide { height: 78vh; } }
+
+/* desktop: keep a right-hand lane clear for the side lander and the altitude rail; the stage centres in the rest */
+@media (min-width: 1100px) {
+  #built .cur-sticky { padding-right: calc(24px + var(--lane, 300px)); }
+  #built .cur-sticky { clip-path: inset(0 var(--lane, 300px) 0 0); }   /* pieces flying in from the right never cross the lane */
+  #built .cur-ide { width: 100%; max-width: 1240px; }
+}

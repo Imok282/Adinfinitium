@@ -1,0 +1,403 @@
+{
+ "meta": {
+  "provenance": "modelled",
+  "frame": "n/a",
+  "units": "per field",
+  "source": "computed by website/tools/export_bench_csv.py from the hand-off records listed in its docstring",
+  "built": "2026-11-15T15:11:49+00:00",
+  "bootstrap": {
+   "resamples": 10000,
+   "seed": 0,
+   "interval": "percentile 2.5-97.5"
+  }
+ },
+ "lander_tests": {
+  "family": "every paired pilot-vs-classic comparison reported on the site: the 4 pre-specified tests (unseen maps, Site23 exam) plus the post-hoc mission-rehearsal tests",
+  "n_tests": 6,
+  "test": "exact McNemar (two-sided binomial on discordant missions)",
+  "adjustment": "Holm-Bonferroni over the family",
+  "items": [
+   {
+    "id": "unseen_nominal",
+    "label": "Pilot vs classic, unseen maps (Site42, Shoemaker, DM2), normal rates",
+    "n_missions": 2304,
+    "pilot_only_landed": 32,
+    "classic_only_landed": 15,
+    "diff_pts": 0.74,
+    "diff_ci95_pts": [
+     0.16,
+     1.32
+    ],
+    "p_file": 0.01862383661500644,
+    "p_recomputed": 0.01862383661500644,
+    "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json",
+    "registered": "pre-specified",
+    "kind": "paired, fixed seeds",
+    "p_holm": 0.11174301969003864,
+    "p_holm_prespecified_only": 0.07449534646002576
+   },
+   {
+    "id": "unseen_harsh",
+    "label": "Pilot vs classic, unseen maps (Site42, Shoemaker, DM2), harsh (failure rates x3) rates",
+    "n_missions": 2304,
+    "pilot_only_landed": 55,
+    "classic_only_landed": 41,
+    "diff_pts": 0.61,
+    "diff_ci95_pts": [
+     -0.23,
+     1.44
+    ],
+    "p_file": 0.18428587288036472,
+    "p_recomputed": 0.18428587288036472,
+    "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json",
+    "registered": "pre-specified",
+    "kind": "paired, fixed seeds",
+    "p_holm": 0.9214293644018235,
+    "p_holm_prespecified_only": 0.5528576186410942
+   },
+   {
+    "id": "site23_nominal",
+    "label": "Pilot vs classic, Site23 final exam, normal rates",
+    "n_missions": 1024,
+    "pilot_only_landed": 11,
+    "classic_only_landed": 11,
+    "diff_pts": 0.0,
+    "diff_ci95_pts": [
+     -0.9,
+     0.9
+    ],
+    "p_file": 1.0,
+    "p_recomputed": 1.0,
+    "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark_site23_final.json",
+    "registered": "pre-specified",
+    "kind": "paired, fixed seeds",
+    "p_holm": 1.0,
+    "p_holm_prespecified_only": 1.0
+   },
+   {
+    "id": "site23_harsh",
+    "label": "Pilot vs classic, Site23 final exam, harsh (failure rates x3) rates",
+    "n_missions": 1024,
+    "pilot_only_landed": 19,
+    "classic_only_landed": 21,
+    "diff_pts": -0.2,
+    "diff_ci95_pts": [
+     -1.41,
+     1.02
+    ],
+    "p_file": 0.8746293123804207,
+    "p_recomputed": 0.8746293123804207,
+    "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark_site23_final.json",
+    "registered": "pre-specified",
+    "kind": "paired, fixed seeds",
+    "p_holm": 1.0,
+    "p_holm_prespecified_only": 1.0
+   },
+   {
+    "id": "rehearsal_nominal",
+    "label": "Pilot vs classic, mission rehearsal at the planned Site23 cell, normal rates",
+    "n_missions": 512,
+    "pilot_only_landed": 5,
+    "classic_only_landed": 2,
+    "diff_pts": 0.59,
+    "diff_ci95_pts": [
+     -0.43,
+     1.6
+    ],
+    "p_file": 0.453125,
+    "p_recomputed": 0.453125,
+    "source": "runs/lander/mission_rehearsal.json (copied into website/assets/data/mission_bench.json)",
+    "registered": "post hoc (flown after the Site23 exam)",
+    "kind": "paired, fixed seeds",
+    "p_holm": 1.0
+   },
+   {
+    "id": "rehearsal_harsh",
+    "label": "Pilot vs classic, mission rehearsal at the planned Site23 cell, harsh (failure rates x3) rates",
+    "n_missions": 512,
+    "pilot_only_landed": 4,
+    "classic_only_landed": 5,
+    "diff_pts": -0.2,
+    "diff_ci95_pts": [
+     -1.34,
+     0.95
+    ],
+    "p_file": 1.0,
+    "p_recomputed": 1.0,
+    "source": "runs/lander/mission_rehearsal.json (copied into website/assets/data/mission_bench.json)",
+    "registered": "post hoc (flown after the Site23 exam)",
+    "kind": "paired, fixed seeds",
+    "p_holm": 1.0
+   }
+  ]
+ },
+ "lander_per_map_post_hoc": {
+  "note": "per-map breakdown of the unseen-normal test, looked at after the pooled result; not part of the Holm family",
+  "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json",
+  "items": [
+   {
+    "site": "Site42",
+    "condition": "nominal",
+    "pilot_only_landed": 22,
+    "classic_only_landed": 7,
+    "diff_pts": 1.95,
+    "p_file": 0.008130058646202087,
+    "p_recomputed": 0.008130058646202087
+   },
+   {
+    "site": "Site42",
+    "condition": "harsh",
+    "pilot_only_landed": 32,
+    "classic_only_landed": 22,
+    "diff_pts": 1.3,
+    "p_file": 0.22032849417661104,
+    "p_recomputed": 0.22032849417661104
+   },
+   {
+    "site": "Shoemaker",
+    "condition": "nominal",
+    "pilot_only_landed": 6,
+    "classic_only_landed": 5,
+    "diff_pts": 0.13,
+    "p_file": 1.0,
+    "p_recomputed": 1.0
+   },
+   {
+    "site": "Shoemaker",
+    "condition": "harsh",
+    "pilot_only_landed": 12,
+    "classic_only_landed": 10,
+    "diff_pts": 0.26,
+    "p_file": 0.8318119049072266,
+    "p_recomputed": 0.8318119049072266
+   },
+   {
+    "site": "DM2",
+    "condition": "nominal",
+    "pilot_only_landed": 4,
+    "classic_only_landed": 3,
+    "diff_pts": 0.13,
+    "p_file": 1.0,
+    "p_recomputed": 1.0
+   },
+   {
+    "site": "DM2",
+    "condition": "harsh",
+    "pilot_only_landed": 11,
+    "classic_only_landed": 9,
+    "diff_pts": 0.26,
+    "p_file": 0.8238029479980469,
+    "p_recomputed": 0.8238029479980469
+   }
+  ]
+ },
+ "optional_files": {
+  "mission_bench": true
+ },
+ "effects": [
+  {
+   "id": "hazard_f1_ratio_fresh",
+   "label": "Hazard U-Net F1 / slope-rule F1, fresh sites",
+   "value": 2.590238290781506,
+   "unit": "x",
+   "ci95": [
+    1.9268225281471276,
+    3.8618743947677645
+   ],
+   "ci_method": "bootstrap over 6 windows (pooled confusion counts re-summed per resample)",
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json"
+  },
+  {
+   "id": "hazard_f1_ratio_heldout",
+   "label": "Hazard U-Net F1 / slope-rule F1, Site23+42",
+   "value": 1.1641683132602387,
+   "unit": "x",
+   "ci95": [
+    1.1000306379384583,
+    1.262036031669946
+   ],
+   "ci_method": "bootstrap over 19 windows (pooled confusion counts re-summed per resample)",
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json"
+  },
+  {
+   "id": "light_reduction_heldout",
+   "label": "Light: skyline error reduction vs coarse ray-cast, Site23+42",
+   "value": 20.998993248538266,
+   "unit": "%",
+   "ci95": [
+    19.499494627350167,
+    22.369681258147754
+   ],
+   "ci_method": "bootstrap over 19 windows",
+   "windows_better": 19,
+   "windows": 19,
+   "source": "data/handoff_macmini_1115/frozen_run/runs/light/eval.json"
+  },
+  {
+   "id": "light_reduction_fresh",
+   "label": "Light: skyline error reduction vs coarse ray-cast, fresh sites",
+   "value": 24.319513449189657,
+   "unit": "%",
+   "ci95": [
+    21.5454668866801,
+    26.234093600985066
+   ],
+   "ci_method": "bootstrap over 6 sites",
+   "windows_better": 6,
+   "windows": 6,
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/light.json"
+  },
+  {
+   "id": "rover_returned_ratio",
+   "label": "Rover v3.1 / naive planner, strict returned, LM2-LM5",
+   "value": 1.885850991114149,
+   "unit": "x",
+   "ci95": [
+    1.6501200960768614,
+    2.0361290322580645
+   ],
+   "ci_method": "bootstrap over 4 sites (mean of each site's 4 worlds); rough with 4 sites",
+   "diff_pts": 15.8,
+   "diff_ci95_pts": [
+    10.0,
+    21.6
+   ],
+   "sites_higher": 4,
+   "sites": 4,
+   "source": "data/handoff_macmini_1115/macbook/records/rover_v31/eval.json"
+  },
+  {
+   "id": "pilot_fuel_reduction",
+   "label": "Pilot fuel vs classic, successful landings, unseen maps, normal rates",
+   "value": 9.090909090909093,
+   "unit": "%",
+   "ci95": null,
+   "ci_method": "no CI computable: only mean fuel per map is stored, not per mission; the two successful sets differ slightly",
+   "source": "website/assets/data/benchmarks.json pilot extra_values.fuel_kg_successful_unseen_normal"
+  }
+ ],
+ "facts": {
+  "touchdown_limits": {
+   "max_vertical_speed_m_s": 2.0,
+   "max_horizontal_speed_m_s": 0.5,
+   "max_slope_deg": 12.0,
+   "source": "config/mission.yaml lander.touchdown_limits"
+  },
+  "laser_fraction_heldout_windows": {
+   "min_pct": 3.745746612548828,
+   "max_pct": 14.179229736328125,
+   "windows": 19,
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json windows[*].measured_fraction"
+  },
+  "laser_fraction_fresh_windows": {
+   "min_pct": 1.9497871398925781,
+   "max_pct": 5.919742584228516,
+   "windows": 6,
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json windows[*].measured_fraction"
+  },
+  "hazard_label_interpolated_pct": {
+   "value": 92.77764511108398,
+   "windows": 25,
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json (1 - measured_pixels / pixels, all 25 test windows)"
+  }
+ },
+ "checkpoints": [
+  {
+   "name": "hazard_unet_big",
+   "sha256": "91393b30bcb6220582b538c8613aa819bdafa9383587bdd2eaaeaeaf9c0672a0",
+   "source": "data/handoff_macmini_1115/frozen_run/runs/FROZEN.json"
+  },
+  {
+   "name": "light_skyline_big",
+   "sha256": "673b6715a0ce5dcfdd2c629a6aa7b427d2502617f1f2a74979755bdd1f6e11d3",
+   "source": "data/handoff_macmini_1115/frozen_run/runs/FROZEN.json"
+  },
+  {
+   "name": "rover_driver_mini",
+   "sha256": "b66960bcd16e7c7dfd3bdac542da246f0011d4758b2e6c08c09952bcd54d8edc",
+   "source": "data/handoff_macmini_1115/frozen_run/runs/FROZEN.json"
+  },
+  {
+   "name": "terrain_diffusion_mini",
+   "sha256": "1a8bfbad4d742d812d277854724a939176b86b157b720f5a863ed8f6efb0e643",
+   "source": "data/handoff_macmini_1115/frozen_run/runs/FROZEN.json"
+  },
+  {
+   "name": "lander_pilot",
+   "id": "d53a162df9",
+   "sha256": "2501e02beaa20263551fe77f20594551abcb39b6114dbd0470b640edfe7ed39c",
+   "source": "data/models/lander_pilot.pt (sha256 computed by this script); id from data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json"
+  },
+  {
+   "name": "hazard_unet_big (id)",
+   "id": "cd6c4383eb",
+   "source": "data/handoff_macmini_1115/macbook/records/weak_flags/hazard.json"
+  },
+  {
+   "name": "light_skyline_big (id)",
+   "id": "c1e959874c",
+   "source": "data/handoff_macmini_1115/frozen_run/runs/light/eval.json"
+  }
+ ],
+ "reproduce": {
+  "branch": "nimansh/KAN-45-rover-brain",
+  "commands": [
+   {
+    "what": "Pilot vs classic, unseen maps (normal + harsh)",
+    "cmd": "python -m worldmodel.lander.benchmark --n 256 --seeds 3 --harsh 3 --out benchmark",
+    "source": "ops/lander_mini/run_lander_job.sh step 5"
+   },
+   {
+    "what": "Site23 final exam (flown once; re-running it would no longer be a blind exam)",
+    "cmd": "python -m worldmodel.lander.benchmark --final --n 512 --seeds 2 --harsh 3 --out benchmark_site23_final",
+    "source": "ops/lander_mini/run_lander_job.sh step 6"
+   },
+   {
+    "what": "Hazard (frozen run)",
+    "cmd": "python -m worldmodel.hazard.evaluate --name hazard_unet_big --figure",
+    "source": "ops/overnight/profiles.py macmini"
+   },
+   {
+    "what": "Light (frozen run)",
+    "cmd": "python -m worldmodel.light.evaluate --name light_skyline_big",
+    "source": "ops/overnight/profiles.py macmini"
+   },
+   {
+    "what": "Terrain network (frozen run)",
+    "cmd": "python -m worldmodel.terrain.evaluate --name terrain_diffusion_mini --patches 96 --versions 6",
+    "source": "ops/overnight/profiles.py macmini"
+   },
+   {
+    "what": "Rover v1 driver (frozen run)",
+    "cmd": "python -m worldmodel.rover.evaluate --name rover_driver_mini --n 512",
+    "source": "ops/overnight/profiles.py macmini"
+   },
+   {
+    "what": "Planner",
+    "cmd": "python -m worldmodel.planner.evaluate",
+    "source": "worldmodel/planner/README.md"
+   },
+   {
+    "what": "Rover v3.1, one world",
+    "cmd": "python -m worldmodel.rover3.run eval --sites LM4 --dates 2027-03-01 --n 512 --seed 1234 --threads 1 --out /tmp/x.json",
+    "source": "data/handoff_macmini_1115/macbook/records/SUBMISSION_SUMMARY.md section 7"
+   },
+   {
+    "what": "Fresh-site and strict-rule re-scoring (addendum 4)",
+    "cmd": "records/weak_flags/scripts/{terrain/run.sh, terrain/run_fresh.sh, hazard/run.sh, rover/run_a.sh}",
+    "source": "data/handoff_macmini_1115/macbook/records/SUBMISSION_SUMMARY.md section 7"
+   },
+   {
+    "what": "Mission rehearsal at the planned Site23 cell (512 paired missions per condition)",
+    "cmd": "python -m worldmodel.lander.mission_bench rehearsal --n 512",
+    "source": "worldmodel/lander/mission_bench.py usage; --n reconstructed from missions_per_condition = 512 in runs/lander/mission_rehearsal.json (the JSON does not store the command line)"
+   },
+   {
+    "what": "This page's statistics and CSV files",
+    "cmd": "python3 website/tools/export_bench_csv.py",
+    "source": "website/tools/export_bench_csv.py"
+   }
+  ],
+  "warning": "The frozen-run evaluate commands overwrite the frozen eval.json files; run them in a fresh copy (SUBMISSION_SUMMARY section 7). Training is timed by the clock, so retraining does not reproduce numbers digit for digit."
+ }
+}

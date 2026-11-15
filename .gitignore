@@ -1,5 +1,6 @@
 # Big files travel by pen drive, never git (docs/plan/02_4090_SETUP_AND_PENDRIVE.md)
 data/
+!website/assets/data/
 runs/
 kernels/
 *.bsp
@@ -34,3 +35,4 @@ Thumbs.db
 .env
 *.key
 vizard/*.obj
+results_pc/

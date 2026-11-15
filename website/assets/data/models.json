@@ -1,0 +1,2214 @@
+{
+ "meta": {
+  "provenance": "modelled",
+  "source": "runs/hazard/eval.json, runs/light/eval.json, runs/lander/benchmark.md + benchmark.json, runs/rover/eval.json, results_pc/extracted/runs/planner/eval.json, results_pc/extracted/planner_dream/history.jsonl, runs/lander/rsi_changelog.md, data/models/*.pt (arch + parameter counts), worldmodel/*/model.py, pilot.py, policy.py; Mac mini hand-off 15 Nov 2026 (data/handoff_macmini_1115: frozen_run/RESULTS_FOR_TEAM.md, macbook/records/*, lander_mini/runs/lander/*)",
+  "frame": "n/a",
+  "units": "as stated per metric",
+  "note": "Single source for the model cards (rendered by js/modelcards.js). Every metric has its own source. Diagrams are drawn from the real model code; a file in assets/diagrams/<key>.svg or .png replaces the drawn one. Text fields accept **bold**."
+ },
+ "splits_note": "Whole LOLA 5 m tiles are split by site: train Sites 01, 04, 06, 07, 20 · validation Site 11 · test Site 23 (Malapert massif), never used for training or model selection.",
+ "models": [
+  {
+   "key": "hazard",
+   "name": "Hazard model",
+   "kind": "U-Net · 1.94 M parameters",
+   "one_line": "Turns sparse laser height samples into a per-pixel slope-hazard map.",
+   "thumb": "assets/models3d/still_hazard.jpg",
+   "thumb_alt": "Hazard map of a LOLA site rendered in 3D",
+   "image": "assets/img/hazard_compare_site23.jpg",
+   "image_alt": "Site 23: official slope hazard map, physics slope rule and U-Net prediction side by side",
+   "image_caption": "Held-out Site 23: official LOLA slope map vs slope rule vs U-Net.",
+   "image_src": "runs/hazard/compare_lola5m_site23.png",
+   "key_metric": {
+    "value": "F1 0.950",
+    "label": "on held-out Site 23 · slope rule 0.814",
+    "source": "runs/hazard/eval.json"
+   },
+   "provenance": "modelled",
+   "backup": "Slope rule: gap-fill the laser heights, mark slope ≥ 12° unsafe",
+   "how": "Input is only the pixels a laser actually measured (about 1 in 10 at 5 m). Five feature channels go through a plain 4-level U-Net that outputs a logit per pixel: the probability the pixel is steeper than the 12° limit. The label is NASA's official slope map, so this recovers the official hazard map from sparse data; it is not proof of safety (rocks and shadowed ground stay UNKNOWN).",
+   "training": [
+    {
+     "k": "Train",
+     "v": "LOLA 5 m Sites 01, 04, 06, 07, 20"
+    },
+    {
+     "k": "Validation",
+     "v": "Site 11 (picks the checkpoint)"
+    },
+    {
+     "k": "Test",
+     "v": "Site 23, never seen"
+    },
+    {
+     "k": "Checkpoint",
+     "v": "b0ac044446 · 30 epochs"
+    }
+   ],
+   "training_source": "runs/hazard/eval.json, data/models/hazard_unet.pt (info)",
+   "metrics": [
+    {
+     "label": "F1, Site 23 (test)",
+     "value": "0.950",
+     "base": "0.814",
+     "source": "runs/hazard/eval.json"
+    },
+    {
+     "label": "Missed hazards, Site 23",
+     "value": "4.7 %",
+     "base": "20.9 %",
+     "source": "runs/hazard/eval.json · missed_hazard_rate"
+    },
+    {
+     "label": "IoU, Site 23",
+     "value": "0.905",
+     "base": "0.687",
+     "source": "runs/hazard/eval.json"
+    },
+    {
+     "label": "F1, Site 11 (validation)",
+     "value": "0.962",
+     "base": "0.870",
+     "source": "runs/hazard/eval.json"
+    },
+    {
+     "label": "Parameters",
+     "value": "1,944,337",
+     "source": "data/models/hazard_unet.pt"
+    },
+    {
+     "label": "60 M overnight variant (different model), same Site 23 window",
+     "value": "0.926",
+     "base": "0.814",
+     "source": "frozen_run/RESULTS_FOR_TEAM.md §3.1 · hazard_unet_big; six flat fresh sites pooled 0.757 vs 0.292 (REPORT_hazard.md); our 1.94 M model is not tested there"
+    }
+   ],
+   "base_label": "slope rule",
+   "diagram": {
+    "title": "worldmodel/hazard/model.py · UNet(in_ch=5, base=16, depth=4)",
+    "nodes": [
+     {
+      "id": "in",
+      "x": 20,
+      "y": 20,
+      "w": 180,
+      "h": 64,
+      "t": "in",
+      "label": "Laser heights",
+      "sub": "LOLA 5 m tile,\nmeasured pixels only"
+     },
+     {
+      "id": "feat",
+      "x": 20,
+      "y": 116,
+      "w": 180,
+      "h": 128,
+      "t": "in",
+      "label": "5 input channels",
+      "sub": "slope(gap-filled) ≥ limit\nhigh-pass height\nlaser mask\nuncertainty\ndistance to laser"
+     },
+     {
+      "id": "e0",
+      "x": 240,
+      "y": 20,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 16",
+      "sub": "2× conv3·GN·ReLU"
+     },
+     {
+      "id": "e1",
+      "x": 270,
+      "y": 100,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 32",
+      "sub": "maxpool ↓2"
+     },
+     {
+      "id": "e2",
+      "x": 300,
+      "y": 180,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 64",
+      "sub": "maxpool ↓2"
+     },
+     {
+      "id": "e3",
+      "x": 330,
+      "y": 260,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 128",
+      "sub": "maxpool ↓2"
+     },
+     {
+      "id": "mid",
+      "x": 420,
+      "y": 340,
+      "w": 130,
+      "h": 50,
+      "t": "nn",
+      "label": "Bottleneck 256",
+      "sub": "1/16 resolution"
+     },
+     {
+      "id": "d3",
+      "x": 524,
+      "y": 260,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 128",
+      "sub": "up-conv ↑2 + skip"
+     },
+     {
+      "id": "d2",
+      "x": 554,
+      "y": 180,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 64",
+      "sub": "up-conv ↑2 + skip"
+     },
+     {
+      "id": "d1",
+      "x": 584,
+      "y": 100,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 32",
+      "sub": "up-conv ↑2 + skip"
+     },
+     {
+      "id": "d0",
+      "x": 614,
+      "y": 20,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 16",
+      "sub": "up-conv ↑2 + skip"
+     },
+     {
+      "id": "head",
+      "x": 770,
+      "y": 20,
+      "w": 170,
+      "h": 50,
+      "t": "nn",
+      "label": "1×1 conv → logit",
+      "sub": "sigmoid"
+     },
+     {
+      "id": "out",
+      "x": 770,
+      "y": 100,
+      "w": 170,
+      "h": 64,
+      "t": "out",
+      "label": "p(unsafe) per pixel",
+      "sub": "hazard map, 5 m"
+     },
+     {
+      "id": "p1",
+      "x": 20,
+      "y": 440,
+      "w": 200,
+      "h": 56,
+      "t": "phys",
+      "label": "Gap-fill",
+      "sub": "gaussian σ 2.5–40 px"
+     },
+     {
+      "id": "p2",
+      "x": 300,
+      "y": 440,
+      "w": 200,
+      "h": 56,
+      "t": "phys",
+      "label": "Slope ≥ 12°",
+      "sub": "touchdown limit"
+     },
+     {
+      "id": "p3",
+      "x": 580,
+      "y": 440,
+      "w": 200,
+      "h": 56,
+      "t": "phys",
+      "label": "Backup hazard map",
+      "sub": "used with no checkpoint / torch"
+     }
+    ],
+    "edges": [
+     [
+      "in",
+      "feat"
+     ],
+     [
+      "feat",
+      "e0"
+     ],
+     [
+      "e0",
+      "e1"
+     ],
+     [
+      "e1",
+      "e2"
+     ],
+     [
+      "e2",
+      "e3"
+     ],
+     [
+      "e3",
+      "mid"
+     ],
+     [
+      "mid",
+      "d3"
+     ],
+     [
+      "d3",
+      "d2"
+     ],
+     [
+      "d2",
+      "d1"
+     ],
+     [
+      "d1",
+      "d0"
+     ],
+     [
+      "e0",
+      "d0",
+      "skip"
+     ],
+     [
+      "e1",
+      "d1",
+      "skip"
+     ],
+     [
+      "e2",
+      "d2",
+      "skip"
+     ],
+     [
+      "e3",
+      "d3",
+      "skip"
+     ],
+     [
+      "d0",
+      "head"
+     ],
+     [
+      "head",
+      "out"
+     ],
+     [
+      "p1",
+      "p2"
+     ],
+     [
+      "p2",
+      "p3"
+     ]
+    ],
+    "lane": {
+     "y": 414,
+     "label": "PHYSICS BACKUP · runs first, no AI",
+     "right": true
+    }
+   },
+   "tone": "peach"
+  },
+  {
+   "key": "light",
+   "name": "Light model",
+   "kind": "Skyline CNN · 32.7 k parameters",
+   "one_line": "Corrects the terrain skyline; SPICE geometry then gives Sun and Earth per hour.",
+   "thumb": "assets/models3d/still_light.jpg",
+   "thumb_alt": "Sunlight fraction map rendered over terrain",
+   "image": "assets/img/light_site23.jpg",
+   "image_alt": "Site 23 sunlight map from the light model",
+   "image_caption": "Held-out Site 23: modelled sunlight over the terrain.",
+   "image_src": "runs/light/eval.json (Site 23, 2027-09-01, MODELLED)",
+   "key_metric": {
+    "value": "0.62°",
+    "label": "skyline error, Site 23 · ray-cast 0.65°",
+    "source": "runs/light/eval.json"
+   },
+   "provenance": "modelled",
+   "backup": "Direct ray-cast of the coarse terrain grid (exact geometry)",
+   "how": "Ray-casting the full 5 m grid is exact but slow, so the physics backup ray-casts a 4× coarser grid. The network sees the heights along every compass ray and predicts only a small correction to that coarse skyline, with circular padding so it treats all compass directions alike. Its last layer starts at zero: untrained, it equals the backup. NASA SPICE (DE440) then gives Sun and Earth directions per hour.",
+   "training": [
+    {
+     "k": "Train",
+     "v": "LOLA 5 m Sites 01, 04, 06, 07, 20"
+    },
+    {
+     "k": "Validation",
+     "v": "Site 11"
+    },
+    {
+     "k": "Test",
+     "v": "Site 23, 100 cells"
+    },
+    {
+     "k": "Truth",
+     "v": "exact ray-cast of the fine 5 m grid"
+    }
+   ],
+   "training_source": "runs/light/eval.json, data/models/light_skyline.pt (info)",
+   "metrics": [
+    {
+     "label": "Skyline MAE, Site 23 (test)",
+     "value": "0.62°",
+     "base": "0.65°",
+     "source": "runs/light/eval.json · skyline_model / skyline_baseline"
+    },
+    {
+     "label": "Sunlit-hours error, Site 23",
+     "value": "24.5 h",
+     "base": "28.5 h",
+     "source": "runs/light/eval.json · sunlit_hours_error_mean (truth ≈ 311 h)"
+    },
+    {
+     "label": "Earth-visible wrong, Site 23",
+     "value": "2.33 %",
+     "base": "2.45 %",
+     "source": "runs/light/eval.json"
+    },
+    {
+     "label": "Skyline MAE, Site 11 (validation)",
+     "value": "0.71°",
+     "base": "0.80°",
+     "source": "runs/light/eval.json"
+    },
+    {
+     "label": "Parameters",
+     "value": "32,737",
+     "source": "data/models/light_skyline.pt"
+    },
+    {
+     "label": "38 M overnight variant (different model), Site 23, 13 windows",
+     "value": "0.534°",
+     "base": "0.675°",
+     "source": "frozen_run/RESULTS_FOR_TEAM.md §3.2 · light_skyline_big, 38,279,809 params; about 227× slower than its backup; not wired to the rover (the rover uses the physics ray-cast)"
+    }
+   ],
+   "base_label": "coarse ray-cast",
+   "diagram": {
+    "title": "worldmodel/light/model.py · SkylineNet(width=24, n_down=3)",
+    "nodes": [
+     {
+      "id": "in",
+      "x": 20,
+      "y": 20,
+      "w": 170,
+      "h": 64,
+      "t": "in",
+      "label": "Coarse terrain",
+      "sub": "LOLA 5 m ÷ 4 = 20 m"
+     },
+     {
+      "id": "rays",
+      "x": 220,
+      "y": 20,
+      "w": 190,
+      "h": 64,
+      "t": "in",
+      "label": "Ray samples",
+      "sub": "2 × range × 360 azimuths\nrel. height, elev. angle"
+     },
+     {
+      "id": "c1",
+      "x": 440,
+      "y": 20,
+      "w": 150,
+      "h": 64,
+      "t": "nn",
+      "label": "CircConv 2→24",
+      "sub": "3×k, circular in azimuth"
+     },
+     {
+      "id": "c2",
+      "x": 620,
+      "y": 20,
+      "w": 150,
+      "h": 64,
+      "t": "nn",
+      "label": "3× CircConv 24",
+      "sub": "stride 2 in range"
+     },
+     {
+      "id": "col",
+      "x": 790,
+      "y": 20,
+      "w": 150,
+      "h": 64,
+      "t": "nn",
+      "label": "Collapse range",
+      "sub": "max ‖ mean → 48×360"
+     },
+     {
+      "id": "head",
+      "x": 790,
+      "y": 140,
+      "w": 150,
+      "h": 64,
+      "t": "nn",
+      "label": "Conv1d 48→24→1",
+      "sub": "zero-init → Δ°"
+     },
+     {
+      "id": "base",
+      "x": 220,
+      "y": 140,
+      "w": 190,
+      "h": 64,
+      "t": "phys",
+      "label": "Coarse ray-cast",
+      "sub": "baseline skyline (exact)"
+     },
+     {
+      "id": "sum",
+      "x": 520,
+      "y": 140,
+      "w": 190,
+      "h": 64,
+      "t": "out",
+      "label": "Skyline = base + Δ",
+      "sub": "elevation per azimuth"
+     },
+     {
+      "id": "spice",
+      "x": 220,
+      "y": 270,
+      "w": 190,
+      "h": 64,
+      "t": "phys",
+      "label": "NASA SPICE DE440",
+      "sub": "Sun + Earth direction / hour"
+     },
+     {
+      "id": "light",
+      "x": 520,
+      "y": 270,
+      "w": 190,
+      "h": 64,
+      "t": "out",
+      "label": "Light per hour",
+      "sub": "Sun fraction, Earth visible"
+     },
+     {
+      "id": "use",
+      "x": 790,
+      "y": 270,
+      "w": 150,
+      "h": 64,
+      "t": "out",
+      "label": "Planner + rover",
+      "sub": "sunlit / dark hours"
+     }
+    ],
+    "edges": [
+     [
+      "in",
+      "rays"
+     ],
+     [
+      "rays",
+      "c1"
+     ],
+     [
+      "c1",
+      "c2"
+     ],
+     [
+      "c2",
+      "col"
+     ],
+     [
+      "col",
+      "head"
+     ],
+     [
+      "head",
+      "sum"
+     ],
+     [
+      "in",
+      "base"
+     ],
+     [
+      "base",
+      "sum"
+     ],
+     [
+      "sum",
+      "light"
+     ],
+     [
+      "spice",
+      "light"
+     ],
+     [
+      "light",
+      "use"
+     ]
+    ],
+    "lane": {
+     "y": 112,
+     "x": 200,
+     "w": 230,
+     "h": 246,
+     "label": "PHYSICS (always runs)",
+     "bottom": true
+    }
+   },
+   "tone": "sand"
+  },
+  {
+   "key": "terrain",
+   "name": "Terrain model",
+   "kind": "Classical kriging (presented) · diffusion network as an experiment",
+   "one_line": "Fills height between laser tracks; a classical kriging fill beat our 50 M diffusion network.",
+   "thumb": "assets/models3d/still_elev.jpg",
+   "thumb_alt": "LOLA elevation rendered in 3D",
+   "image": "assets/img/results/terrain_diffusion_site23.webp",
+   "image_alt": "Diffusion network on held-out Site 23: real terrain, the sparse laser input, generated versions, error map and uncalibrated band",
+   "image_caption": "Diffusion network (experiment) on held-out Site 23. GENERATED — NOT OBSERVED. Its raw 90 % band held the truth only 22 % of the time.",
+   "image_src": "records/terrain_calibration/terrain_diffusion_samples_site23.png (Mac mini hand-off)",
+   "key_metric": {
+    "value": "0.94 m",
+    "label": "kriging RMSE, held-out Site 23 · diffusion network 1.83 m",
+    "source": "records/weak_flags/REPORT_terrain.md"
+   },
+   "provenance": "modelled",
+   "backup": "Classical kriging (0 learned parameters): the estimator we present",
+   "how": "About 90 % of LOLA 5 m pixels are interpolated, not measured. We hid half of the real laser heights and asked each method to predict them. Classical kriging won on every held-out and fresh site; seven of nine classical methods beat our 49.9 M-parameter diffusion network, and averaging the two was worse than kriging alone. So kriging is the terrain estimator; the network is reported as an experiment, feeds nothing downstream, and anything it makes is GENERATED — NOT OBSERVED.",
+   "training": [
+    {
+     "k": "Train",
+     "v": "Overnight run on the Mac mini, 7,671 of 8,000 steps"
+    },
+    {
+     "k": "Validation",
+     "v": "Site 11 (picked every kriging setting)"
+    },
+    {
+     "k": "Test",
+     "v": "Site 23, Site 42, six fresh sites"
+    },
+    {
+     "k": "Caveat",
+     "v": "hidden pixels sit next to shown ones; wide gaps untested"
+    }
+   ],
+   "training_source": "frozen_run/RESULTS_FOR_TEAM.md §3.3; records/weak_flags/REPORT_terrain.md; records/terrain_calibration/TERRAIN_CALIBRATION_REPORT.md",
+   "metrics": [
+    {
+     "label": "RMSE, Site 23 / Site 42 (kriging)",
+     "value": "0.94 / 1.11 m",
+     "base": "1.83 / 2.80 m",
+     "source": "records/weak_flags/REPORT_terrain.md · base = diffusion network"
+    },
+    {
+     "label": "RMSE, six fresh sites (kriging)",
+     "value": "0.97 m",
+     "base": "1.62 m",
+     "source": "records/weak_flags/REPORT_terrain.md"
+    },
+    {
+     "label": "Network raw 90 % band coverage, Site 23 / 42",
+     "value": "21.9 % / 37.3 %",
+     "source": "frozen_run/RESULTS_FOR_TEAM.md §3.3 · fails; calibrated (×8.232) 84.9 % / 96.9 % but 7.1 m / 15.5 m wide"
+    },
+    {
+     "label": "Kriging band coverage, Site 23 / 42 / fresh",
+     "value": "85.9 / 88.2 / 92.8 %",
+     "source": "records/weak_flags/REPORT_terrain.md · below 90 % on the held-out sites"
+    },
+    {
+     "label": "Parameters (network)",
+     "value": "49,943,681",
+     "source": "records/benchmarks/params.json"
+    }
+   ],
+   "diagram": {
+    "title": "worldmodel/terrain/model.py · DenoiseUNet(base=32, depth=3, T=100)",
+    "nodes": [
+     {
+      "id": "xt",
+      "x": 20,
+      "y": 20,
+      "w": 180,
+      "h": 46,
+      "t": "in",
+      "label": "Noisy height x_t",
+      "sub": ""
+     },
+     {
+      "id": "kv",
+      "x": 20,
+      "y": 80,
+      "w": 180,
+      "h": 46,
+      "t": "in",
+      "label": "Known heights",
+      "sub": "laser-measured"
+     },
+     {
+      "id": "km",
+      "x": 20,
+      "y": 140,
+      "w": 180,
+      "h": 46,
+      "t": "in",
+      "label": "Known mask",
+      "sub": ""
+     },
+     {
+      "id": "t",
+      "x": 20,
+      "y": 230,
+      "w": 180,
+      "h": 64,
+      "t": "in",
+      "label": "Step t",
+      "sub": "sin-cos 32 → MLP 128\nadded in every block"
+     },
+     {
+      "id": "e0",
+      "x": 250,
+      "y": 30,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 32",
+      "sub": "conv·GN·SiLU +t"
+     },
+     {
+      "id": "e1",
+      "x": 280,
+      "y": 110,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 64",
+      "sub": "↓2"
+     },
+     {
+      "id": "e2",
+      "x": 310,
+      "y": 190,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 128",
+      "sub": "↓2"
+     },
+     {
+      "id": "mid",
+      "x": 400,
+      "y": 270,
+      "w": 130,
+      "h": 50,
+      "t": "nn",
+      "label": "Bottleneck 256",
+      "sub": "1/8 resolution"
+     },
+     {
+      "id": "d2",
+      "x": 504,
+      "y": 190,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 128",
+      "sub": "↑2 + skip"
+     },
+     {
+      "id": "d1",
+      "x": 534,
+      "y": 110,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 64",
+      "sub": "↑2 + skip"
+     },
+     {
+      "id": "d0",
+      "x": 564,
+      "y": 30,
+      "w": 132,
+      "h": 50,
+      "t": "nn",
+      "label": "Block 32",
+      "sub": "↑2 + skip"
+     },
+     {
+      "id": "x0",
+      "x": 730,
+      "y": 30,
+      "w": 210,
+      "h": 50,
+      "t": "nn",
+      "label": "1×1 conv → x̂₀",
+      "sub": "clean-height estimate"
+     },
+     {
+      "id": "samp",
+      "x": 730,
+      "y": 110,
+      "w": 210,
+      "h": 76,
+      "t": "nn",
+      "label": "Sampler, 100 steps",
+      "sub": "measured pixels reset to\nmeasurement every step"
+     },
+     {
+      "id": "out",
+      "x": 730,
+      "y": 220,
+      "w": 210,
+      "h": 64,
+      "t": "gen",
+      "label": "Terrain versions",
+      "sub": "GENERATED — NOT OBSERVED\nspread = uncertainty"
+     },
+     {
+      "id": "p1",
+      "x": 20,
+      "y": 400,
+      "w": 230,
+      "h": 56,
+      "t": "phys",
+      "label": "Gaussian gap-fill",
+      "sub": "of the laser heights"
+     },
+     {
+      "id": "p2",
+      "x": 330,
+      "y": 400,
+      "w": 230,
+      "h": 56,
+      "t": "phys",
+      "label": "+ N(0, LOLA toterr)",
+      "sub": "LOLA's own error map"
+     },
+     {
+      "id": "p3",
+      "x": 640,
+      "y": 400,
+      "w": 230,
+      "h": 56,
+      "t": "phys",
+      "label": "Backup versions (ship)",
+      "sub": "measured pixels stay put"
+     }
+    ],
+    "edges": [
+     [
+      "xt",
+      "e0"
+     ],
+     [
+      "kv",
+      "e0"
+     ],
+     [
+      "km",
+      "e0"
+     ],
+     [
+      "t",
+      "e2",
+      "skip"
+     ],
+     [
+      "e0",
+      "e1"
+     ],
+     [
+      "e1",
+      "e2"
+     ],
+     [
+      "e2",
+      "mid"
+     ],
+     [
+      "mid",
+      "d2"
+     ],
+     [
+      "d2",
+      "d1"
+     ],
+     [
+      "d1",
+      "d0"
+     ],
+     [
+      "e0",
+      "d0",
+      "skip"
+     ],
+     [
+      "e1",
+      "d1",
+      "skip"
+     ],
+     [
+      "e2",
+      "d2",
+      "skip"
+     ],
+     [
+      "d0",
+      "x0"
+     ],
+     [
+      "x0",
+      "samp"
+     ],
+     [
+      "samp",
+      "out"
+     ],
+     [
+      "p1",
+      "p2"
+     ],
+     [
+      "p2",
+      "p3"
+     ]
+    ],
+    "lane": {
+     "y": 374,
+     "label": "PHYSICS BACKUP · ships while the model is untrained",
+     "right": true
+    }
+   },
+   "tone": "lavender",
+   "base_label": "diffusion network"
+  },
+  {
+   "key": "pilot",
+   "name": "Pilot",
+   "kind": "Transformer · 14.8 M parameters",
+   "one_line": "A learned residual on classic ZEM/ZEV guidance for the terminal descent.",
+   "thumb": "assets/img/pilot_patches.png",
+   "thumb_alt": "Camera crops the pilot sees: slope, hazard belief and relative height under the lander",
+   "image": null,
+   "image_alt": "Egocentric 32 × 32 camera crops from real LOLA tiles: slope, hazard belief and relative height",
+   "image_caption": "What the pilot sees: egocentric 32 × 32 crops of real LOLA terrain (slope, hazard belief, relative height).",
+   "image_src": "assets/img/pilot_patches.json (NASA LOLA tiles, cropped as in worldmodel/lander/terrain.py)",
+   "key_metric": {
+    "value": "98.39 %",
+    "label": "landings on 3 unseen maps · classic 97.66 %",
+    "source": "runs/lander/benchmark.md"
+   },
+   "provenance": "modelled",
+   "backup": "Classic ZEM/ZEV guidance (always computes the command)",
+   "how": "Classic ZEM/ZEV guidance computes the thrust command first. The transformer sees a 32 × 32 camera crop of the ground (cut into 64 patch tokens), the 21-number observation plus the classic command (one more token) and a learned summary token, and outputs a small correction. Its last layer starts at zero, so an untrained pilot flies exactly like the physics. A learned authority rule hands control fully back to classic guidance near the ground.",
+   "training": [
+    {
+     "k": "Train",
+     "v": "PPO on LOLA Sites 01, 04, 06, 07, 20"
+    },
+    {
+     "k": "Validation",
+     "v": "Site 11 (checkpoint pick vs classic)"
+    },
+    {
+     "k": "Benchmark",
+     "v": "Site42, Shoemaker, DM2 (unseen)"
+    },
+    {
+     "k": "Final exam",
+     "v": "Site 23, flown once: 97.95 % vs classic 97.95 % (tie)"
+    }
+   ],
+   "training_source": "data/models/lander_pilot.pt (info, d53a162df9), runs/lander/benchmark.md; lander_mini/runs/lander/benchmark_site23_final.json",
+   "metrics": [
+    {
+     "label": "Success, normal failures (2,304 paired)",
+     "value": "98.39 %",
+     "base": "97.66 %",
+     "source": "runs/lander/benchmark.md · POOLED nominal, McNemar p = 0.019",
+     "p": "0.019"
+    },
+    {
+     "label": "Success, harsh 3× failures",
+     "value": "96.92 %",
+     "base": "96.31 %",
+     "source": "runs/lander/benchmark.md · POOLED harsh, p = 0.18 (not significant)"
+    },
+    {
+     "label": "Only-pilot vs only-classic landings",
+     "value": "32 vs 15",
+     "source": "runs/lander/benchmark.json · nominal"
+    },
+    {
+     "label": "Mean miss on touchdown, normal failure rates",
+     "value": "≈4 m",
+     "source": "runs/lander/benchmark.json · miss_m"
+    },
+    {
+     "label": "Validation Site 11 at checkpoint pick",
+     "value": "96.9 %",
+     "base": "94.5 %",
+     "source": "data/models/lander_pilot.pt · info.val"
+    },
+    {
+     "label": "Site 23 final exam",
+     "value": "97.95 %",
+     "source": "lander_mini/runs/lander/benchmark_site23_final.json · 1,024 paired, normal rates, 11 vs 11, p = 1.000 (tie); harsh 96.29 % vs 96.48 %, p = 0.875",
+     "base": "97.95 %"
+    },
+    {
+     "label": "Gain by map (normal rates)",
+     "value": "Site 42 only",
+     "source": "runs/lander/benchmark.md · Site42 97.01 % vs 95.05 %, p = 0.008; Shoemaker and DM2 ties (p = 1.000)"
+    },
+    {
+     "label": "Self-improvement job (Mac mini, 15 Nov)",
+     "value": "0 of 7 accepted",
+     "source": "lander_mini/runs/lander/rsi_changelog.md · pilot unchanged (same SHA-256)"
+    },
+    {
+     "label": "Parameters",
+     "value": "14,842,567",
+     "source": "data/models/lander_pilot.pt"
+    }
+   ],
+   "base_label": "classic",
+   "diagram": {
+    "title": "What the pilot senses → what it controls (sensor suite modelled on Chandrayaan-3)",
+    "nodes": [
+     {
+      "id": "s0",
+      "x": 24,
+      "y": 38,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Inertial unit + accelerometers",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s1",
+      "x": 24,
+      "y": 78,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Ka-band radar altimeter",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s2",
+      "x": 24,
+      "y": 118,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Laser altimeter / LIDAR",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s3",
+      "x": 24,
+      "y": 158,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Laser Doppler velocimeter",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s4",
+      "x": 24,
+      "y": 198,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Position camera (map match)",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s5",
+      "x": 24,
+      "y": 238,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Hazard camera (slope, hazard)",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s6",
+      "x": 24,
+      "y": 278,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Horizontal velocity camera",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s7",
+      "x": 24,
+      "y": 318,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Star tracker + sun sensor",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s8",
+      "x": 24,
+      "y": 358,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Fuel + engine health",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s9",
+      "x": 24,
+      "y": 398,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Sun, Earth, target direction",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "s10",
+      "x": 24,
+      "y": 438,
+      "w": 262,
+      "h": 32,
+      "t": "in",
+      "label": "Touchdown + inclinometer",
+      "sub": "",
+      "small": true
+     },
+     {
+      "id": "brain",
+      "x": 360,
+      "y": 176,
+      "w": 270,
+      "h": 104,
+      "t": "nn",
+      "label": "Transformer pilot · 14.8 M",
+      "sub": "residual on classic ZEM/ZEV\n32×32 hazard camera crop\n+ 21 sensor values"
+     },
+     {
+      "id": "zem",
+      "x": 360,
+      "y": 330,
+      "w": 270,
+      "h": 64,
+      "t": "phys",
+      "label": "Classic ZEM/ZEV guidance",
+      "sub": "physics backup, always computes"
+     },
+     {
+      "id": "corr",
+      "x": 690,
+      "y": 100,
+      "w": 250,
+      "h": 64,
+      "t": "nn",
+      "label": "3 thrust corrections",
+      "sub": "x, y, z · zero at start"
+     },
+     {
+      "id": "cmd",
+      "x": 690,
+      "y": 214,
+      "w": 250,
+      "h": 70,
+      "t": "out",
+      "label": "Thrust command",
+      "sub": "clip(classic + 0.3 · authority\n· correction)"
+     },
+     {
+      "id": "eng",
+      "x": 690,
+      "y": 334,
+      "w": 250,
+      "h": 84,
+      "t": "out",
+      "label": "5 engines",
+      "sub": "4 outer + 1 centre, 800 N each\nthrottle 40–100 %\nthrust tilt ≤ 45°"
+     }
+    ],
+    "edges": [
+     [
+      "s0",
+      "brain"
+     ],
+     [
+      "s1",
+      "brain"
+     ],
+     [
+      "s2",
+      "brain"
+     ],
+     [
+      "s3",
+      "brain"
+     ],
+     [
+      "s4",
+      "brain"
+     ],
+     [
+      "s5",
+      "brain"
+     ],
+     [
+      "s6",
+      "brain"
+     ],
+     [
+      "s7",
+      "brain"
+     ],
+     [
+      "s8",
+      "brain"
+     ],
+     [
+      "s9",
+      "brain"
+     ],
+     [
+      "s10",
+      "brain"
+     ],
+     [
+      "brain",
+      "corr"
+     ],
+     [
+      "corr",
+      "cmd"
+     ],
+     [
+      "zem",
+      "cmd"
+     ],
+     [
+      "cmd",
+      "eng"
+     ]
+    ],
+    "lane": {
+     "y": 8,
+     "x": 8,
+     "w": 296,
+     "h": 478,
+     "label": "MODELLED INPUTS",
+     "right": true
+    }
+   },
+   "tone": "sage",
+   "extra": [
+    {
+     "title": "Inside the network",
+     "diagram": {
+      "title": "Inside the network · worldmodel/lander/pilot.py · PilotFormer(d=384, layers=8, heads=8)",
+      "nodes": [
+       {
+        "id": "img",
+        "x": 20,
+        "y": 20,
+        "w": 200,
+        "h": 72,
+        "t": "in",
+        "label": "Camera crop 3×32×32",
+        "sub": "slope, hazard belief,\nrelative height"
+       },
+       {
+        "id": "st",
+        "x": 20,
+        "y": 130,
+        "w": 200,
+        "h": 72,
+        "t": "in",
+        "label": "State, 24 numbers",
+        "sub": "21 obs (13 sensors + 8-dir\nhazard ring) + classic cmd"
+       },
+       {
+        "id": "stem",
+        "x": 260,
+        "y": 20,
+        "w": 200,
+        "h": 86,
+        "t": "nn",
+        "label": "Conv stem",
+        "sub": "3→48→96 (↓2)→384 (2×2, ↓2)\n= 8×8 = 64 patch tokens\n+ sin-cos position"
+       },
+       {
+        "id": "smlp",
+        "x": 260,
+        "y": 130,
+        "w": 200,
+        "h": 50,
+        "t": "nn",
+        "label": "State MLP 24→384→384",
+        "sub": "1 token"
+       },
+       {
+        "id": "cls",
+        "x": 260,
+        "y": 200,
+        "w": 200,
+        "h": 40,
+        "t": "nn",
+        "label": "CLS token (learned)",
+        "sub": ""
+       },
+       {
+        "id": "seq",
+        "x": 500,
+        "y": 20,
+        "w": 170,
+        "h": 56,
+        "t": "nn",
+        "label": "66 tokens × 384",
+        "sub": "CLS + state + 64 patches"
+       },
+       {
+        "id": "tf",
+        "x": 500,
+        "y": 104,
+        "w": 170,
+        "h": 84,
+        "t": "nn",
+        "label": "Transformer × 8",
+        "sub": "8 heads, d 384\nself-attention + MLP"
+       },
+       {
+        "id": "v",
+        "x": 500,
+        "y": 216,
+        "w": 170,
+        "h": 56,
+        "t": "nn",
+        "label": "Value head",
+        "sub": "384→384→1 (PPO only)"
+       },
+       {
+        "id": "mu",
+        "x": 710,
+        "y": 104,
+        "w": 230,
+        "h": 70,
+        "t": "nn",
+        "label": "Residual head",
+        "sub": "CLS → 384→384→3, tanh\nlast layer zero-init"
+       },
+       {
+        "id": "auth",
+        "x": 500,
+        "y": 404,
+        "w": 230,
+        "h": 64,
+        "t": "nn",
+        "label": "Authority rule",
+        "sub": "fades to classic below\na learned altitude"
+       },
+       {
+        "id": "zem",
+        "x": 20,
+        "y": 310,
+        "w": 200,
+        "h": 64,
+        "t": "phys",
+        "label": "Classic ZEM/ZEV",
+        "sub": "thrust command (backup)"
+       },
+       {
+        "id": "act",
+        "x": 710,
+        "y": 300,
+        "w": 230,
+        "h": 82,
+        "t": "out",
+        "label": "Thrust command",
+        "sub": "clip(classic + 0.3 ·\nauthority · residual, −1, 1)"
+       }
+      ],
+      "edges": [
+       [
+        "img",
+        "stem"
+       ],
+       [
+        "st",
+        "smlp"
+       ],
+       [
+        "stem",
+        "seq"
+       ],
+       [
+        "smlp",
+        "seq"
+       ],
+       [
+        "cls",
+        "seq"
+       ],
+       [
+        "seq",
+        "tf"
+       ],
+       [
+        "tf",
+        "mu"
+       ],
+       [
+        "tf",
+        "v"
+       ],
+       [
+        "mu",
+        "act"
+       ],
+       [
+        "auth",
+        "act"
+       ],
+       [
+        "st",
+        "zem"
+       ],
+       [
+        "zem",
+        "act"
+       ]
+      ],
+      "lane": {
+       "y": 290,
+       "x": 10,
+       "w": 230,
+       "h": 116,
+       "label": "PHYSICS · runs first",
+       "bottom": true
+      }
+     }
+    },
+    {
+     "title": "Lander state machine",
+     "img": "assets/diagrams_incoming/lander_state_machine.png",
+     "alt": "Lander state machine diagram"
+    }
+   ],
+   "table": {
+    "title": "Crashes on validation Site 11, 1,024 paired missions per condition",
+    "head": [
+     "",
+     "classic",
+     "pilot"
+    ],
+    "rows": [
+     [
+      "Normal failure rates",
+      "51",
+      "27"
+     ],
+     [
+      "Harsh (3× failures)",
+      "58",
+      "50"
+     ]
+    ],
+    "source": "runs/lander/failure_analysis.json (summary + rows)",
+    "note": "Pilot crashes by type (normal + harsh, 77): hard horizontal 37 · hard vertical 18 · steep slope 14 · timeout 5 · hazard cell 2 · out of bounds 1."
+   }
+  },
+  {
+   "key": "planner",
+   "name": "Planner",
+   "kind": "Set transformer · 646 k parameters",
+   "one_line": "Ranks landing cell × date by simulated chance of a full mission.",
+   "thumb": "assets/img/models/planner_site23.jpg",
+   "thumb_alt": "Bar chart: Navigator ranking vs planner on held-out Site 23",
+   "image": "assets/img/models/planner_site23.jpg",
+   "image_alt": "Bar charts of chosen-site success probability and rank correlation on Site 23 for the Navigator ranking, the planner, a logistic baseline and random",
+   "image_caption": "Held-out Site 23: the hand-set Navigator ranking picks better sites than the learned planner.",
+   "image_src": "results_pc/extracted/runs/planner/eval.json · test",
+   "key_metric": {
+    "value": "Lost to backup",
+    "label": "Navigator ranking ships · rank corr. 0.51 vs 0.36",
+    "source": "results_pc/extracted/runs/planner/eval.json"
+   },
+   "provenance": "modelled",
+   "backup": "Navigator ranking: hand-set equal weights, no tuning (this is what ships)",
+   "how": "Each candidate (landing cell × landing hour) becomes a token of 13 features: sunlight and darkness ahead, Earth link, hazard, slope, clear radius and distance to shadowed-crater targets. A small transformer lets candidates of one world compare with each other, then a head gives a probability of a full mission. Labels are simulated: the lander twin flies to the cell, the rover drives from it. On held-out Site 23 it did not beat the hand-set Navigator ranking, so the Navigator ranking ships.",
+   "training": [
+    {
+     "k": "Train",
+     "v": "Sites 01, 06, 07, 20 · 7 dates each"
+    },
+    {
+     "k": "Validation",
+     "v": "Site 11 · 7 dates"
+    },
+    {
+     "k": "Test",
+     "v": "Site 23 · 7 dates, 672 candidates"
+    },
+    {
+     "k": "Labels",
+     "v": "simulated p(land) × p(rover reached ice and returned)"
+    }
+   ],
+   "training_source": "results_pc/extracted/runs/planner/eval.json, data/models/planner_set.pt (info)",
+   "metrics": [
+    {
+     "label": "p(mission) of the chosen site, Site 23",
+     "value": "0.122",
+     "base": "0.128",
+     "source": "results_pc/extracted/runs/planner/eval.json · test.set / navigator_backup"
+    },
+    {
+     "label": "Rank correlation with simulated truth",
+     "value": "0.36",
+     "base": "0.51",
+     "source": "results_pc/extracted/runs/planner/eval.json"
+    },
+    {
+     "label": "Brier score (lower is better)",
+     "value": "0.0145",
+     "base": "0.0125*",
+     "source": "results_pc/extracted/runs/planner/eval.json · *predicting the constant mean"
+    },
+    {
+     "label": "Logistic baseline, chosen-site p(mission)",
+     "value": "0.152",
+     "source": "results_pc/extracted/runs/planner/eval.json · test.logistic"
+    },
+    {
+     "label": "Parameters",
+     "value": "646,401",
+     "source": "data/models/planner_set.pt"
+    }
+   ],
+   "base_label": "Navigator",
+   "diagram": {
+    "title": "worldmodel/planner/model.py · PlannerSetNet(d=128, layers=3, heads=4, nf=13)",
+    "nodes": [
+     {
+      "id": "cand",
+      "x": 20,
+      "y": 20,
+      "w": 200,
+      "h": 64,
+      "t": "in",
+      "label": "Candidates",
+      "sub": "landing cell × landing hour\n(one world = site + date)"
+     },
+     {
+      "id": "feat",
+      "x": 20,
+      "y": 110,
+      "w": 200,
+      "h": 150,
+      "t": "in",
+      "label": "13 features each",
+      "sub": "sun mean, sun 1st day\nlongest dark, hours to night\nEarth mean, longest blackout\nhazard 150 m, slope, clear r\nnearest target, targets 1 km\nPSR frac, start hour"
+     },
+     {
+      "id": "inp",
+      "x": 270,
+      "y": 20,
+      "w": 190,
+      "h": 64,
+      "t": "nn",
+      "label": "Normalise + MLP",
+      "sub": "13 → 128 → 128\none token per candidate"
+     },
+     {
+      "id": "tf",
+      "x": 270,
+      "y": 110,
+      "w": 190,
+      "h": 80,
+      "t": "nn",
+      "label": "Transformer × 3",
+      "sub": "4 heads, d 128\ncandidates attend\nto each other"
+     },
+     {
+      "id": "head",
+      "x": 510,
+      "y": 110,
+      "w": 200,
+      "h": 80,
+      "t": "nn",
+      "label": "Head 256 → 128 → 1",
+      "sub": "[token, context − mean]"
+     },
+     {
+      "id": "p",
+      "x": 750,
+      "y": 110,
+      "w": 190,
+      "h": 80,
+      "t": "out",
+      "label": "p(mission)",
+      "sub": "per candidate\n(lost on Site 23)"
+     },
+     {
+      "id": "lab",
+      "x": 510,
+      "y": 20,
+      "w": 430,
+      "h": 64,
+      "t": "phys",
+      "label": "Labels = simulation",
+      "sub": "lander twin flies to the cell · rover env drives from it"
+     },
+     {
+      "id": "nav",
+      "x": 270,
+      "y": 330,
+      "w": 220,
+      "h": 64,
+      "t": "phys",
+      "label": "Navigator score",
+      "sub": "equal hand-set weights"
+     },
+     {
+      "id": "rank",
+      "x": 560,
+      "y": 330,
+      "w": 220,
+      "h": 64,
+      "t": "out",
+      "label": "Ranking that ships",
+      "sub": "go / wait + plan file"
+     }
+    ],
+    "edges": [
+     [
+      "cand",
+      "feat"
+     ],
+     [
+      "feat",
+      "inp"
+     ],
+     [
+      "inp",
+      "tf"
+     ],
+     [
+      "tf",
+      "head"
+     ],
+     [
+      "head",
+      "p"
+     ],
+     [
+      "lab",
+      "head",
+      "skip"
+     ],
+     [
+      "feat",
+      "nav"
+     ],
+     [
+      "nav",
+      "rank"
+     ]
+    ],
+    "lane": {
+     "y": 304,
+     "label": "PHYSICS BACKUP · the Navigator ranking (ships)",
+     "right": true
+    }
+   },
+   "tone": "lavender"
+  },
+  {
+   "key": "rover",
+   "name": "Rover brain",
+   "kind": "Scripted planner v3.1 · 0 learned parameters (two learned drivers failed)",
+   "one_line": "Drives to a shadow-edge target and back, or shelters on lit ground when the lander will be dark too long.",
+   "thumb": "assets/img/models/rover_site23_tracks.jpg",
+   "thumb_alt": "Map of rule-driver rover tracks around the lander on Site 23",
+   "image": "assets/img/models/rover_site23_tracks.jpg",
+   "image_alt": "Simulated rule-driver rover tracks from the lander toward shadowed-crater edge targets on Site 23",
+   "image_caption": "Rule-driver tracks on Site 23, 2027-03-01 (simulated). Red × = shadowed-crater edge, not confirmed ice.",
+   "image_src": "runs/ghosts/rover_lola5m_site23_2027-03-01.json",
+   "key_metric": {
+    "value": "33.7 % / 53.9 %",
+    "label": "returned / lost, strict rule, 4 untouched sites · naive planner 17.9 % / 81.8 %",
+    "source": "records/rover_v31/tables.md table A"
+   },
+   "provenance": "modelled",
+   "backup": "Simple rule planners (naive / cautious / cautious + wait for light)",
+   "how": "Two learned drivers were trained and both failed: a PPO vision transformer (11.4 M parameters) collapsed to stopping and returned 0.0 % of rovers, and the same network trained by imitation memorised its training routes and returned 1.2 %, against 9.3 % for the naive planner. The brain we present, v3.1, is scripted: it tries dozens of whole-trip plans in an exact copy of the simulator, adds a stay-alive search (drive to ground that stays lit and wait) and a gated self-learning layer. Under the strict rule (any flat battery = lost rover) it still loses more than half its rovers; most of those losses are probably unavoidable for a 100 Wh rover with random landing hours.",
+   "training": [
+    {
+     "k": "Learned drivers",
+     "v": "v1 PPO and v2 imitation: both FAILED"
+    },
+    {
+     "k": "Presented",
+     "v": "v3.1 scripted, 0 parameters"
+    },
+    {
+     "k": "Test",
+     "v": "LM2–LM5, 16 worlds, 8,192 rovers per method"
+    },
+    {
+     "k": "Note",
+     "v": "PSR edge = dark and cold, not confirmed ice"
+    }
+   ],
+   "training_source": "frozen_run/RESULTS_FOR_TEAM.md §3.4; records/ADDENDUM_AFTER_FREEZE.md; records/rover_v31/ROVER_V31_REPORT.md",
+   "metrics": [
+    {
+     "label": "v3.1 returned / lost (strict), LM2–LM5",
+     "value": "33.7 % / 53.9 %",
+     "base": "17.9 % / 81.8 %",
+     "source": "records/rover_v31/tables.md table A · base = naive planner"
+    },
+    {
+     "label": "v3.1 minus v3, lost (strict)",
+     "value": "−7.1 pts",
+     "source": "records/rover_v31/ROVER_V31_REPORT.md · 95 % CI [−13.8, −3.5], lower at 4 of 4 sites"
+    },
+    {
+     "label": "Saved rovers that completed a trip",
+     "value": "164 of 583",
+     "source": "records/rover_v31/ROVER_V31_REPORT.md · the other 419 only stayed alive on lit ground"
+    },
+    {
+     "label": "Learned driver v1 (PPO), returned",
+     "value": "0.0 %",
+     "base": "9.3 %",
+     "source": "frozen_run/RESULTS_FOR_TEAM.md §3.4 · FAILED"
+    },
+    {
+     "label": "Learned driver v2 (imitation), returned",
+     "value": "1.2 %",
+     "base": "9.3 %",
+     "source": "records/ADDENDUM_AFTER_FREEZE.md §2.4 · FAILED"
+    },
+    {
+     "label": "Weakness: forecast 12 h late, lost (lenient)",
+     "value": "32.2 %",
+     "base": "19.9 %",
+     "source": "records/rover_v31/ROVER_V31_REPORT.md · worse than v3 before learning"
+    }
+   ],
+   "diagram": {
+    "title": "worldmodel/rover/policy.py · DriverFormer(d=512, layers=10, heads=8, crop=64) on worldmodel/rover/env.py",
+    "nodes": [
+     {
+      "id": "map",
+      "x": 20,
+      "y": 30,
+      "w": 210,
+      "h": 92,
+      "t": "in",
+      "label": "Map 6 × 64 × 64",
+      "sub": "rel. height, slope / limit\nhazard, shadowed crater (PSR)\nsunlight, Earth in view"
+     },
+     {
+      "id": "vec",
+      "x": 20,
+      "y": 146,
+      "w": 210,
+      "h": 92,
+      "t": "in",
+      "label": "Vector, 18 numbers",
+      "sub": "battery, Sun + Earth here\nSun forecast +1 … 48 h\ngoal, lander, phase, link"
+     },
+     {
+      "id": "stem",
+      "x": 266,
+      "y": 30,
+      "w": 204,
+      "h": 76,
+      "t": "nn",
+      "label": "Conv stem",
+      "sub": "6→64 (↓2) → 128 (↓2)\n→ 512 (2×2, ↓2) = 64 tokens"
+     },
+     {
+      "id": "vmlp",
+      "x": 266,
+      "y": 124,
+      "w": 204,
+      "h": 50,
+      "t": "nn",
+      "label": "MLP 18 → 512 → 512",
+      "sub": "1 token"
+     },
+     {
+      "id": "cls",
+      "x": 266,
+      "y": 192,
+      "w": 204,
+      "h": 42,
+      "t": "nn",
+      "label": "CLS token (learned)",
+      "sub": ""
+     },
+     {
+      "id": "tf",
+      "x": 506,
+      "y": 62,
+      "w": 180,
+      "h": 104,
+      "t": "nn",
+      "label": "Transformer × 10",
+      "sub": "8 heads, d 512\n66 tokens\ntrained, FAILED (v1 PPO, v2 imitation)"
+     },
+     {
+      "id": "pi",
+      "x": 722,
+      "y": 30,
+      "w": 218,
+      "h": 86,
+      "t": "out",
+      "label": "Drive command (1 of 9)",
+      "sub": "8 compass headings\nor stop / charge\n1 step = 1 hour"
+     },
+     {
+      "id": "v",
+      "x": 506,
+      "y": 196,
+      "w": 180,
+      "h": 46,
+      "t": "nn",
+      "label": "Value head",
+      "sub": "PPO training only"
+     },
+     {
+      "id": "env",
+      "x": 722,
+      "y": 150,
+      "w": 218,
+      "h": 76,
+      "t": "phys",
+      "label": "Rover environment",
+      "sub": "moves on LOLA terrain\nbattery drains / charges\nSun + Earth per hour (SPICE)"
+     },
+     {
+      "id": "cost",
+      "x": 20,
+      "y": 318,
+      "w": 200,
+      "h": 64,
+      "t": "phys",
+      "label": "Cost grid",
+      "sub": "slope + hazard map"
+     },
+     {
+      "id": "ctg",
+      "x": 256,
+      "y": 318,
+      "w": 210,
+      "h": 64,
+      "t": "phys",
+      "label": "Cost-to-go field",
+      "sub": "shortest path to goal / lander"
+     },
+     {
+      "id": "rule",
+      "x": 502,
+      "y": 318,
+      "w": 200,
+      "h": 78,
+      "t": "phys",
+      "label": "Rule drivers",
+      "sub": "naive · cautious (turn back\non battery) · wait for light"
+     },
+     {
+      "id": "cmd2",
+      "x": 740,
+      "y": 318,
+      "w": 200,
+      "h": 64,
+      "t": "out",
+      "label": "Same 9 drive commands",
+      "sub": "what drives the rover today"
+     }
+    ],
+    "edges": [
+     [
+      "map",
+      "stem"
+     ],
+     [
+      "vec",
+      "vmlp"
+     ],
+     [
+      "stem",
+      "tf"
+     ],
+     [
+      "vmlp",
+      "tf"
+     ],
+     [
+      "cls",
+      "tf"
+     ],
+     [
+      "tf",
+      "pi"
+     ],
+     [
+      "tf",
+      "v"
+     ],
+     [
+      "pi",
+      "env"
+     ],
+     [
+      "cost",
+      "ctg"
+     ],
+     [
+      "ctg",
+      "rule"
+     ],
+     [
+      "rule",
+      "cmd2"
+     ]
+    ],
+    "lane": {
+     "y": 290,
+     "label": "PHYSICS BACKUP · runs first, drives the rover today",
+     "right": true
+    }
+   },
+   "tone": "peach",
+   "base_label": "naive planner"
+  },
+  {
+   "key": "rsi",
+   "name": "Dream-RSI",
+   "kind": "Offline self-improvement loop",
+   "one_line": "Practise past failures; a frozen exam decides if the new version replaces the old.",
+   "thumb": "assets/img/models/rsi_planner_history.jpg",
+   "thumb_alt": "Chart of planner Dream-RSI generations: four rejected, one accepted",
+   "image": null,
+   "image_alt": "Validation Brier score before and after each planner Dream-RSI generation, with one accepted generation",
+   "image_caption": "Planner Dream-RSI on the 4090: 5 generations, 1 accepted (validation Brier 0.0154 → 0.0135), 4 rolled back.",
+   "image_src": "results_pc/extracted/planner_dream/history.jsonl",
+   "key_metric": {
+    "value": "1 of 5 accepted",
+    "label": "planner generations · the gate rolls back the rest",
+    "source": "results_pc/extracted/planner_dream/history.jsonl"
+   },
+   "provenance": "modelled",
+   "backup": "Keep the current version: nothing changes unless the frozen exam improves",
+   "how": "After training stops, a model keeps improving offline. The planner imagines missions on training terrain and picks the ones its two predictors disagree on most; the pilot finds where it fails (engine-out, navigation drift, blind camera) and practises those more often. Both play the cases out in the physics simulators, retrain from the current weights and sit a frozen exam on Site 11. The new version replaces the old only if it scores better; for the pilot it must also lose zero missions. Test sites are never used.",
+   "training": [
+    {
+     "k": "Dreams on",
+     "v": "training sites only (01, 04, 06, 07, 20)"
+    },
+    {
+     "k": "Frozen exam",
+     "v": "Site 11, fixed mission seeds"
+    },
+    {
+     "k": "Pilot gate",
+     "v": "zero lost missions + strictly higher success"
+    },
+    {
+     "k": "Never",
+     "v": "Site 23 or the unseen benchmark maps"
+    }
+   ],
+   "training_source": "worldmodel/planner/README.md, worldmodel/lander/README.md, runs/lander/rsi_changelog.md",
+   "metrics": [
+    {
+     "label": "Planner generations accepted",
+     "value": "1 of 5",
+     "source": "results_pc/extracted/planner_dream/history.jsonl (1 world skipped: no safe cells)"
+    },
+    {
+     "label": "Planner validation Brier, accepted gen. 5",
+     "value": "0.0135",
+     "base": "0.0154",
+     "source": "results_pc/extracted/planner_dream/history.jsonl"
+    },
+    {
+     "label": "Pilot targeted RSI: gate baseline, Site 11",
+     "value": "96.68 %",
+     "base": "94.24 %",
+     "source": "runs/lander/rsi_changelog.md (current pilot vs classic, 1,024 paired)",
+     "base_label": "classic"
+    },
+    {
+     "label": "Pilot targeted RSI rounds logged",
+     "value": "0 of 7 accepted",
+     "source": "lander_mini/runs/lander/rsi_changelog.md · 4 authority rules + 3 training rounds (4–5 updates each), all rejected by the zero-loss gate"
+    },
+    {
+     "label": "First pilot dream (Mac, tiny pilot)",
+     "value": "rejected",
+     "source": "worldmodel/lander/README.md: exam 0.953 → 0.938, gate worked"
+    },
+    {
+     "label": "Rover v3.1 self-learning rounds accepted",
+     "value": "9 of 36",
+     "source": "records/rover_v31/ROVER_V31_REPORT.md · helps only for hand-written proposal types (map, solar, forecast shift, battery)"
+    },
+    {
+     "label": "Rover loop on failed v2 driver: returned",
+     "value": "0.0 %",
+     "source": "records/ADDENDUM_AFTER_FREEZE.md · key-free loop in the style of Dream-RSI; 5 of 38 rounds accepted, it did not learn the mission"
+    }
+   ],
+   "base_label": "before",
+   "diagram": {
+    "title": "worldmodel/planner/dream.py · worldmodel/lander/dream.py + rsi_targeted.py",
+    "nodes": [
+     {
+      "id": "cur",
+      "x": 20,
+      "y": 30,
+      "w": 220,
+      "h": 64,
+      "t": "nn",
+      "label": "Current version",
+      "sub": "planner or pilot"
+     },
+     {
+      "id": "find",
+      "x": 250,
+      "y": 30,
+      "w": 220,
+      "h": 80,
+      "t": "nn",
+      "label": "Find weak spots",
+      "sub": "planner: predictors disagree\npilot: failure profile"
+     },
+     {
+      "id": "sim",
+      "x": 510,
+      "y": 30,
+      "w": 210,
+      "h": 80,
+      "t": "phys",
+      "label": "Simulate",
+      "sub": "lander twin + rover env\nLOLA terrain, SPICE light"
+     },
+     {
+      "id": "train",
+      "x": 760,
+      "y": 30,
+      "w": 180,
+      "h": 80,
+      "t": "nn",
+      "label": "Warm-start retrain",
+      "sub": "from current weights"
+     },
+     {
+      "id": "exam",
+      "x": 760,
+      "y": 170,
+      "w": 180,
+      "h": 80,
+      "t": "phys",
+      "label": "Frozen exam",
+      "sub": "Site 11, fixed seeds"
+     },
+     {
+      "id": "gate",
+      "x": 510,
+      "y": 170,
+      "w": 210,
+      "h": 80,
+      "t": "gate",
+      "label": "Better?",
+      "sub": "pilot: zero lost missions\n+ higher success"
+     },
+     {
+      "id": "yes",
+      "x": 20,
+      "y": 170,
+      "w": 220,
+      "h": 64,
+      "t": "out",
+      "label": "Yes: replace",
+      "sub": "old kept as gen k"
+     },
+     {
+      "id": "no",
+      "x": 510,
+      "y": 300,
+      "w": 210,
+      "h": 64,
+      "t": "phys",
+      "label": "No: roll back",
+      "sub": "current version stays"
+     }
+    ],
+    "edges": [
+     [
+      "cur",
+      "find"
+     ],
+     [
+      "find",
+      "sim"
+     ],
+     [
+      "sim",
+      "train"
+     ],
+     [
+      "train",
+      "exam"
+     ],
+     [
+      "exam",
+      "gate"
+     ],
+     [
+      "gate",
+      "yes"
+     ],
+     [
+      "gate",
+      "no"
+     ],
+     [
+      "yes",
+      "cur"
+     ]
+    ]
+   },
+   "tone": "sage",
+   "table": {
+    "title": "Planner Dream-RSI log (frozen Site 11 exam, validation Brier, lower is better)",
+    "head": [
+     "gen",
+     "dreamt world",
+     "before",
+     "after",
+     "decision"
+    ],
+    "rows": [
+     [
+      "1",
+      "Site 04, 2027-01-01",
+      "",
+      "",
+      "skipped: no safe cells"
+     ],
+     [
+      "2",
+      "Site 06, 2027-07-15",
+      "0.0154",
+      "0.0171",
+      "rejected"
+     ],
+     [
+      "3",
+      "Site 01, 2027-07-15",
+      "0.0154",
+      "0.0179",
+      "rejected"
+     ],
+     [
+      "4",
+      "Site 01, 2027-03-01",
+      "0.0154",
+      "0.0160",
+      "rejected"
+     ],
+     [
+      "5",
+      "Site 01, 2027-06-01",
+      "0.0154",
+      "0.0135",
+      "accepted"
+     ],
+     [
+      "6",
+      "Site 06, 2027-07-15",
+      "0.0135",
+      "0.0163",
+      "rejected"
+     ]
+    ],
+    "source": "results_pc/extracted/planner_dream/history.jsonl · pilot: runs/lander/rsi_changelog.md (gate set, no rounds logged yet)"
+   }
+  },
+  {
+   "key": "swarm",
+   "name": "Swarm",
+   "tone": "sand",
+   "kind": "Evolution swarm · designed, not yet run",
+   "one_line": "An evolving 10,000-mission swarm: code exists, no run yet.",
+   "thumb": "assets/diagrams/swarm.png",
+   "thumb_alt": "Swarm and Dream-RSI diagram",
+   "image": null,
+   "key_metric": {
+    "value": "Not run",
+    "label": "next on the roadmap",
+    "source": "no generation, fitness or champion files exist in the Mac mini hand-off"
+   },
+   "provenance": "modelled",
+   "backup": "",
+   "how": "The swarm code (TensorNEAT, population 10,000, 300 generations) is written and tested, but no swarm run has happened yet, so there are no results. The landing pilot was trained by PPO, not by the swarm.",
+   "training": [],
+   "training_source": "data/handoff_macmini_1115/REVIEW.md §3",
+   "metrics": [],
+   "diagram": null,
+   "slot": true
+  }
+ ]
+}

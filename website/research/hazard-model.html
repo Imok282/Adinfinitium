@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The hazard model · Research · Adinfinitium</title>
+<meta name="description" content="Our 1.94 M-parameter U-Net maps lunar slope hazards from sparse NASA laser heights: F1 0.950 against 0.814 for the slope rule on unseen Site 23. A 60 M overnight variant shows the weak spot this kind of model has on flat ground.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/company.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/hazard-model.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/hazard-model.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Hazard model</p>
+    <h1>Seeing slopes from <span class="serif">sparse laser returns.</span></h1>
+    <p class="lede">A small U-Net recovers NASA's official slope-hazard map from the roughly one pixel in ten that a laser actually measured. On a site it never saw, it beats the physics rule it backs up. A much larger 60 M variant trained overnight shows where this kind of model breaks: flat ground.</p>
+  </header>
+  <div class="post-body">
+    <h2>The problem</h2>
+    <p>Near the lunar south pole, NASA's LOLA laser tracks cover the 5 m height grid only sparsely; most pixels are NASA's interpolation. A lander and a rover both need to know which ground is steeper than the 12° limit.</p>
+    <p>The physics backup has no learned parameters. It hides the interpolated heights, gap-fills the measured ones and marks every pixel with a slope of 12° or more as unsafe. Our model gets the same sparse input and tries to do the same job better.</p>
+
+    <h2>Our model</h2>
+    <p>Our hazard model is a plain 4-level U-Net with 1,944,337 parameters. Five input channels go in: the gap-filled slope relative to the limit, high-pass height, the laser mask, NASA's error map and the distance to the nearest laser return. One value per pixel comes out: the probability that the pixel is steeper than 12°. The first channel is the backup's own slope, so the network starts from what the backup knows.</p>
+    <p>It was trained on LOLA 5 m Sites 01, 04, 06, 07 and 20 (checkpoint b0ac044446, 30 epochs). Site 11 picked the checkpoint. Site 23 was used for neither training nor selection.</p>
+
+    <h2>Results on unseen Site 23</h2>
+    <p>F1 combines how many unsafe pixels were found with how many alarms were right; 1.0 is perfect. "Missed" is the share of unsafe pixels the method called safe. The test is the Site 23 centre window (1024 × 1024 pixels).</p>
+    <div class="post-stats">
+      <div class="res-card tz sage"><b>0.950</b><span>F1 on Site 23 · slope rule 0.814</span></div>
+      <div class="res-card tz peach"><b>4.7%</b><span>hazards missed · slope rule 20.9%</span></div>
+      <div class="res-card tz lavender"><b>0.905</b><span>IoU on Site 23 · slope rule 0.687</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Our model (1.94 M)</th><th>U-Net</th><th>Slope rule</th></tr></thead>
+        <tbody>
+          <tr><td>Site 23 centre window, F1 (test)</td><td>0.950</td><td>0.814</td></tr>
+          <tr><td>Site 23, precision</td><td>0.948</td><td>0.839</td></tr>
+          <tr><td>Site 23, hazards missed</td><td>4.7%</td><td>20.9%</td></tr>
+          <tr><td>Site 23, IoU</td><td>0.905</td><td>0.687</td></tr>
+          <tr><td>Site 11, F1 (validation)</td><td>0.962</td><td>0.870</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: runs/hazard/eval.json (region lola5m_site23, role TEST; checkpoint b0ac044446). Site 11 chose the checkpoint, so its row is a validation number, not evidence.</p>
+    <figure class="wide">
+      <img src="assets/img/hazard_compare_site23.jpg" width="1600" height="432" loading="lazy" alt="Site 23: official LOLA slope hazard map, the physics slope rule and our U-Net prediction side by side.">
+      <figcaption>Our model on held-out Site 23: official LOLA slope map, slope rule and U-Net, side by side. Source: runs/hazard/compare_lola5m_site23.png.</figcaption>
+    </figure>
+    <figure class="wide f3d" id="f3d-drape" data-f3d="hazard:drape">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="The scored Site 23 window in 3D with a hazard map draped on the terrain. Switch between our U-Net, the slope rule and the official label; missed hazards are yellow.">
+        <img class="f3d-still" src="assets/fig3d/hazard/still_drape.jpg" width="1280" height="720" loading="lazy" alt="Site 23 terrain in 3D with our U-Net hazard map draped on it: red unsafe slopes, green safe ground, a few yellow missed hazards.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption>The same scored window (5.12 km, 1024 × 1024 px at 5 m; heights 1.5× exaggerated). Red = steeper than 12°, green = safe, yellow = hazards the map called safe. The miss rates are recomputed on all 1,048,576 pixels and equal runs/hazard/eval.json. Terrain observed (NASA LOLA); the U-Net and slope-rule maps are modelled. Source: assets/fig3d/hazard/ (tools/export_fig3d_hazard.py).</figcaption>
+    </figure>
+    <p>Our model has been scored on one held-out window. It has not been tested on Site 42 or on the fresh sites below.</p>
+
+    <h3>What the model sees and says</h3>
+    <p>Four 1.28 km windows, chosen automatically by how much of the ground is truly unsafe (not by model score): three on held-out Site 23 and one hard case on Site 42. Each row is what the U-Net was given, what it answered, what the slope rule answered and where each was wrong. The scores are for that window only.</p>
+    <div class="ex wide" id="ex-hazard">Loading the hazard examples…</div>
+    <figure class="wide">
+      <img src="assets/img/results/hazard_compare_site11.webp" width="1600" height="432" loading="lazy" alt="Site 11 validation window, four panels: height with laser pixels, the official slope label, the slope-rule backup and the model's map. Red is unsafe, green is safe.">
+      <figcaption>Site 11, the validation map that picked the checkpoint (not a test): same four panels. Source: runs/hazard/compare_lola5m_site11.png (frozen overnight run).</figcaption>
+    </figure>
+
+    <h2>A 60 M variant from the overnight run</h2>
+    <p>The numbers in this section are for a different, much larger network, not for our model above.</p>
+    <p><code>hazard_unet_big</code> is a residual U-Net with multi-head self-attention, 60,361,561 parameters (counted from the checkpoint). It has the same five input channels, four levels with 72 to 576 channels, and 8-head self-attention at the two deepest levels and in the bottleneck. It was trained in one unattended overnight run on 60 tiles from Sites 01, 04, 06, 07, 20, Haworth, Shoemaker and DM2, for 37 of 40 planned epochs. Site 11 picked the checkpoint; Sites 23 and 42 were held out. The run was then frozen with checksums.</p>
+    <figure>
+      <img src="assets/img/results/params_hazard.webp" width="1400" height="762" loading="lazy" alt="Bar chart of parameter counts on a log scale: the 60 M variant at 60,361,561, next to published and generic segmentation networks from 3.8 M to 105 M.">
+      <figcaption>The 60 M variant's size against other networks (size only). It is about the size of a DeepLabv3-ResNet101 and 3.5 times the 17 M U-Net that Ghilardi &amp; Furfaro (2023) used for lunar hazards from images. Published scores were measured on different data and targets, so they cannot be compared with ours. Source: records/benchmarks/params_hazard.png, BENCHMARKS.md section 2C.</figcaption>
+    </figure>
+
+    <h3>Held-out Sites 23 and 42</h3>
+    <p><b>On the same Site 23 centre window, the 60 M variant scored F1 0.926 against the slope rule's 0.814. Our 1.94 M model scored 0.950 there.</b> The window and the label are the same, as the identical slope-rule score shows. Across more ground, the 60 M variant scored as follows.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>60 M variant · pixels scored</th><th>Variant F1</th><th>Slope rule F1</th><th>Variant missed</th><th>Slope rule missed</th></tr></thead>
+        <tbody>
+          <tr><td>Site 23 · centre window</td><td>0.926</td><td>0.814</td><td>7.2%</td><td>20.9%</td></tr>
+          <tr><td>Site 23 · all 13 windows</td><td>0.965</td><td>0.899</td><td>2.9%</td><td>13.7%</td></tr>
+          <tr><td>Site 23 · laser-measured only</td><td>0.949</td><td>0.832</td><td>4.2%</td><td>26.6%</td></tr>
+          <tr><td>Site 42 · all 6 windows</td><td>0.917</td><td>0.567</td><td>5.3%</td><td>56.9%</td></tr>
+          <tr><td>Site 42 · laser-measured only</td><td>0.926</td><td>0.677</td><td>5.9%</td><td>45.1%</td></tr>
+          <tr><td>Site 11 · all (validation)</td><td>0.946</td><td>0.862</td><td>–</td><td>–</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Pixel counts summed over each site's windows. In test windows only 3.7% to 14.2% of pixels hold a laser return.</p>
+    <p>The variant has the higher F1 in all 19 test windows. Not every number favours it: on Site 23's laser-measured pixels the slope rule raises fewer false alarms (precision 0.961 against 0.940), although it misses far more hazards. Four Site 23 windows are 96% to 99.8% unsafe, where a high F1 is easy.</p>
+    <figure class="wide">
+      <img src="assets/img/results/hazard_compare_site23.webp" width="1600" height="432" loading="lazy" alt="60 M variant on the Site 23 centre window, four panels: height with laser pixels in red, the official slope label, the slope-rule backup and the variant's map. Red is unsafe, green is safe.">
+      <figcaption>60 M variant, held-out Site 23 centre window: height (red dots are laser returns), official label (slope ≥ 12°), slope-rule backup, variant. Red = unsafe, green = safe. F1 0.926 for the variant, 0.814 for the backup. Source: runs/hazard/compare_lola5m_site23.png (frozen overnight run).</figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="assets/img/results/hazard_compare_site42.webp" width="1600" height="432" loading="lazy" alt="60 M variant on the Site 42 centre window, same four panels. The variant's panel has a straight horizontal edge across its upper part.">
+      <figcaption>60 M variant, held-out Site 42 centre window, same panels (F1 0.876 for the variant, 0.556 for the backup). The variant's map has a straight-edged block across its upper part, with a sharp horizontal boundary that the label does not have. We have not found its cause. Source: runs/hazard/compare_lola5m_site42.png (frozen overnight run).</figcaption>
+    </figure>
+
+    <h3>Six fresh sites: still ahead, much less accurate</h3>
+    <p>After the freeze, the 60 M variant was scored once on six sites that no model or setting had used: DM1, LM7, NPA, NPB, NPC and NPD, one centre tile each. It was not retrained or tuned.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>60 M variant · six fresh sites</th><th>Variant</th><th>Slope rule</th></tr></thead>
+        <tbody>
+          <tr><td>F1, all pixels, pooled</td><td>0.757</td><td>0.292</td></tr>
+          <tr><td>F1, laser-measured pixels, pooled</td><td>0.782</td><td>0.352</td></tr>
+          <tr><td>Unsafe pixels missed, pooled</td><td>18.7%</td><td>70.0%</td></tr>
+          <tr><td>F1 per site</td><td>0.239 to 0.823</td><td>0.030 to 0.427</td></tr>
+          <tr><td>Unsafe pixels missed on the flat sites NPA to NPD</td><td>38.4% to 74.9%</td><td>47.0% to 86.3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The variant still beats the slope rule on all six sites, but its accuracy does not carry over. On the four flat sites it misses between 38% and 75% of the unsafe ground. Pooled over the six sites, 70.8% of its alarms are right, against 96.0% and 88.8% on Sites 23 and 42. These sites are flatter and have fewer unsafe pixels and fewer laser returns, so "new place" and "flatter terrain" cannot be separated. Retraining on flat sites was not tested. A different decision threshold and test-time augmentation were checked on Site 11 only and not adopted.</p>
+    <p><b>Our 1.94 M model was not tested on these fresh sites.</b> Whether it shares the flat-ground weakness is untested.</p>
+
+    <h3>Where the variant's map is used</h3>
+    <ul>
+      <li>In the overnight run's rover simulator, the 60 M variant's probability map sets route cost and a score penalty. A hazard cannot destroy a rover there, so a wrong map changes routes, not losses. On the flat fresh sites, routes were planned with a map that misses about half the steep ground.</li>
+      <li>The lander pilot's camera sees the slope-rule backup's map, not a U-Net's.</li>
+    </ul>
+
+    <h2>Slope is half the story: the same ground under the real Sun</h2>
+    <p>A slope-safe pixel is no use to a lander or rover if it sits in shadow. Drag the slider to step through September 2027 at Site 23: the Sun never climbs more than about 5° above the horizon, so shadows sweep across the whole massif.</p>
+    <figure class="wide f3d" id="f3d-light" data-f3d="hazard:light">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site 23 terrain in 3D, lit by the real Sun direction at 16 instants in September 2027; sunlit ground is cream, shadow is dark blue.">
+        <img class="f3d-still" src="assets/fig3d/hazard/still_light.jpg" width="1280" height="720" loading="lazy" alt="Site 23 terrain in 3D under a low Sun, with long shadows across the massif.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption>Site 23 (5.1 km, heights 1.5× exaggerated) at 16 instants in September 2027. Sun direction from NASA SPICE (DE440); shadows are our ray-cast on the observed LOLA DEM, one Sun direction for the whole tile, terrain outside the tile ignored. Modelled, not observed. Source: assets/models3d/ (tools/export_models3d.py).</figcaption>
+    </figure>
+
+    <h2>Limits</h2>
+    <ul>
+      <li><b>Most of the truth is interpolation.</b> The label for both models is NASA's official 5 m slope map, and about 90% of it rests on NASA's interpolation between laser tracks. A score on all pixels mostly measures agreement with that interpolation.</li>
+      <li><b>The comparison leans towards the networks.</b> The backup's slope and NASA's error map are among the inputs of both models.</li>
+      <li><b>Narrow tests.</b> Our model was scored on one held-out window. The 60 M variant's training is dominated by one crater: Haworth provides 19 of its 60 training tiles (32%). One validation site, Site 11, picked both checkpoints.</li>
+      <li><b>Slope only.</b> The label is a 12° slope rule at 5 m. It does not include rocks, roughness or the lander's footprint. A safe-looking pixel is not proof that ground is safe; shadowed and unmeasured ground stays unknown.</li>
+      <li>All results are on NASA LOLA terrain of one region and one data product. This is model output, not a flight result.</li>
+    </ul>
+
+    <h2>Method &amp; data</h2>
+    <p class="src">Our model: runs/hazard/eval.json (checkpoint b0ac044446; Site 23 centre window as test, Site 11 as validation) and data/models/hazard_unet.pt; figure runs/hazard/compare_lola5m_site23.png. 60 M variant (team records of 15 Nov 2026): records/RESULTS_FOR_TEAM.md sections 3.1, 7 and 8 (frozen run <code>macmini_night</code>: held-out F1, missed rates, centre windows, per-window results, Site 11, laser-pixel shares, Haworth share); records/weak_flags/REPORT_hazard.md and hazard.json (six fresh sites, threshold sweep, test-time augmentation, rover map check); records/benchmarks/BENCHMARKS.md section 2 and params.json (parameter count, architecture, size chart); records/SUBMISSION_SUMMARY.md sections 2 and 8 (wiring to the rover and the lander). Architectures as in worldmodel/hazard/model.py (UNet base 16, depth 4; AttnUNet base 72, depth 4, 2 blocks, 8 heads, 2 attention levels). Label: NASA LOLA 5 m slope ≥ 12°. Provenance: terrain observed (NASA LOLA); hazard maps modelled.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#hazard">Methodology &amp; data →</a></p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+<script type="module">import { mountHazard } from './js/examples.js'; mountHazard(document.getElementById('ex-hazard'));</script>
+</body>
+</html>

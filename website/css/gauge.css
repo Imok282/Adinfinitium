@@ -1,0 +1,94 @@
+/* Altitude rail (option A-v1 "minimal"), driven by js/gauge.js, + finale / scene overlay overrides.
+   Owned by the scene/lander work. Restyle through the variables below. */
+.rail {
+  --rail-right: 40px;
+  --rail-h: 60vh;
+  --rail-line: rgba(255, 255, 255, .20);
+  --rail-fill: var(--accent, #D97757);
+  --rail-chip-bg: rgba(38, 38, 36, .78);
+  --rail-chip-line: rgba(255, 255, 255, .14);
+  --rail-text: #C5CEDF;
+  --rail-text-strong: #F4F6FB;
+  --rail-sprite: 36px;
+  --rail-glass: rgba(255, 255, 255, .08);
+  --rail-glass-line: rgba(255, 255, 255, .18);
+  --rail-ease: cubic-bezier(.2, .7, .2, 1);
+  position: fixed; right: var(--rail-right); top: calc(50% - var(--rail-h) / 2 + 24px); height: var(--rail-h); width: 1px;
+  z-index: 15; pointer-events: none; font-family: var(--mono); font-variant-numeric: tabular-nums;
+}
+/* frosted glass track: a few px wide, blurred, hairline highlight; the 1 px line + amber fill run down its centre */
+.rail-track { position: absolute; inset: 0; width: 1px; background: var(--rail-line); }
+.rail-track::before { content: ""; position: absolute; top: -8px; bottom: -8px; left: -3px; width: 7px; border-radius: 4px; z-index: -1;
+  background: var(--rail-glass); border: 1px solid var(--rail-glass-line); box-sizing: border-box; box-shadow: inset 1px 0 0 rgba(255, 255, 255, .10);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rail-fill { position: absolute; left: 0; top: 0; width: 1px; height: 0; background: var(--rail-fill);
+  box-shadow: 0 0 6px rgba(217, 119, 87, .5); transition: height .6s var(--rail-ease); }
+.rail-tick { position: absolute; left: 0; top: var(--at); }
+.rail-tick::before { content: ""; position: absolute; left: -3px; top: -3px; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bg, #262624); border: 1px solid var(--rail-line); }
+.rail-tick span { position: absolute; right: 12px; top: -9px; white-space: nowrap; font-size: 11px; line-height: 16px; color: var(--rail-text);
+  padding: 0 6px; border-radius: 8px; background: var(--rail-chip-bg); border: 1px solid var(--rail-chip-line); transition: opacity .5s var(--rail-ease); }
+.rail-marker { position: absolute; left: 0; top: 0; width: 0; height: 0; transition: top .6s var(--rail-ease), opacity .8s var(--rail-ease); }
+.rail-sprite { position: absolute; left: calc(var(--rail-sprite) / -2 + .5px); top: calc(var(--rail-sprite) / -2); width: var(--rail-sprite); height: var(--rail-sprite);
+  border-radius: 50%; border: 1.5px solid var(--rail-fill); box-sizing: border-box;
+  background: rgba(38, 38, 36, .66) url(../assets/img/lander_icon.png) center / 78% no-repeat;
+  box-shadow: 0 0 10px rgba(217, 119, 87, .35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: opacity .8s var(--rail-ease); }
+.rail-pill { position: absolute; right: calc(var(--rail-sprite) / 2 + 6px); top: 0; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; padding: 3px 9px 3px; border-radius: 10px;
+  background: rgba(255, 255, 255, .10); border: 1px solid var(--rail-glass-line); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+  backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); }
+.rail-pill b { font-size: 13px; font-weight: 600; color: var(--rail-text-strong); line-height: 1.25; }
+.rail-phase { font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--rail-text); line-height: 1.3;
+  transition: opacity .3s var(--rail-ease); }
+.rail-phase.out { opacity: 0; }
+/* the marker's tick label is hidden while the pill sits right on it */
+.rail.landed .rail-pill { border-color: rgba(217, 119, 87, .65); }
+.rail.landed .rail-pill b { color: var(--rail-fill); }
+/* finale: the sprite fades as the 3D lander takes the stage; the pill stays and reads "0 m · Touchdown" */
+body.scene-ready .rail.finale .rail-sprite { opacity: 0; }
+/* the 3D scene draws the lander; the sprite is the reduced-motion / no-WebGL marker and stays as the rail marker everywhere */
+
+/* finale: room for the touchdown + rover before the closing band / footer arrives */
+.landing-spacer { height: 240vh; }
+
+@media (max-width: 760px) {
+  .rail { --rail-right: 14px; --rail-h: 38vh; --rail-sprite: 26px; top: 34vh; }
+  .rail-tick span { display: none; }
+  .rail-pill { padding: 2px 7px; }
+  .rail-pill b { font-size: 12px; }
+  .rail-phase { display: none; }
+  .landing-spacer { height: 140vh; }
+  /* keep text clear of the fixed rail on phones */
+  main .sec, .cta-band, .footer { padding-right: 46px !important; }
+}
+@media (prefers-reduced-motion: reduce) { .rail-marker, .rail-fill, .rail-phase, .rail-sprite { transition: none; } }
+/* ?clean (poster renders): only the 3D scene */
+html.clean body > *:not(#scene) { visibility: hidden !important; }
+/* the rail steps aside once the footer comes up */
+.rail { transition: opacity .4s cubic-bezier(.2,.7,.2,1); }
+.rail.rail-off { opacity: 0; pointer-events: none; }
+/* screenshot mode: show the settled state of the once-only reveals */
+html.shot .reveal, html.shot .words .w { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+html.shot .scribble path { stroke-dashoffset: 0 !important; transition: none !important; }
+/* phones: the readout pill would sit on body text, so only show it at touchdown */
+@media (max-width: 760px) { .rail:not(.landed) .rail-pill { opacity: 0; } }
+/* lead (round 3, final): the readout is ONE clean line (altitude · phase), no second faint line */
+.rail-pill { flex-direction: row; align-items: baseline; gap: 8px; padding: 3px 10px; }
+.rail-pill b { line-height: 1.3; }
+.rail-phase { line-height: 1.3; }
+.rail-phase.out { opacity: 0; }
+/* phones: the readout pill steps aside during the rover dashboard (it would sit on the tiles) */
+@media (max-width: 760px) { .rail.rover-on .rail-pill { opacity: 0 !important; } }
+
+/* phones: the side lander as a DOM sprite above the content, top-right under the nav, until the 3D finale takes over */
+.side-lander { display: none; }
+@media (max-width: 760px) {
+  body.scene-ready .side-lander { display: block; position: fixed; z-index: 60; top: 12px; right: 64px; width: 38px; height: 38px; pointer-events: none;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); animation: side-bob 4s ease-in-out infinite; }
+  body.scene-ready #gauge.finale ~ .side-lander { display: none; }
+}
+@keyframes side-bob { 50% { transform: translateY(-4px) rotate(-2deg); } }
+@media (prefers-reduced-motion: reduce) { .side-lander { animation: none; } }
+/* the readout pill steps aside during the rover dashboard at every size (the phase caption is in the tiles) */
+.rail.rover-on .rail-pill { opacity: 0; }

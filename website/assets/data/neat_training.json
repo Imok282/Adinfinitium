@@ -1,0 +1,600 @@
+{
+ "placeholder": true,
+ "meta": {
+  "provenance": "generated",
+  "source": "SAMPLE DATA \u2014 hand-made round values shaped like runs/<run>/generation_XXX.json; not from any training run",
+  "frame": "n/a",
+  "units": "fitness 0..1 (sample), counts",
+  "note": "Replace with website/tools/export_neat.py runs/<run> (writes this file with placeholder false)."
+ },
+ "run": "sample",
+ "generations": [
+  {
+   "generation": 0,
+   "best_fitness": 0.1,
+   "mean_fitness": 0.05,
+   "species": 4,
+   "best_nodes": 11,
+   "best_conns": 10,
+   "population": 1000
+  },
+  {
+   "generation": 1,
+   "best_fitness": 0.16,
+   "mean_fitness": 0.09,
+   "species": 4,
+   "best_nodes": 11,
+   "best_conns": 10,
+   "population": 1000
+  },
+  {
+   "generation": 2,
+   "best_fitness": 0.22,
+   "mean_fitness": 0.12,
+   "species": 5,
+   "best_nodes": 11,
+   "best_conns": 11,
+   "population": 1000
+  },
+  {
+   "generation": 3,
+   "best_fitness": 0.27,
+   "mean_fitness": 0.15,
+   "species": 4,
+   "best_nodes": 11,
+   "best_conns": 11,
+   "population": 1000
+  },
+  {
+   "generation": 4,
+   "best_fitness": 0.32,
+   "mean_fitness": 0.18,
+   "species": 5,
+   "best_nodes": 12,
+   "best_conns": 12,
+   "population": 1000
+  },
+  {
+   "generation": 5,
+   "best_fitness": 0.37,
+   "mean_fitness": 0.21,
+   "species": 5,
+   "best_nodes": 12,
+   "best_conns": 12,
+   "population": 1000
+  },
+  {
+   "generation": 6,
+   "best_fitness": 0.41,
+   "mean_fitness": 0.23,
+   "species": 6,
+   "best_nodes": 12,
+   "best_conns": 13,
+   "population": 1000
+  },
+  {
+   "generation": 7,
+   "best_fitness": 0.45,
+   "mean_fitness": 0.26,
+   "species": 6,
+   "best_nodes": 12,
+   "best_conns": 13,
+   "population": 1000
+  },
+  {
+   "generation": 8,
+   "best_fitness": 0.49,
+   "mean_fitness": 0.28,
+   "species": 6,
+   "best_nodes": 12,
+   "best_conns": 14,
+   "population": 1000
+  },
+  {
+   "generation": 9,
+   "best_fitness": 0.52,
+   "mean_fitness": 0.3,
+   "species": 7,
+   "best_nodes": 12,
+   "best_conns": 14,
+   "population": 1000
+  },
+  {
+   "generation": 10,
+   "best_fitness": 0.55,
+   "mean_fitness": 0.32,
+   "species": 6,
+   "best_nodes": 12,
+   "best_conns": 15,
+   "population": 1000
+  },
+  {
+   "generation": 11,
+   "best_fitness": 0.58,
+   "mean_fitness": 0.34,
+   "species": 7,
+   "best_nodes": 12,
+   "best_conns": 15,
+   "population": 1000
+  },
+  {
+   "generation": 12,
+   "best_fitness": 0.6,
+   "mean_fitness": 0.35,
+   "species": 7,
+   "best_nodes": 13,
+   "best_conns": 16,
+   "population": 1000
+  },
+  {
+   "generation": 13,
+   "best_fitness": 0.62,
+   "mean_fitness": 0.37,
+   "species": 8,
+   "best_nodes": 13,
+   "best_conns": 16,
+   "population": 1000
+  },
+  {
+   "generation": 14,
+   "best_fitness": 0.65,
+   "mean_fitness": 0.38,
+   "species": 8,
+   "best_nodes": 13,
+   "best_conns": 16,
+   "population": 1000
+  },
+  {
+   "generation": 15,
+   "best_fitness": 0.67,
+   "mean_fitness": 0.4,
+   "species": 8,
+   "best_nodes": 13,
+   "best_conns": 17,
+   "population": 1000
+  },
+  {
+   "generation": 16,
+   "best_fitness": 0.68,
+   "mean_fitness": 0.41,
+   "species": 9,
+   "best_nodes": 13,
+   "best_conns": 17,
+   "population": 1000
+  },
+  {
+   "generation": 17,
+   "best_fitness": 0.7,
+   "mean_fitness": 0.42,
+   "species": 8,
+   "best_nodes": 13,
+   "best_conns": 18,
+   "population": 1000
+  },
+  {
+   "generation": 18,
+   "best_fitness": 0.72,
+   "mean_fitness": 0.43,
+   "species": 9,
+   "best_nodes": 13,
+   "best_conns": 18,
+   "population": 1000
+  },
+  {
+   "generation": 19,
+   "best_fitness": 0.73,
+   "mean_fitness": 0.45,
+   "species": 9,
+   "best_nodes": 13,
+   "best_conns": 19,
+   "population": 1000
+  },
+  {
+   "generation": 20,
+   "best_fitness": 0.74,
+   "mean_fitness": 0.46,
+   "species": 10,
+   "best_nodes": 14,
+   "best_conns": 19,
+   "population": 1000
+  },
+  {
+   "generation": 21,
+   "best_fitness": 0.76,
+   "mean_fitness": 0.46,
+   "species": 10,
+   "best_nodes": 14,
+   "best_conns": 20,
+   "population": 1000
+  },
+  {
+   "generation": 22,
+   "best_fitness": 0.77,
+   "mean_fitness": 0.47,
+   "species": 10,
+   "best_nodes": 14,
+   "best_conns": 20,
+   "population": 1000
+  },
+  {
+   "generation": 23,
+   "best_fitness": 0.78,
+   "mean_fitness": 0.48,
+   "species": 11,
+   "best_nodes": 14,
+   "best_conns": 21,
+   "population": 1000
+  },
+  {
+   "generation": 24,
+   "best_fitness": 0.79,
+   "mean_fitness": 0.49,
+   "species": 10,
+   "best_nodes": 14,
+   "best_conns": 21,
+   "population": 1000
+  },
+  {
+   "generation": 25,
+   "best_fitness": 0.8,
+   "mean_fitness": 0.5,
+   "species": 11,
+   "best_nodes": 14,
+   "best_conns": 22,
+   "population": 1000
+  },
+  {
+   "generation": 26,
+   "best_fitness": 0.81,
+   "mean_fitness": 0.5,
+   "species": 11,
+   "best_nodes": 14,
+   "best_conns": 22,
+   "population": 1000
+  },
+  {
+   "generation": 27,
+   "best_fitness": 0.81,
+   "mean_fitness": 0.51,
+   "species": 12,
+   "best_nodes": 14,
+   "best_conns": 22,
+   "population": 1000
+  },
+  {
+   "generation": 28,
+   "best_fitness": 0.82,
+   "mean_fitness": 0.51,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 23,
+   "population": 1000
+  },
+  {
+   "generation": 29,
+   "best_fitness": 0.83,
+   "mean_fitness": 0.52,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 23,
+   "population": 1000
+  },
+  {
+   "generation": 30,
+   "best_fitness": 0.83,
+   "mean_fitness": 0.53,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 24,
+   "population": 1000
+  },
+  {
+   "generation": 31,
+   "best_fitness": 0.84,
+   "mean_fitness": 0.53,
+   "species": 11,
+   "best_nodes": 15,
+   "best_conns": 24,
+   "population": 1000
+  },
+  {
+   "generation": 32,
+   "best_fitness": 0.84,
+   "mean_fitness": 0.53,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 25,
+   "population": 1000
+  },
+  {
+   "generation": 33,
+   "best_fitness": 0.85,
+   "mean_fitness": 0.54,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 25,
+   "population": 1000
+  },
+  {
+   "generation": 34,
+   "best_fitness": 0.85,
+   "mean_fitness": 0.54,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 26,
+   "population": 1000
+  },
+  {
+   "generation": 35,
+   "best_fitness": 0.85,
+   "mean_fitness": 0.55,
+   "species": 12,
+   "best_nodes": 15,
+   "best_conns": 26,
+   "population": 1000
+  },
+  {
+   "generation": 36,
+   "best_fitness": 0.86,
+   "mean_fitness": 0.55,
+   "species": 12,
+   "best_nodes": 16,
+   "best_conns": 27,
+   "population": 1000
+  },
+  {
+   "generation": 37,
+   "best_fitness": 0.86,
+   "mean_fitness": 0.55,
+   "species": 12,
+   "best_nodes": 16,
+   "best_conns": 27,
+   "population": 1000
+  },
+  {
+   "generation": 38,
+   "best_fitness": 0.86,
+   "mean_fitness": 0.56,
+   "species": 11,
+   "best_nodes": 16,
+   "best_conns": 28,
+   "population": 1000
+  },
+  {
+   "generation": 39,
+   "best_fitness": 0.87,
+   "mean_fitness": 0.56,
+   "species": 12,
+   "best_nodes": 16,
+   "best_conns": 28,
+   "population": 1000
+  }
+ ],
+ "champion": {
+  "generation": 39,
+  "nodes": [
+   {
+    "id": 0,
+    "type": "input",
+    "label": "in 1"
+   },
+   {
+    "id": 1,
+    "type": "input",
+    "label": "in 2"
+   },
+   {
+    "id": 2,
+    "type": "input",
+    "label": "in 3"
+   },
+   {
+    "id": 3,
+    "type": "input",
+    "label": "in 4"
+   },
+   {
+    "id": 4,
+    "type": "input",
+    "label": "in 5"
+   },
+   {
+    "id": 5,
+    "type": "input",
+    "label": "in 6"
+   },
+   {
+    "id": 6,
+    "type": "input",
+    "label": "in 7"
+   },
+   {
+    "id": 7,
+    "type": "input",
+    "label": "in 8"
+   },
+   {
+    "id": 8,
+    "type": "output",
+    "label": "\u0394 east"
+   },
+   {
+    "id": 9,
+    "type": "output",
+    "label": "\u0394 north"
+   },
+   {
+    "id": 10,
+    "type": "output",
+    "label": "\u0394 up"
+   },
+   {
+    "id": 11,
+    "type": "hidden",
+    "label": ""
+   },
+   {
+    "id": 12,
+    "type": "hidden",
+    "label": ""
+   },
+   {
+    "id": 13,
+    "type": "hidden",
+    "label": ""
+   },
+   {
+    "id": 14,
+    "type": "hidden",
+    "label": ""
+   },
+   {
+    "id": 15,
+    "type": "hidden",
+    "label": ""
+   }
+  ],
+  "conns": [
+   {
+    "in": 0,
+    "out": 10,
+    "weight": -1.0
+   },
+   {
+    "in": 0,
+    "out": 12,
+    "weight": -1.0
+   },
+   {
+    "in": 0,
+    "out": 13,
+    "weight": -1.0
+   },
+   {
+    "in": 0,
+    "out": 15,
+    "weight": -0.8
+   },
+   {
+    "in": 1,
+    "out": 8,
+    "weight": 0.6
+   },
+   {
+    "in": 1,
+    "out": 10,
+    "weight": 1.0
+   },
+   {
+    "in": 1,
+    "out": 12,
+    "weight": 0.6
+   },
+   {
+    "in": 1,
+    "out": 14,
+    "weight": 0.4
+   },
+   {
+    "in": 1,
+    "out": 15,
+    "weight": -0.4
+   },
+   {
+    "in": 2,
+    "out": 8,
+    "weight": -1.0
+   },
+   {
+    "in": 2,
+    "out": 9,
+    "weight": 1.0
+   },
+   {
+    "in": 2,
+    "out": 11,
+    "weight": 0.6
+   },
+   {
+    "in": 3,
+    "out": 8,
+    "weight": 0.6
+   },
+   {
+    "in": 3,
+    "out": 9,
+    "weight": -0.2
+   },
+   {
+    "in": 3,
+    "out": 13,
+    "weight": 0.4
+   },
+   {
+    "in": 4,
+    "out": 10,
+    "weight": 0.4
+   },
+   {
+    "in": 5,
+    "out": 11,
+    "weight": 0.8
+   },
+   {
+    "in": 6,
+    "out": 8,
+    "weight": -0.2
+   },
+   {
+    "in": 6,
+    "out": 11,
+    "weight": 0.6
+   },
+   {
+    "in": 6,
+    "out": 14,
+    "weight": 1.0
+   },
+   {
+    "in": 6,
+    "out": 15,
+    "weight": 1.0
+   },
+   {
+    "in": 11,
+    "out": 10,
+    "weight": 0.2
+   },
+   {
+    "in": 11,
+    "out": 13,
+    "weight": -0.6
+   },
+   {
+    "in": 12,
+    "out": 9,
+    "weight": 0.2
+   },
+   {
+    "in": 12,
+    "out": 15,
+    "weight": -0.6
+   },
+   {
+    "in": 13,
+    "out": 8,
+    "weight": 0.6
+   },
+   {
+    "in": 14,
+    "out": 8,
+    "weight": 0.6
+   },
+   {
+    "in": 15,
+    "out": 10,
+    "weight": -0.8
+   }
+  ]
+ }
+}

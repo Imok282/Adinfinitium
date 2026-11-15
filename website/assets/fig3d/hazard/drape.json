@@ -1,0 +1,66 @@
+{
+ "created_by": "website/tools/export_fig3d_hazard.py",
+ "region": "lola5m_site23",
+ "window_px": [
+  1024,
+  1024
+ ],
+ "m_per_px": 5.0,
+ "size_m": 5120.0,
+ "height": "assets/models3d/site23_height.bin (models3d.json 'a')",
+ "slope_limit_deg": 12.0,
+ "decision_threshold": 0.5,
+ "prevalence": 0.4957,
+ "maps": {
+  "label": {
+   "texture": "drape_label.jpg",
+   "provenance": "observed",
+   "source": "official LOLA slope >= 12 deg (worldmodel.hazard.backup.label_hazard on lola5m_site23)"
+  },
+  "backup": {
+   "texture": "drape_backup.jpg",
+   "fn_texture": "drape_backup_fn.jpg",
+   "provenance": "modelled",
+   "source": "slope rule on the gap-filled laser input (worldmodel.hazard.backup.backup_hazard)",
+   "tp": 411156,
+   "fp": 79090,
+   "fn": 108669,
+   "tn": 449661,
+   "f1": 0.8141,
+   "missed_hazard_rate": 0.209049,
+   "missed_area_km2": 2.717
+  },
+  "unet": {
+   "texture": "drape_unet.jpg",
+   "fn_texture": "drape_unet_fn.jpg",
+   "provenance": "modelled",
+   "source": "U-Net P(unsafe), checkpoint data/models/hazard_unet.pt, cache data/viewer_cache/lola5m_site23_hazard_1794638269341533160.npy",
+   "tp": 495155,
+   "fp": 27144,
+   "fn": 24670,
+   "tn": 501607,
+   "f1": 0.9503,
+   "missed_hazard_rate": 0.047458,
+   "missed_area_km2": 0.617
+  }
+ },
+ "check": "confusion counts recomputed at full 1024 x 1024 resolution equal runs/hazard/eval.json exactly",
+ "colours": {
+  "safe": [
+   0.36,
+   0.62,
+   0.5
+  ],
+  "unsafe": [
+   0.9,
+   0.42,
+   0.38
+  ],
+  "missed": [
+   1.0,
+   0.86,
+   0.1
+  ],
+  "shading": "x hillshade (az 315, alt 35)"
+ }
+}

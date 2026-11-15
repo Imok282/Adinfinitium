@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terrain fill · Research · Adinfinitium</title>
+<meta name="description" content="We tested our 49.9 M-parameter terrain diffusion network against classical methods on the same hidden NASA laser heights. Kriging won (0.94 m and 1.11 m RMSE against 1.83 m and 2.80 m), so kriging is the terrain estimator we present.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/company.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/terrain.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/terrain.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Terrain</p>
+    <h1>We tested our own headline <span class="serif">and it did not survive.</span></h1>
+    <p class="lede">Our 49.9-million-parameter diffusion network looked ten times better than its backup at filling terrain between laser tracks. Against a fair classical competitor on the same hidden laser heights, it lost. Kriging is the terrain estimator we present.</p>
+  </header>
+  <div class="post-body">
+    <h2>The job</h2>
+    <p>NASA's LOLA 5 m height grid near the lunar south pole is mostly interpolated: only about one pixel in ten holds a real laser return. Anything that reasons about terrain between the tracks needs a way to fill those gaps, and an honest idea of how wrong the fill can be.</p>
+    <p>We trained <code>terrain_diffusion_mini</code>, a diffusion U-Net with 49,943,681 parameters, in the same frozen overnight run as our other models (7,671 of 8,000 planned steps). Given the laser heights shown to it in a 64 × 64-pixel patch (320 m), it generates six possible versions of the terrain. Their mean is the prediction and their spread is meant to be the uncertainty. Its output is always labelled <b>GENERATED — NOT OBSERVED</b>.</p>
+
+    <h2>The test</h2>
+    <p>The test is called hide-and-check. In 96 patches per window, half of the real laser pixels are hidden. The method sees the other half and must predict the hidden heights. The error is the RMSE in metres against the hidden real heights. Site 11 was used for choosing settings; Sites 23 and 42 were held out.</p>
+    <p>In the frozen run the network scored 1.84 m on Site 23 and 2.82 m on Site 42, against 17.92 m and 24.82 m for its backup, a simple Gaussian gap-fill. That was the "ten times better" headline. But the backup was a weak opponent, and NASA reports about 0.37 m for a spline fill of the same product (a different measurement, so not directly comparable). A fair classical competitor was missing.</p>
+
+    <h2>The fair comparison</h2>
+    <p>After the freeze we wrote a plan, then ran nine classical methods on exactly the same hidden pixels. Each method saw only what the network sees: the shown heights of the patch and where they are. Every setting was chosen on Site 11, and the held-out sites were scored once. The script refuses a second run.</p>
+    <div class="post-stats">
+      <div class="res-card tz sage"><b>0.94 m</b><span>kriging on Site 23 · network 1.83 m</span></div>
+      <div class="res-card tz peach"><b>1.11 m</b><span>kriging on Site 42 · network 2.80 m</span></div>
+      <div class="res-card tz lavender"><b>0.97 m</b><span>kriging on six fresh sites · network 1.62 m</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Method (setting chosen on Site 11)</th><th>Site 23</th><th>Site 42</th><th>Beats network?</th></tr></thead>
+        <tbody>
+          <tr><td>Old backup (Gaussian gap-fill)</td><td>17.92</td><td>24.82</td><td>no</td></tr>
+          <tr><td>Nearest neighbour</td><td>3.21</td><td>4.35</td><td>no</td></tr>
+          <tr><td>Inverse-distance weighting</td><td>2.30</td><td>3.36</td><td>no</td></tr>
+          <tr><td><b>Diffusion network (ours)</b></td><td><b>1.83</b></td><td><b>2.80</b></td><td>–</td></tr>
+          <tr><td>Cubic Clough-Tocher</td><td>1.63</td><td>2.48</td><td>yes</td></tr>
+          <tr><td>Linear (Delaunay)</td><td>1.50</td><td>2.41</td><td>yes</td></tr>
+          <tr><td>RBF, cubic kernel</td><td>1.31</td><td>1.62</td><td>yes</td></tr>
+          <tr><td>Thin-plate spline, exact</td><td>1.07</td><td>1.23</td><td>yes</td></tr>
+          <tr><td>RBF, linear kernel</td><td>1.06</td><td>1.45</td><td>yes</td></tr>
+          <tr><td>Thin-plate spline, smoothed</td><td>0.95</td><td>1.11</td><td>yes</td></tr>
+          <tr><td><b>Kriging</b> (Matérn 3/2, plane mean)</td><td><b>0.94</b></td><td><b>1.11</b></td><td>yes</td></tr>
+          <tr><td>Plain average of network and kriging</td><td>1.22</td><td>1.69</td><td>yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">RMSE in metres on the hidden real laser heights: 265,141 pixels on Site 23 (13 windows) and 49,150 on Site 42 (6 windows). Network figures are the mean of six versions from the saved outputs of the calibration re-run (1.83 / 2.80 m); the frozen run printed 1.84 / 2.82 m because its sampler is not seeded.</p>
+    <ul>
+      <li><b>Seven of nine classical methods beat the network on both held-out sites</b>, including plain linear interpolation. The network only beats nearest neighbour, inverse-distance weighting and the old backup.</li>
+      <li>Kriging has about half the network's error on Site 23 and 40% of it on Site 42. It is lower in all 13 Site 23 windows and all 6 Site 42 windows.</li>
+      <li><b>Combining them did not help.</b> A plain average is worse than kriging alone. When the weight was fitted on Site 11, the network got a weight of 0.0064, so the combination is kriging in practice.</li>
+      <li><b>It held on six fresh sites</b> (DM1, LM7, NPA, NPB, NPC, NPD) that neither model had used: kriging 0.97 m against the network's 1.62 m pooled over 47,074 hidden pixels, and lower on 6 of 6 sites.</li>
+    </ul>
+
+    <figure class="wide f3d" id="f3d-terrain" data-f3d="terrain:patches">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="A 320 m patch of held-out Site 23 in 3D, switchable between the real LOLA height, kriging from the shown laser pixels and the old Gaussian backup, with the shown and hidden laser pixels as dots and an optional error heat map.">
+        <img class="f3d-still" src="assets/fig3d/terrain/still_patches.jpg" width="1280" height="720" loading="lazy" alt="A 320 m Site 23 patch in 3D as predicted by kriging, coloured by height, with white dots for the laser pixels it was shown and orange dots for the hidden ones it was scored on.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption>The same three held-out Site 23 patches as the figure below (320 m each, heights 2× exaggerated). Real height is observed (LOLA 5 m; between laser pixels it is NASA's interpolation). Kriging and the old backup are modelled from the white laser pixels only, and scored on the orange ones. The diffusion network's generated surfaces for these patches are not in our hand-off, so it appears here as its score only. Source: data/tiles/lola5m_site23.npz, records/weak_flags/terrain.json (tools/export_fig3d_terrain.py).</figcaption>
+    </figure>
+
+    <h2>The network's uncertainty band failed</h2>
+    <p>A "90%" band should hold the real height about 90% of the time. The network's raw band, the 5–95% spread of its six versions, held it <b>21.9%</b> of the time on Site 23 and <b>37.3%</b> on Site 42. The network is far too sure of itself.</p>
+    <p>We later fitted a single scale factor on Site 11 (8.232) and applied it once to the held-out sites. Coverage rose to 84.9% and 96.9%, which met the criterion we had set in advance of 80–97%. The price is width: the calibrated band is 7.1 m wide on Site 23 and 15.5 m on Site 42, 3.9 and 5.5 times the error. It is honest on average, not sharp, and it is uneven: where the network was most confident, coverage on Site 23 was only 66.7%.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>"90%" band: coverage / mean width</th><th>Site 23</th><th>Site 42</th><th>Six fresh sites</th></tr></thead>
+        <tbody>
+          <tr><td>Network, raw</td><td>21.9%&nbsp;/ –</td><td>37.3%&nbsp;/ –</td><td>–</td></tr>
+          <tr><td>Network, calibrated (× 8.232)</td><td>84.9%&nbsp;/ 7.06&nbsp;m</td><td>96.9%&nbsp;/ 15.51&nbsp;m</td><td>96.6%&nbsp;/ 10.48&nbsp;m</td></tr>
+          <tr><td><b>Kriging</b> (scale fitted on Site 11)</td><td><b>85.9%&nbsp;/ 2.31&nbsp;m</b></td><td><b>88.2%&nbsp;/ 2.76&nbsp;m</b></td><td><b>92.8%&nbsp;/ 2.82&nbsp;m</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Raw coverage from the frozen run; the calibration re-run measured 22.0% and 37.1%.</p>
+    <p>The kriging band covers about as often and is 3 to 5.6 times narrower. It is not exactly a 90% band: it covers 85.9% and 88.2% on the held-out sites, two rough Site 23 windows are below 80%, and it reflects distance from the shown pixels more than roughness. It has no formal guarantee.</p>
+    <figure class="wide">
+      <img src="assets/img/results/terrain_diffusion_site23.webp" width="1600" height="884" loading="lazy" alt="Three Site 23 patches in rows. Columns: real terrain height, the laser pixels shown to the model, one generated version, the mean of six versions, the error map, and the uncalibrated band half-width. Labelled GENERATED - NOT OBSERVED.">
+      <figcaption><b>GENERATED — NOT OBSERVED.</b> The diffusion network on held-out Site 23, three patches in the order the evaluation draws them: real height, pixels shown, one generated version, mean of six, error, and the raw band. These three patches have lower error than the window's average (1.32 m). The right-hand column is the uncalibrated band that failed coverage (22–30% here); it is shown as a failure, not as an uncertainty. Source: records/terrain_calibration/terrain_diffusion_samples_site23.png.</figcaption>
+    </figure>
+
+    <figure class="wide">
+      <img src="assets/img/results/params_terrain.webp" width="1400" height="577" loading="lazy" alt="Bar chart of parameter counts on a log scale: Stable Diffusion U-Nets 865 M and 860 M, our terrain diffusion network 49,943,681, EDSR 43 M, Repasky et al. 2026 autoencoder 21 M.">
+      <figcaption>Model size only, ours vs published (scores are not comparable): our diffusion network has 49.9 M parameters; interpolation has none. Source: frozen overnight run records (sources.md for the published counts).</figcaption>
+    </figure>
+
+    <h2>Why this test favours interpolation</h2>
+    <p>The hidden pixels lie on the same laser tracks as the shown ones, usually a few pixels away. That is ideal for interpolation. Filling wide gaps with no measurement nearby was never tested, for the network or for kriging, and that is where a generative model might still help.</p>
+    <p>The network also produces several plausible, textured versions of the terrain, while kriging gives one smooth surface. We did not score that property, so it is not evidence of accuracy.</p>
+
+    <h2>What we present</h2>
+    <ul>
+      <li><b>Kriging</b> of the laser pixels is our terrain estimator: 0.94 m (Site 23), 1.11 m (Site 42) and 0.97 m (six fresh sites) RMSE on hidden laser heights, with a band that covers 85.9%, 88.2% and 92.8%.</li>
+      <li>The diffusion network is an <b>experiment</b>. It is not wired to anything: a search of our hazard, light and rover code found no use of it, and no later stage reads its output.</li>
+      <li>We no longer use the "ten times better than the backup" headline. It was true, but the backup was weak.</li>
+    </ul>
+
+    <h2>Limits</h2>
+    <ul>
+      <li>One validation site (Site 11) chose every setting. Two chosen settings sit at the edge of their search grid, and the grid was not extended afterwards.</li>
+      <li>The classical methods used only the 64 × 64 patch, like the network. With the whole tile they would probably do better.</li>
+      <li>The network numbers come from one unseeded sampler run; frozen and re-run differ by under 1% pooled, far less than the gap to kriging.</li>
+      <li>On the fresh sites the smoothed thin-plate spline is slightly ahead of kriging (0.960 m against 0.972 m). Kriging had been fixed in advance by the Site 11 rule, so we kept it.</li>
+      <li>The "truth" itself is a laser measurement with its own error. All of this is NASA LOLA terrain of one region and one data product.</li>
+    </ul>
+
+    <h2>Method &amp; data</h2>
+    <p class="src">Sources (team records of 15 Nov 2026): records/weak_flags/REPORT_terrain.md, terrain.json and terrain_fresh.json (classical methods, kriging, the combination weight 0.0064, the kriging band and the six fresh sites; addendum 4, plan in records/weak_flags/PLAN.md); records/terrain_calibration/TERRAIN_CALIBRATION_REPORT.md and calibration.json (scale 8.232, calibrated coverage and width; addendum 2); records/RESULTS_FOR_TEAM.md section 3.3 (frozen run <code>macmini_night</code>, runs/terrain/eval.json: network vs backup RMSE, raw band coverage); records/benchmarks/BENCHMARKS.md and params.json (parameter count); records/SUBMISSION_SUMMARY.md sections 2, 3 and 8 (wiring; what we present). Terrain observed (NASA LOLA 5 m); network output generated, not observed.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#terrain">Methodology &amp; data →</a></p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+</body>
+</html>

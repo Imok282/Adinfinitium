@@ -150,6 +150,32 @@ class LanderBatch:
         self.had_drift[m] = drift
         return self.observe()
 
+    SCENARIO_KEYS = ("pos", "vel", "target", "engine_out_t", "nav_bias", "camera_ok")
+
+    def scenarios(self) -> dict[str, np.ndarray]:
+        """The CURRENT initial conditions of every lander (call right after reset): enough to replay the exact mission."""
+        return {"pos": self.pos.cpu().numpy().copy(), "vel": self.vel.cpu().numpy().copy(), "target": self.target.cpu().numpy().copy(),
+                "engine_out_t": self.engine_out_t.cpu().numpy().copy(), "nav_bias": self.nav_bias.cpu().numpy().copy(),
+                "camera_ok": self.camera_ok.cpu().numpy().copy()}
+
+    def load_scenarios(self, idx: torch.Tensor, sc: dict[str, np.ndarray]) -> None:
+        """Start landers `idx` from given initial conditions (failure replay / Dream-RSI). Arrays in `sc` have len(idx) rows."""
+        d = self.device
+        f = lambda k, dt=torch.float32: torch.as_tensor(np.asarray(sc[k]), dtype=dt, device=d)  # noqa: E731
+        self.pos[idx], self.vel[idx], self.target[idx] = f("pos"), f("vel"), f("target")
+        self.engine_out_t[idx] = f("engine_out_t")
+        self.nav_bias[idx] = f("nav_bias")
+        self.camera_ok[idx] = f("camera_ok", torch.bool)
+        self.mass[idx] = self.p.start_mass
+        self.start_mass[idx] = self.p.start_mass
+        self.t[idx] = 0.0
+        self.outcome[idx] = FLYING
+        self.engines_ok[idx] = self.p.n_engines
+        self.thrust[idx] = 0.0
+        self.td[idx] = 0.0
+        self.had_engine_out[idx] = torch.isfinite(self.engine_out_t[idx])
+        self.had_drift[idx] = self.nav_bias[idx].norm(dim=1) > 0
+
     @property
     def done(self) -> torch.Tensor:
         return self.outcome != FLYING

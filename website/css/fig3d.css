@@ -1,0 +1,54 @@
+/* Interactive 3D figures in research posts (js/fig3d.js). Colours = css/style.css :root tokens. */
+.f3d-stage { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 18px; border: 1px solid var(--line);
+  background: radial-gradient(120% 90% at 50% 30%, #33322f 0%, #262624 60%, #1f1f1d 100%); outline: none; }
+.f3d-stage:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.f3d-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.f3d-canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; opacity: 0; transition: opacity .45s ease; cursor: grab; }
+.f3d-ready .f3d-canvas { opacity: 1; }
+.f3d-ready .f3d-still { visibility: hidden; }
+.f3d-active .f3d-canvas, .f3d-canvas:active { cursor: grabbing; }
+.f3d-failed .f3d-canvas { display: none; }
+
+.f3d-reset { position: absolute; right: 12px; top: 12px; z-index: 2; height: 30px; padding: 0 12px; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--fg); background: rgba(31, 31, 29, .8); border: 1px solid var(--line-strong); border-radius: 999px; }
+.f3d-reset:hover { background: rgba(255, 255, 255, .1); }
+.f3d-hint, .f3d-load { position: absolute; right: 12px; bottom: 12px; z-index: 2; pointer-events: none;
+  font: 500 11px/1 var(--mono); color: var(--fg-3); background: rgba(31, 31, 29, .75); border-radius: 999px; padding: 6px 10px; }
+.f3d-load { left: 12px; right: auto; }
+.f3d-hint::after { content: "drag to rotate · click, then scroll to zoom"; }
+.f3d-active .f3d-hint::after { content: "scroll to zoom · Esc to release"; }
+.f3d:not(.f3d-ready) .f3d-hint, .f3d:not(.f3d-ready) .f3d-reset { display: none; }
+.f3d-badge { position: absolute; left: 12px; top: 12px; z-index: 2; pointer-events: none; max-width: calc(100% - 130px);
+  font: 500 11.5px/1.35 var(--mono); color: var(--fg); background: rgba(31, 31, 29, .78); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; }
+
+/* controls under the stage (built by the figure's builder; empty in the static fallback) */
+.f3d-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 12px; }
+.f3d-ctl:empty { display: none; }
+.f3d-static .f3d-ctl { display: none; }
+.f3d-seg { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.f3d-seg-l { font: 500 11.5px/1 var(--mono); color: var(--fg-3); margin-right: 4px; text-transform: lowercase; }
+.f3d-seg button, .f3d-chk { height: 30px; padding: 0 12px; cursor: pointer; border-radius: 999px; font: 500 13px/1 var(--font);
+  color: var(--fg-2); background: rgba(255, 255, 255, .04); border: 1px solid var(--line-strong); }
+.f3d-seg button:hover, .f3d-chk:hover { background: rgba(255, 255, 255, .09); color: var(--fg); }
+.f3d-seg button[aria-pressed="true"], .f3d-chk[aria-pressed="true"] { background: var(--fg); color: var(--ink); border-color: transparent; }
+.f3d-time { display: flex; align-items: center; gap: 10px; flex: 1 1 100%; min-width: 0; flex-wrap: wrap; }
+.f3d-play { flex: none; width: 34px; height: 34px; border-radius: 999px; cursor: pointer; border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, .04); color: var(--accent); font: 600 11px var(--mono); }
+.f3d-time input[type=range] { flex: 1 1 120px; min-width: 60px; accent-color: var(--accent); }
+.f3d-out { flex: 0 1 auto; min-width: 0; font: 500 12px/1.4 var(--mono); color: var(--fg-2); font-variant-numeric: tabular-nums; }
+.f3d-key { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 500 12px/1.3 var(--mono); color: var(--fg-3); }
+.f3d-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.f3d-read { flex-basis: 100%; margin: 0; font: 500 12.5px/1.45 var(--mono); color: var(--fg-2); font-variant-numeric: tabular-nums; }
+
+/* still-image fallback note (reduced motion, phones, no WebGL) */
+.f3d-static figcaption::before { content: "Still image of an interactive 3D figure. "; color: var(--fg-3); }
+
+/* ?f3dshot=<id>: one figure full-window, for making the still images */
+html.f3d-shot-mode, html.f3d-shot-mode body { overflow: hidden !important; }
+.f3d-shot .f3d-stage { position: fixed !important; inset: 0 !important; z-index: 9999; border-radius: 0; border: 0; aspect-ratio: auto; }
+html.f3d-shot-mode body * { visibility: hidden !important; }
+.f3d-shot .f3d-stage, .f3d-shot .f3d-stage * { visibility: visible !important; }
+.f3d-shot .f3d-reset, .f3d-shot .f3d-hint, .f3d-shot .f3d-load { display: none !important; }
+@media (max-width: 720px) { .f3d-stage { border-radius: 14px; } }
+.f3d-none { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font: 500 13px/1.4 var(--mono); color: var(--fg-3); }
+.f3d-ready .f3d-none { display: none; }

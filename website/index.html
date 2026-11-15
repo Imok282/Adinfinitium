@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adinfinitium · Autonomy that lands where missions survive</title>
+<meta name="description" content="Adinfinitium builds landing and surface autonomy for the Moon, tested in thousands of simulated missions on real NASA terrain before flight. Products: Adinfinitium Pilot and Adinfinitium Navigator.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/barcharts.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body class="company-home">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main" class="ch">
+  <!-- Hero: an inset rounded 3D card (js/hero3d.js, poster fallback) that expands to full-bleed as you scroll (js/home.js).
+       Depth layers: stars / Moon limb / lander move at different speeds (camera rise in hero3d), the text layer moves fastest. -->
+  <section class="ch-hero" data-hero>
+    <div class="ch-hero-pin">
+      <div id="hero3d" class="hero3d" aria-hidden="true"></div>
+      <div class="ch-hero-text" data-depth="1">
+        <h1>Autonomy that lands where <span class="serif">missions survive.</span></h1>
+        <p class="lede">Landing and surface autonomy, tested in thousands of simulated missions before flight.</p>
+        <a class="ch-play" href="landing.html"><span class="ch-play-ic"><i class="ch-ring" aria-hidden="true"></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="ch-play-t">Watch a mission land</span></a>
+        <div class="btn-row ch-secondary">
+          <a class="btn btn-secondary" href="research.html">Read the research <span class="arr" aria-hidden="true">→</span></a>
+          <a class="btn btn-secondary" href="#waitlist">Join the waitlist</a>
+        </div>
+      </div>
+      <p class="ch-scroll" aria-hidden="true">Scroll to explore</p>
+    </div>
+  </section>
+
+  <!-- Cinematic card: a looping preview of the landing story (Ken-Burns crossfade of real frames from landing.html) -->
+  <section class="ch-sec ch-reel-sec" id="reel">
+    <a class="ch-reel" href="landing.html" aria-label="Watch a landing: from lunar orbit to the rover's first drive">
+      <span class="ch-reel-frames" data-parallax aria-hidden="true">
+        <img src="assets/img/preview_orbit.jpg" alt=""><img src="assets/img/preview_descent.jpg" alt=""><img src="assets/img/preview_touchdown.jpg" alt=""><img src="assets/img/preview_rover.jpg" alt="">
+      </span>
+      <span class="ch-reel-shade" aria-hidden="true"></span>
+      <span class="ch-reel-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+      <span class="ch-reel-cap"><b>Watch a landing</b><span>From lunar orbit to the rover's first drive, simulated on real NASA terrain.</span></span>
+    </a>
+  </section>
+
+  <!-- Products -->
+  <section class="ch-sec" id="products" aria-labelledby="prod-h">
+    <h2 id="prod-h" class="ch-h">Two products, <span class="serif">one mission.</span></h2>
+    <div class="ch-products">
+      <a class="ch-prod sage" href="pilot.html" data-spot>
+        <div class="ch-prod-img" role="img" aria-label="Simulated descent tracks converging on a landing target on Site 06 terrain"><i data-parallax style="background-image:url(assets/models3d/still_ghosts.jpg)"></i></div>
+        <div class="ch-prod-txt">
+          <p class="ch-prod-name">Adinfinitium Pilot</p>
+          <p class="ch-prod-line">Landing and surface autonomy software that flies on your spacecraft, with a physics backup for every learned part.</p>
+          <span class="ch-stat"><b>98.39 %</b> simulated landings on unseen terrain <small>results.json</small></span>
+          <span class="ch-more">Explore Pilot →</span>
+        </div>
+      </a>
+      <a class="ch-prod lavender" href="navigator.html" data-spot>
+        <div class="ch-prod-img" role="img" aria-label="Planned rover route over Site 23 terrain"><i data-parallax style="background-image:url(assets/img/rover_route_site23.png)"></i></div>
+        <div class="ch-prod-txt">
+          <p class="ch-prod-name">Adinfinitium Navigator</p>
+          <p class="ch-prod-line">Pick the landing site and date, then test the mission in thousands of simulations before it flies.</p>
+          <span class="ch-more">Explore Navigator →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Big type over 3D: huge words over the fixed Moon; the 3D lander comes to the centre, low over the limb (js/hero3d.js state "big") -->
+  <section class="ch-big" id="bigtype" aria-labelledby="big-h">
+    <div class="ch-big-pin">
+      <h2 id="big-h" class="ch-big-h">Lands where <span class="serif">missions survive.</span></h2>
+    </div>
+  </section>
+
+  <!-- "Watch it learn": training teaser (no numbers) -->
+  <section class="ch-sec" id="learn" aria-labelledby="learn-h">
+    <div class="ch-learn">
+      <div>
+        <h2 id="learn-h" class="ch-h">Watch it <span class="serif">learn.</span></h2>
+        <p class="ch-prod-line">Our networks were trained during the hackathon on real NASA lunar terrain and tested in simulation. The training logs are public, failed runs included, and so is where we go next: what more training is projected to give, and the targets still ahead.</p>
+      </div>
+      <div class="ch-learn-links">
+        <a class="ch-learn-a" href="landing.html#landing" data-spot><span>Every simulated descent</span><b>See the landing tracks →</b></a>
+        <a class="ch-learn-a" href="research/training.html" data-spot><span>How each model was trained</span><b>Read the training notes →</b></a>
+        <a class="ch-learn-a" href="research/benchmarks.html#projected" data-spot><span>Measured, projected, target</span><b>See the roadmap →</b></a>
+      </div>
+      <div class="ch-learn-chart" id="learn-chart" aria-label="Headline benchmark results"></div>
+      <p class="ch-learn-note">Simulation and model evaluation on NASA LOLA terrain. The unseen-map pilot gain is p = 0.019 before and p = 0.074 after correcting for the four lander tests; the weak spots are listed in <a href="research/benchmarks.html#limits">Limits</a>.</p>
+    </div>
+  </section>
+
+  <!-- Latest research -->
+  <section class="ch-sec" id="research" aria-labelledby="res-h">
+    <div class="ch-head-row">
+      <h2 id="res-h" class="ch-h">Latest <span class="serif">research</span></h2>
+      <a class="text-link" href="research.html">All research →</a>
+    </div>
+    <div class="ch-research">
+      <a class="res-card ch-rc" href="research/pilot-benchmark.html" data-spot><time>Nov 2026</time><h3>A learned pilot on unseen terrain</h3><p>Paired missions against classic guidance, with engine-outs and blind cameras.</p></a>
+      <a class="res-card ch-rc" href="research/hazard-model.html" data-spot><time>Nov 2026</time><h3>Hazard maps from sparse laser data</h3><p>A U-Net checked against the slope rule on a site it never saw.</p></a>
+      <a class="res-card ch-rc" href="research/dream-rsi.html" data-spot><time>Nov 2026</time><h3>Dream-RSI</h3><p>Offline self-improvement that is only accepted when it beats a frozen exam.</p></a>
+      <a class="res-card ch-rc" href="research/benchmarks.html" data-spot><time>Nov 2026</time><h3>Benchmarks</h3><p>How we test: maps, failure rates, and what counts as a landing.</p></a>
+    </div>
+  </section>
+
+  <!-- Overscroll to the landing: at the bottom of the page, keep scrolling and the band fills; at 100 % it opens landing.html -->
+  <a class="ch-over" href="landing.html" aria-label="Keep scrolling to watch a mission land"><i class="ch-over-fill" aria-hidden="true"></i><span>Keep scrolling to watch a mission land ↓</span></a>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+
+<script type="module">import { mountBarCharts, loadCtx } from './js/barcharts.js'; import { HOME_SPECS } from './js/benchspecs.js';
+  loadCtx().then(ctx => { const el = document.getElementById('learn-chart'); return Promise.all(HOME_SPECS.map(h => mountBarCharts(el, h.family, [h.spec], { ink: true, min: 240, ctx }))); });</script>
+<script type="module" src="js/nav.js"></script>
+<script type="module">
+  import('./js/home.js').then(m => m.mountHome()).catch(e => console.warn('home', e));
+</script>
+</body>
+</html>

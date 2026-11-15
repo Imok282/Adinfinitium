@@ -1,0 +1,1054 @@
+{
+  "placeholder": false,
+  "meta": {
+    "provenance": "modelled",
+    "source": "Mac mini hand-off 15 Nov 2026 (data/handoff_macmini_1115 + ~/Downloads/adinfinitium_handoff_core.tar.gz records) and team PC results (results_pc/extracted); every row carries its own source. All rover, lander and planner numbers are simulation results; hazard/light/terrain truth is derived from NASA LOLA 5 m data.",
+    "frame": "n/a",
+    "units": "per metric",
+    "built": "2026-11-15 by the benchmark lead; benchmarks only, nothing trained, tuned or re-flown; full tables and failure analysis in data/handoff_macmini_1115/BENCHMARKS.md",
+    "note": "Paired comparisons: every row of a family is scored on the same windows / missions / worlds. ci95 = 95% interval (window or world bootstrap, Wilson for lander rates, site bootstrap for rover). 'ours' marks project models. Best value per column is highlighted automatically, including trivial baselines."
+  },
+  "families": [
+    {
+      "id": "hazard",
+      "name": "Hazard",
+      "lede": "Which 5 m ground cells are too steep to land on (NASA LOLA slope of 12 degrees or more).",
+      "chart_metric": "f1_fresh",
+      "test_set": "Six fresh sites never used for training or selection (DM1, LM7, NPA, NPB, NPC, NPD; one 1024x1024 window each) and held-out Site23 (13 windows) + Site42 (6 windows). All pixels; truth is NASA's 5 m slope map (about 90% of it interpolated, see notes).",
+      "source": "archive ./macbook/records/weak_flags/hazard.json (per-window confusion counts, frozen checkpoint hazard_unet_big cd6c4383eb; reproduces frozen_run/runs/hazard/eval.json exactly on Site23/42); pooled + window-bootstrap CIs derived for this table",
+      "metrics": [
+        {
+          "id": "f1_fresh",
+          "label": "F1, fresh sites",
+          "unit": "",
+          "better": "higher",
+          "digits": 3,
+          "definition": "Harmonic mean of precision and recall for unsafe pixels, confusion counts pooled over the six fresh-site windows."
+        },
+        {
+          "id": "f1_heldout",
+          "label": "F1, Site23+42",
+          "unit": "",
+          "better": "higher",
+          "digits": 3,
+          "definition": "Same F1, pooled over the 19 held-out windows of Site23 and Site42 (73% of their pixels are unsafe)."
+        },
+        {
+          "id": "recall_fresh",
+          "label": "Recall, fresh",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Share of truly unsafe pixels on the fresh sites that the method flags as unsafe."
+        },
+        {
+          "id": "false_alarm_fresh",
+          "label": "False alarms, fresh",
+          "unit": "%",
+          "better": "lower",
+          "digits": 1,
+          "definition": "Share of truly safe pixels on the fresh sites wrongly flagged as unsafe."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Hazard U-Net (ours, 60.4 M)",
+          "ours": true,
+          "values": {
+            "f1_fresh": 0.757,
+            "f1_heldout": 0.951,
+            "recall_fresh": 81.3,
+            "false_alarm_fresh": 5.1
+          },
+          "ci95": {
+            "f1_fresh": [
+              0.501,
+              0.805
+            ],
+            "f1_heldout": [
+              0.932,
+              0.967
+            ],
+            "recall_fresh": [
+              46.4,
+              88.9
+            ],
+            "false_alarm_fresh": [
+              1.0,
+              11.1
+            ]
+          },
+          "n": "fresh: 6 windows / 6,291,456 px; held-out: 19 windows / 19,922,944 px",
+          "source": "archive ./macbook/records/weak_flags/hazard.json windows[*].network_frozen.all",
+          "note": "Ahead of the backup in 6 of 6 fresh and 19 of 19 held-out windows; F1 difference vs backup +0.465 [0.296, 0.564] fresh, +0.134 [0.087, 0.196] held-out (paired window bootstrap)."
+        },
+        {
+          "name": "Slope-rule backup (0 params)",
+          "ours": false,
+          "values": {
+            "f1_fresh": 0.292,
+            "f1_heldout": 0.817,
+            "recall_fresh": 30.0,
+            "false_alarm_fresh": 11.4
+          },
+          "ci95": {
+            "f1_fresh": [
+              0.17,
+              0.373
+            ],
+            "f1_heldout": [
+              0.742,
+              0.876
+            ],
+            "recall_fresh": [
+              20.4,
+              45.2
+            ],
+            "false_alarm_fresh": [
+              8.9,
+              14.3
+            ]
+          },
+          "n": "fresh: 6 windows / 6,291,456 px; held-out: 19 windows / 19,922,944 px",
+          "source": "archive ./macbook/records/weak_flags/hazard.json windows[*].physics_backup.all",
+          "note": "Slope rule on a gap-filled surface (worldmodel/hazard/backup.py). On Site23+42 its pooled F1 is below the constant baseline."
+        },
+        {
+          "name": "Constant: flag everything unsafe",
+          "ours": false,
+          "values": {
+            "f1_fresh": 0.233,
+            "f1_heldout": 0.843,
+            "recall_fresh": 100.0,
+            "false_alarm_fresh": 100.0
+          },
+          "ci95": {
+            "f1_fresh": [
+              0.067,
+              0.398
+            ],
+            "f1_heldout": [
+              0.787,
+              0.895
+            ]
+          },
+          "n": "fresh: 6 windows / 6,291,456 px; held-out: 19 windows / 19,922,944 px",
+          "source": "derived for this table from the same confusion counts (tp=all unsafe, fp=all safe)",
+          "note": "Trivial reference: recall 100% by construction; shows how much of a high F1 comes from steep, mostly-unsafe test windows."
+        }
+      ]
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "lede": "The skyline (horizon height in 360 directions) of each cell, which decides when it sees the Sun and the Earth.",
+      "chart_metric": "skyline_err",
+      "test_set": "Held-out Site23 (13 windows) + Site42 (6 windows), 1,000 sampled cells per window; fresh sites DM1, LM7, NPA-NPD (1 window each, 1,000 cells). Truth = exact ray-cast of the 5 m LOLA grid (rays cut at 1,280 m).",
+      "source": "frozen_run/runs/light/eval.json (per-window values, TEST role) and archive ./macbook/records/weak_flags/light.json (fresh_sites; 6,000-step candidate); means over windows with window-bootstrap CIs derived for this table",
+      "metrics": [
+        {
+          "id": "skyline_err",
+          "label": "Skyline error, Site23+42",
+          "unit": "°",
+          "better": "lower",
+          "digits": 3,
+          "definition": "Mean absolute error of the predicted horizon elevation over all 360 directions, averaged over the 19 held-out windows."
+        },
+        {
+          "id": "skyline_err_fresh",
+          "label": "Skyline error, fresh",
+          "unit": "°",
+          "better": "lower",
+          "digits": 3,
+          "definition": "Same error averaged over the six fresh-site windows."
+        },
+        {
+          "id": "hours_err",
+          "label": "Sunlit-hours error",
+          "unit": "h",
+          "better": "lower",
+          "digits": 1,
+          "definition": "Mean absolute error in sunlit hours per cell over the simulated period, averaged over the 19 held-out windows."
+        },
+        {
+          "id": "runtime",
+          "label": "Runtime per window",
+          "unit": "s",
+          "better": "lower",
+          "digits": 2,
+          "definition": "Wall-clock seconds to produce 1,000 cells on the Mac mini (MPS), mean over the 19 held-out windows."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Skyline transformer (ours, 38.3 M, 3,258 steps; presented)",
+          "ours": true,
+          "values": {
+            "skyline_err": 0.45,
+            "skyline_err_fresh": 0.243,
+            "hours_err": 7.6,
+            "runtime": 7.41
+          },
+          "ci95": {
+            "skyline_err": [
+              0.378,
+              0.523
+            ],
+            "skyline_err_fresh": [
+              0.188,
+              0.296
+            ],
+            "hours_err": [
+              5.8,
+              9.4
+            ]
+          },
+          "n": "19 held-out windows x 1,000 cells; 6 fresh windows x 1,000 cells",
+          "source": "frozen_run/runs/light/eval.json regions[TEST].skyline_model / light_model; weak_flags/light.json fresh_sites.*.skyline_frozen_3258",
+          "note": "Lower error than the backup in 19 of 19 held-out windows (paired difference -0.120 deg [-0.144, -0.097]) and 6 of 6 fresh windows; about 227 times slower."
+        },
+        {
+          "name": "Same network after 6,000 steps (not adopted)",
+          "ours": true,
+          "values": {
+            "skyline_err": 0.4489,
+            "skyline_err_fresh": 0.2439
+          },
+          "n": "same windows and cells",
+          "source": "archive ./macbook/records/weak_flags/REPORT_light.md line 19 and line 90; weak_flags/light.json",
+          "note": "Change -0.0014 deg held-out, below the pre-registered 0.005 deg; slightly worse on fresh sites. Frozen checkpoint kept."
+        },
+        {
+          "name": "Coarse ray-cast backup (0 params)",
+          "ours": false,
+          "values": {
+            "skyline_err": 0.57,
+            "skyline_err_fresh": 0.321,
+            "hours_err": 10.5,
+            "runtime": 0.033
+          },
+          "ci95": {
+            "skyline_err": [
+              0.476,
+              0.667
+            ],
+            "skyline_err_fresh": [
+              0.242,
+              0.399
+            ],
+            "hours_err": [
+              7.9,
+              13.1
+            ]
+          },
+          "n": "same windows and cells (paired)",
+          "source": "frozen_run/runs/light/eval.json regions[TEST].skyline_baseline / light_baseline; weak_flags/light.json fresh_sites.*.skyline_backup",
+          "note": "Exact ray-cast on terrain averaged 4x coarser (worldmodel/light/teacher.py). This is what the rover actually uses."
+        }
+      ]
+    },
+    {
+      "id": "terrain",
+      "name": "Terrain",
+      "lede": "Height filled in between the laser points (hide half the laser returns, predict them from the rest).",
+      "chart_metric": "rmse_heldout",
+      "test_set": "Hide-and-check on real LOLA laser pixels: 96 patches per window, half the laser pixels hidden. Held-out Site23 (13 windows) + Site42 (6 windows); fresh sites DM1, LM7, NPA-NPD. Settings of every classical method chosen on Site11 only.",
+      "source": "archive ./macbook/records/weak_flags/terrain.json (heldout) and terrain_fresh.json; network calibrated band from archive ./macbook/records/terrain_calibration/calibration.json; pooled RMSE and window-bootstrap CIs derived for this table",
+      "metrics": [
+        {
+          "id": "rmse_heldout",
+          "label": "Height RMSE, Site23+42",
+          "unit": "m",
+          "better": "lower",
+          "digits": 2,
+          "definition": "Root-mean-square error on the hidden real laser heights, pooled over all hidden pixels of the 19 held-out windows."
+        },
+        {
+          "id": "rmse_fresh",
+          "label": "Height RMSE, fresh",
+          "unit": "m",
+          "better": "lower",
+          "digits": 2,
+          "definition": "Same, pooled over the six fresh-site windows (47,074 hidden pixels)."
+        },
+        {
+          "id": "band_cov",
+          "label": "90% band coverage",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "How often the hidden real height falls inside the stated 90% band on Site23+42 (target 90%; above 90% only means a wider band)."
+        },
+        {
+          "id": "band_width",
+          "label": "Band width",
+          "unit": "m",
+          "better": "lower",
+          "digits": 2,
+          "definition": "Mean width of that band; a useful band is close to 90% coverage and narrow."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Kriging (Matern 3/2; presented estimator, 0 params)",
+          "ours": true,
+          "values": {
+            "rmse_heldout": 0.97,
+            "rmse_fresh": 0.97,
+            "band_cov": 86.2,
+            "band_width": 2.38
+          },
+          "ci95": {
+            "rmse_heldout": [
+              0.87,
+              1.08
+            ],
+            "rmse_fresh": [
+              0.79,
+              1.25
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; fresh: 6 windows, 47,074 px",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['gp|mat32|32.0|0.01|1'].windows; weak_flags/terrain_fresh.json sites.*.methods['gp|mat32|32.0|0.01|1']",
+          "note": "Beats the network in 19 of 19 held-out windows and 6 of 6 fresh sites. Band = kriging std x 9.208 (fitted on Site11)."
+        },
+        {
+          "name": "Thin-plate spline, smoothed",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 0.98,
+            "rmse_fresh": 0.96
+          },
+          "ci95": {
+            "rmse_heldout": [
+              0.88,
+              1.1
+            ],
+            "rmse_fresh": [
+              0.77,
+              1.24
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; fresh: 6 windows, 47,074 px",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['tps_smooth|10.0'].windows; weak_flags/terrain_fresh.json sites.*.methods['tps_smooth|10.0']",
+          "note": "Statistically tied with kriging."
+        },
+        {
+          "name": "Radial basis, linear",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 1.13
+          },
+          "ci95": {
+            "rmse_heldout": [
+              0.99,
+              1.29
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; not run on fresh sites",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['rbf|linear'].windows",
+          "note": ""
+        },
+        {
+          "name": "Thin-plate spline, exact",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 1.09
+          },
+          "ci95": {
+            "rmse_heldout": [
+              0.97,
+              1.24
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; not run on fresh sites",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['tps|None'].windows",
+          "note": ""
+        },
+        {
+          "name": "Linear (Delaunay) interpolation",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 1.68,
+            "rmse_fresh": 1.53
+          },
+          "ci95": {
+            "rmse_heldout": [
+              1.42,
+              1.99
+            ],
+            "rmse_fresh": [
+              1.12,
+              2.11
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; fresh: 6 windows, 47,074 px",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['linear'].windows; weak_flags/terrain_fresh.json sites.*.methods['linear']",
+          "note": ""
+        },
+        {
+          "name": "Clough-Tocher",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 1.79
+          },
+          "ci95": {
+            "rmse_heldout": [
+              1.52,
+              2.12
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; not run on fresh sites",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['clough_tocher'].windows",
+          "note": ""
+        },
+        {
+          "name": "Diffusion U-Net (ours, 49.9 M; experiment)",
+          "ours": true,
+          "values": {
+            "rmse_heldout": 2.01,
+            "rmse_fresh": 1.62,
+            "band_cov": 86.8,
+            "band_width": 8.38
+          },
+          "ci95": {
+            "rmse_heldout": [
+              1.78,
+              2.31
+            ],
+            "rmse_fresh": [
+              1.29,
+              2.07
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; fresh: 6 windows, 47,074 px",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['network'].windows; weak_flags/terrain_fresh.json sites.*.methods['network']",
+          "note": "Mean of 6 sampled versions, unseeded re-run (frozen run: 1.84 / 2.82 m). Raw band covered only 21.9% / 37.3%; the calibrated band (x8.232, fitted on Site11) is shown. Weight in the fitted network+kriging blend: 0.0064."
+        },
+        {
+          "name": "Inverse-distance weighting",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 2.5
+          },
+          "ci95": {
+            "rmse_heldout": [
+              2.12,
+              2.93
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; not run on fresh sites",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['idw|3.0|8'].windows",
+          "note": ""
+        },
+        {
+          "name": "Nearest neighbour",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 3.41
+          },
+          "ci95": {
+            "rmse_heldout": [
+              2.91,
+              4.01
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; not run on fresh sites",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['nearest'].windows",
+          "note": ""
+        },
+        {
+          "name": "Old gap-fill backup (frozen run)",
+          "ours": false,
+          "values": {
+            "rmse_heldout": 19.16,
+            "rmse_fresh": 10.23
+          },
+          "ci95": {
+            "rmse_heldout": [
+              15.06,
+              23.73
+            ],
+            "rmse_fresh": [
+              6.73,
+              13.84
+            ]
+          },
+          "n": "held-out: 19 windows, 314,291 hidden laser pixels; fresh: 6 windows, 47,074 px",
+          "source": "archive ./macbook/records/weak_flags/terrain.json heldout.sites.*.methods['backup_as_frozen'].windows; weak_flags/terrain_fresh.json sites.*.methods['backup']",
+          "note": "The only competitor in the frozen run; far weaker than any real interpolator."
+        }
+      ]
+    },
+    {
+      "id": "pilot",
+      "name": "Pilot",
+      "lede": "Flying the final descent to a safe touchdown, with engine-outs, navigation drift and blind cameras injected.",
+      "chart_metric": "success",
+      "test_set": "Paired fixed-seed missions (same missions for both). Unseen maps for the pilot: Site42, Shoemaker, DM2 (normal and 3x harsh failure rates). Final exam: Site23, flown once on 15 Nov 14:27 and never again.",
+      "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json, benchmark_site23_final.json, benchmark.md, benchmark_site23_final.md",
+      "metrics": [
+        {
+          "id": "success",
+          "label": "Landing success, unseen",
+          "unit": "%",
+          "better": "higher",
+          "digits": 2,
+          "definition": "Share of the 2,304 paired missions on the three unseen maps that touch down within speed, tilt and slope limits (normal failure rates)."
+        },
+        {
+          "id": "success_harsh",
+          "label": "Success, harsh",
+          "unit": "%",
+          "better": "higher",
+          "digits": 2,
+          "definition": "Same missions with engine-out, nav-drift and blind-camera rates tripled."
+        },
+        {
+          "id": "success_exam",
+          "label": "Success, Site23 exam",
+          "unit": "%",
+          "better": "higher",
+          "digits": 2,
+          "definition": "Share of the 1,024 paired Site23 final-exam missions landed (normal rates; flown once)."
+        },
+        {
+          "id": "engine_out",
+          "label": "Success after engine-out",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Success on the 243 unseen-map normal-rate missions that had an injected engine failure."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Lander pilot (ours, 14,842,567 params; residual on classic)",
+          "ours": true,
+          "values": {
+            "success": 98.39,
+            "success_harsh": 96.92,
+            "success_exam": 97.95,
+            "engine_out": 95.9
+          },
+          "ci95": {
+            "success": [
+              97.79,
+              98.83
+            ],
+            "success_harsh": [
+              96.13,
+              97.55
+            ],
+            "success_exam": [
+              96.89,
+              98.65
+            ]
+          },
+          "extra_values": {
+            "miss_m_successful_unseen_normal": 4.07,
+            "fuel_kg_successful_unseen_normal": 65.0,
+            "touchdown_vz_m_s_unseen_normal": 1.114,
+            "nav_drift_success_unseen_normal_pct": 92.7,
+            "camera_blind_success_unseen_normal_pct": 97.2,
+            "site23_harsh_success_pct": 96.3
+          },
+          "n": "2,304 paired missions per condition on 3 unseen maps (768 per map); 1,024 paired missions on Site23; engine-out subset n = 243",
+          "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json (identical to repo runs/lander/benchmark.json and to the mini's replication) and benchmark_site23_final.json; engine-out and miss/fuel pooled over maps for this table",
+          "note": "Pilot minus classic: +0.74 pts [+0.16, +1.32], exact McNemar p = 0.0186 (32 vs 15 discordant) on unseen normal; harsh +0.61 pts, p = 0.18; Site23 exam +0.00 (11 vs 11), harsh -0.20, p = 0.87. Whole unseen gain is from Site42."
+        },
+        {
+          "name": "Classic ZEM/ZEV guidance (0 params)",
+          "ours": false,
+          "values": {
+            "success": 97.66,
+            "success_harsh": 96.31,
+            "success_exam": 97.95,
+            "engine_out": 98.4
+          },
+          "ci95": {
+            "success": [
+              96.95,
+              98.2
+            ],
+            "success_harsh": [
+              95.46,
+              97.01
+            ],
+            "success_exam": [
+              96.89,
+              98.65
+            ]
+          },
+          "extra_values": {
+            "miss_m_successful_unseen_normal": 4.1,
+            "fuel_kg_successful_unseen_normal": 71.5,
+            "touchdown_vz_m_s_unseen_normal": 1.0,
+            "nav_drift_success_unseen_normal_pct": 91.1,
+            "camera_blind_success_unseen_normal_pct": 98.2,
+            "site23_harsh_success_pct": 96.5
+          },
+          "n": "2,304 paired missions per condition on 3 unseen maps (768 per map); 1,024 paired missions on Site23; engine-out subset n = 243",
+          "source": "data/handoff_macmini_1115/lander_mini/runs/lander/benchmark.json (identical to repo runs/lander/benchmark.json and to the mini's replication) and benchmark_site23_final.json; engine-out and miss/fuel pooled over maps for this table",
+          "note": "worldmodel/lander/guidance.py classic_action; sees the same noisy observation."
+        }
+      ]
+    },
+    {
+      "id": "planner",
+      "name": "Planner",
+      "lede": "Choosing the landing cell and hour where the whole mission (land, reach ice edge, return) most likely succeeds.",
+      "chart_metric": "chosen_p",
+      "test_set": "Held-out Site23, 7 dates (worlds), 96 candidate (cell, hour) per world. Label = simulated p(mission) from 32 lander-twin + rover-environment missions per candidate. Planner trained on Site01/06/07/20 only. Site42 has no label files.",
+      "source": "results_pc/extracted/runs/planner/eval.json (team PC, 14 Nov 23:54) + per-world re-derivation from data/planner/*.npz and data/models/planner_*.pt (sha256 identical to results_pc)",
+      "metrics": [
+        {
+          "id": "chosen_p",
+          "label": "Chosen-candidate success",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Simulated mission success of the top-ranked candidate, averaged over the 7 test worlds (best possible: 42.4%)."
+        },
+        {
+          "id": "regret",
+          "label": "Regret",
+          "unit": "pts",
+          "better": "lower",
+          "digits": 1,
+          "definition": "Success of the best candidate in the world minus success of the chosen one, in percentage points, averaged over worlds."
+        },
+        {
+          "id": "hit",
+          "label": "Top-1 hit rate",
+          "unit": "%",
+          "better": "higher",
+          "digits": 0,
+          "definition": "Share of the 7 worlds where the chosen candidate is (tied for) the best one."
+        },
+        {
+          "id": "brier",
+          "label": "Brier score",
+          "unit": "",
+          "better": "lower",
+          "digits": 4,
+          "definition": "Mean squared error of the predicted p(mission) against the simulated label over all 672 candidates (calibration; only for models that predict a probability)."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Navigator ranking (hand-set, 0 params; ships)",
+          "ours": false,
+          "values": {
+            "chosen_p": 12.8,
+            "regret": 29.6,
+            "hit": 14.3
+          },
+          "ci95": {
+            "chosen_p": [
+              6.6,
+              19.2
+            ],
+            "regret": [
+              14.7,
+              45.1
+            ]
+          },
+          "n": "7 Site23 worlds (dates 2027-01-01 to 2027-12-01), 672 candidates, 32 simulated missions per candidate",
+          "source": "results_pc/extracted/runs/planner/eval.json test.navigator_backup (values re-derived exactly; top-1 hits and CIs from the per-world re-derivation with repo worldmodel/planner code)",
+          "note": "Exact non-learned score (worldmodel/planner/features.py navigator_score). Only method with a top-1 hit (1 of 7)."
+        },
+        {
+          "name": "PlannerSetNet (ours, 646,401 params)",
+          "ours": true,
+          "values": {
+            "chosen_p": 12.2,
+            "regret": 30.2,
+            "hit": 0.0,
+            "brier": 0.0145
+          },
+          "ci95": {
+            "chosen_p": [
+              2.7,
+              23.6
+            ],
+            "regret": [
+              27.7,
+              32.6
+            ]
+          },
+          "n": "7 Site23 worlds (dates 2027-01-01 to 2027-12-01), 672 candidates, 32 simulated missions per candidate",
+          "source": "results_pc/extracted/runs/planner/eval.json test.set (values re-derived exactly; top-1 hits and CIs from the per-world re-derivation with repo worldmodel/planner code)",
+          "note": "Set - Navigator, chosen success: -0.6 pts [-15.1, +14.9], better in 3 of 7 worlds, worse in 4. Brier worse than predicting the constant mean."
+        },
+        {
+          "name": "Logistic planner (ours, 14 params)",
+          "ours": true,
+          "values": {
+            "chosen_p": 15.2,
+            "regret": 27.2,
+            "hit": 0.0,
+            "brier": 0.0168
+          },
+          "ci95": {
+            "chosen_p": [
+              7.1,
+              23.2
+            ],
+            "regret": [
+              19.6,
+              34.8
+            ]
+          },
+          "n": "7 Site23 worlds (dates 2027-01-01 to 2027-12-01), 672 candidates, 32 simulated missions per candidate",
+          "source": "results_pc/extracted/runs/planner/eval.json test.logistic (values re-derived exactly; top-1 hits and CIs from the per-world re-derivation with repo worldmodel/planner code)",
+          "note": "Logistic - Navigator: +2.3 pts [-7.0, +13.4], better 3, worse 3, tied 1: not significant."
+        },
+        {
+          "name": "Constant mean predictor",
+          "ours": false,
+          "values": {
+            "brier": 0.0125
+          },
+          "n": "672 candidates",
+          "source": "results_pc/extracted/runs/planner/eval.json test.set.brier_constant_mean",
+          "note": "Predicts the test-set mean p(mission) for every candidate (calibration reference only; it cannot rank)."
+        },
+        {
+          "name": "Random pick",
+          "ours": false,
+          "values": {
+            "chosen_p": 1.3,
+            "regret": 41.1,
+            "hit": 0.0
+          },
+          "ci95": {
+            "chosen_p": [
+              0.0,
+              3.1
+            ],
+            "regret": [
+              31.7,
+              51.8
+            ]
+          },
+          "n": "7 Site23 worlds (dates 2027-01-01 to 2027-12-01), 672 candidates, 32 simulated missions per candidate",
+          "source": "results_pc/extracted/runs/planner/eval.json test.random (values re-derived exactly; top-1 hits and CIs from the per-world re-derivation with repo worldmodel/planner code)",
+          "note": "Seeded random scores (seed 0)."
+        }
+      ]
+    },
+    {
+      "id": "rover",
+      "name": "Rover",
+      "lede": "Driving from the lander to a dark shadow-edge target and back before the battery or the light runs out.",
+      "chart_metric": "return_strict",
+      "test_set": "Four untouched sites LM2, LM3, LM4, LM5 (never used before this one evaluation), 4 dates each, 512 rovers per world; kinematic simulation, one decision per hour, 300 h episodes. CIs from resampling sites (only 4 neighbouring sites: rough).",
+      "source": "archive ./macbook/records/rover_v31/tables.md and eval.json (rover v3.1 final evaluation, commit 48b459c)",
+      "metrics": [
+        {
+          "id": "return_strict",
+          "label": "Returned (strict)",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Share of rovers that reach the target and return within 20 m of the lander without the battery ever going empty."
+        },
+        {
+          "id": "lost_strict",
+          "label": "Lost (strict)",
+          "unit": "%",
+          "better": "lower",
+          "digits": 1,
+          "definition": "Share of rovers whose battery is empty at the end of any hour, anywhere (including while parked at the lander)."
+        },
+        {
+          "id": "return_lenient",
+          "label": "Returned (lenient)",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "The simulator's own rule: an empty battery within 20 m of the lander is forgiven."
+        },
+        {
+          "id": "reached",
+          "label": "Reached target",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Share of rovers that got to the shadow-edge target (dark and cold, not confirmed ice), whether or not they came back."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Rover brain v3.1 (ours, scripted, 0 params)",
+          "ours": true,
+          "values": {
+            "return_strict": 33.7,
+            "lost_strict": 53.9,
+            "return_lenient": 48.1,
+            "reached": 50.4
+          },
+          "ci95": {
+            "return_strict": [
+              26.0,
+              42.2
+            ],
+            "lost_strict": [
+              46.8,
+              59.5
+            ],
+            "return_lenient": [
+              32.8,
+              63.4
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": "v3.1 - v3 strict lost: -7.1 pts [-13.8, -3.5], lower at 4 of 4 sites; strict returned +2.7 [+1.9, +3.4]. 419 of the 583 rovers it saves only stay alive without completing a trip."
+        },
+        {
+          "name": "Rover brain v3 (ours, scripted, frozen)",
+          "ours": true,
+          "values": {
+            "return_strict": 31.0,
+            "lost_strict": 61.0,
+            "return_lenient": 46.7,
+            "reached": 49.0
+          },
+          "ci95": {
+            "return_strict": [
+              24.3,
+              38.9
+            ],
+            "lost_strict": [
+              50.4,
+              72.8
+            ],
+            "return_lenient": [
+              30.8,
+              62.5
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": ""
+        },
+        {
+          "name": "Planner: naive (Dijkstra)",
+          "ours": false,
+          "values": {
+            "return_strict": 17.9,
+            "lost_strict": 81.8,
+            "return_lenient": 18.2,
+            "reached": 29.3
+          },
+          "ci95": {
+            "return_strict": [
+              15.4,
+              20.6
+            ],
+            "lost_strict": [
+              79.1,
+              84.4
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": "Best rule-based driver under the strict rule."
+        },
+        {
+          "name": "Planner: cautious (turn back)",
+          "ours": false,
+          "values": {
+            "return_strict": 12.2,
+            "lost_strict": 83.7,
+            "return_lenient": 19.1,
+            "reached": 22.0
+          },
+          "ci95": {
+            "return_strict": [
+              6.6,
+              17.9
+            ],
+            "lost_strict": [
+              78.6,
+              90.3
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": ""
+        },
+        {
+          "name": "Planner: cautious + wait for light",
+          "ours": false,
+          "values": {
+            "return_strict": 14.0,
+            "lost_strict": 78.5,
+            "return_lenient": 14.9,
+            "reached": 16.7
+          },
+          "ci95": {
+            "return_strict": [
+              5.6,
+              22.3
+            ],
+            "lost_strict": [
+              72.2,
+              88.5
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": ""
+        },
+        {
+          "name": "Reference: stay at the lander",
+          "ours": false,
+          "values": {
+            "return_strict": 0.0,
+            "lost_strict": 79.0,
+            "return_lenient": 0.0,
+            "reached": 0.0
+          },
+          "ci95": {
+            "lost_strict": [
+              61.4,
+              96.4
+            ]
+          },
+          "n": "4 untouched sites x 4 dates = 16 worlds, 8,192 rovers per method (paired: same worlds and seeds)",
+          "source": "archive ./macbook/records/rover_v31/tables.md table A; rover_v31/eval.json A_untouched.methods",
+          "note": "Never leaves; under the strict rule 79% still go flat waiting at the lander."
+        }
+      ]
+    },
+    {
+      "id": "rover_learned",
+      "name": "Rover: learned drivers",
+      "lede": "The two neural-network drivers (trial-and-error PPO and imitation) against the rule-based planners they had to beat.",
+      "chart_metric": "returned",
+      "test_set": "Held-out Site23 + Site42, centre windows, 4 dates each (2027-03/06/09/12), 512 rovers per world, simulator's lenient rule. Previously-seen sites for v3; true held-out for v1/v2.",
+      "source": "frozen_run/runs/rover/eval.json (v1 + planners), archive ./macbook/records/rover_v2/eval.json (v2), archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-2 (v3 + planners from the v3 run)",
+      "metrics": [
+        {
+          "id": "returned",
+          "label": "Returned (lenient)",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Share of rovers that reached the target and came back within 20 m of the lander (simulator's rule)."
+        },
+        {
+          "id": "reached",
+          "label": "Reached target",
+          "unit": "%",
+          "better": "higher",
+          "digits": 1,
+          "definition": "Share of rovers that reached the shadow-edge target."
+        },
+        {
+          "id": "died",
+          "label": "Died (lenient)",
+          "unit": "%",
+          "better": "lower",
+          "digits": 1,
+          "definition": "Share of rovers whose battery ran empty away from the lander (or that hit an impassable slope)."
+        }
+      ],
+      "rows": [
+        {
+          "name": "Rover v1, PPO transformer (ours, 11.4 M; FAILED)",
+          "ours": true,
+          "values": {
+            "returned": 0.0,
+            "reached": 1.7,
+            "died": 95.5
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "frozen_run/runs/rover/eval.json; frozen_run/RESULTS_FOR_TEAM.md section 3.4",
+          "note": "Scored checkpoint is the network after update 1 of 144; the policy collapsed to stopping."
+        },
+        {
+          "name": "Rover v2, imitation transformer (ours, 11.4 M; FAILED)",
+          "ours": true,
+          "values": {
+            "returned": 1.2,
+            "reached": 7.4,
+            "died": 95.3
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "archive ./macbook/records/rover_v2/eval.json; rover_v2/ROVER_V2_REPORT.md lines 9-19",
+          "note": "Pre-registered verdict FAILURE; memorised training routes."
+        },
+        {
+          "name": "Planner: naive (Dijkstra)",
+          "ours": false,
+          "values": {
+            "returned": 9.3,
+            "reached": 19.6,
+            "died": 86.8
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-2",
+          "note": ""
+        },
+        {
+          "name": "Planner: cautious",
+          "ours": false,
+          "values": {
+            "returned": 8.8,
+            "reached": 10.4,
+            "died": 54.3
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-2",
+          "note": "Frozen run printed 10.5 / 8.8 / 54.3 (third-decimal difference, cause not established)."
+        },
+        {
+          "name": "Planner: cautious + wait for light",
+          "ours": false,
+          "values": {
+            "returned": 6.0,
+            "reached": 6.9,
+            "died": 73.8
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-2",
+          "note": ""
+        },
+        {
+          "name": "Rover brain v3 (scripted, 0 params; reference)",
+          "ours": true,
+          "values": {
+            "returned": 37.5,
+            "reached": 41.4,
+            "died": 0.0
+          },
+          "n": "8 worlds (Site23 + Site42 x 4 dates) x 512 rovers = 4,096 per method",
+          "source": "archive ./macbook/records/benchmarks/BENCHMARKS.md table 5A-2",
+          "note": "Designed after these sites had been looked at; 0% died only under the lenient rule (strict lost 38.6%)."
+        }
+      ]
+    }
+  ],
+  "not_benchmarked": [
+    {
+      "family": "Swarm / NEAT",
+      "why": "No swarm or TensorNEAT training run exists in the hand-off or the repo (no generation_*.json anywhere); website/assets/data/neat_training.json is sample data. Only a throughput/smoke check (scripts.bench_swarm) exists."
+    },
+    {
+      "family": "Self-improvement loops (Dream-RSI)",
+      "why": "Not a model to rank; reported as gate outcomes in BENCHMARKS.md (pilot 0 of 7 accepted, planner 1 of 5, rover v3 9 of 72, v3.1 9 of 36 + 0 of 8)."
+    },
+    {
+      "family": "Hazard / light / terrain on LM2-LM5",
+      "why": "Never scored there; scoring now would need new model runs on sites whose cleanliness is undocumented and is outside a benchmarks-only brief."
+    },
+    {
+      "family": "Lander vs any baseline other than classic guidance",
+      "why": "Only classic ZEM/ZEV was flown on the paired missions; Site23 may never be flown again and the unseen maps are benchmark-only and already looked at."
+    }
+  ]
+}

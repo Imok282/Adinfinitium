@@ -1,0 +1,85 @@
+/* Mission control page (mission-control.html, js/missioncontrol.js). Page-scoped; warm palette tokens from style.css. */
+.mc-page { max-width: 1160px; margin: 0 auto; padding: 128px 24px 80px; box-sizing: border-box; }
+.mc-head { text-align: center; max-width: 760px; margin: 0 auto 36px; }
+.mc-head h1 { font-size: clamp(36px, 4vw, 60px); margin: 0 0 12px; }
+.mc-head .lede { margin: 0 auto; color: var(--fg-2); }
+
+.mc-bar { display: flex; align-items: center; gap: 16px; background: var(--surface); border-radius: 22px; padding: 14px 18px; position: sticky; top: 84px; z-index: 4;
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .7); }
+.mc-play { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; cursor: pointer; background: var(--accent); color: var(--accent-ink); font: 600 15px/1 var(--mono); }
+.mc-play:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.mc-scrub { flex: 1 1 auto; min-width: 60px; accent-color: var(--accent); }
+.mc-clock { flex: none; display: flex; flex-direction: column; align-items: flex-end; min-width: 200px; }
+.mc-phase { font: 500 11.5px/1.3 var(--mono); color: var(--fg-3); letter-spacing: .03em; }
+.mc-t { font: 600 22px/1.2 var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+
+.mc-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: center; margin: 18px 0 40px; padding: 0;
+  font: 500 12px/1.4 var(--mono); color: var(--fg-3); }
+.mc-steps li { transition: color .2s; }
+.mc-steps li.on { color: var(--accent); }
+
+.mc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 48px; }
+.mc-h { grid-column: 1 / -1; margin: 0 0 4px; font-size: clamp(24px, 2.2vw, 32px); }
+.mc-sub { display: block; font: 400 13px/1.5 var(--mono); color: var(--fg-3); letter-spacing: 0; margin-top: 4px; }
+.mc-card { background: var(--surface); border-radius: 22px; padding: 18px 20px; min-width: 0; }
+.mc-card h3 { margin: 0 0 10px; font: 500 12.5px/1.3 var(--mono); color: var(--fg-3); letter-spacing: .02em; }
+.mc-nums { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; background: var(--sand); color: var(--ink); }
+.mc-nums div { display: flex; flex-direction: column; gap: 6px; }
+.mc-nums span { font: 500 12px/1.3 var(--mono); color: var(--ink-2); }
+.mc-nums b { font: 400 clamp(30px, 3.2vw, 46px)/1 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.mc-rover .mc-nums { background: var(--lavender); }
+
+.mc-card svg { display: block; width: 100%; }
+.mc-chart svg { height: 210px; }
+.mc-grid { align-items: start; }
+.mc-card .grid { stroke: rgba(240, 238, 230, .07); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.mc-card .ghost { fill: none; stroke: rgba(240, 238, 230, .18); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.mc-card .live { fill: none; stroke-width: 2.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.mc-card .live.amber { stroke: var(--accent); }
+.mc-card .dot.amber { fill: var(--accent); }
+.mc-card .ax { font: 10px var(--mono); fill: var(--fg-3); }
+.mc-map svg { aspect-ratio: 1; max-height: 230px; margin: 0 auto; }
+.mc-map .ring { fill: none; stroke: rgba(240, 238, 230, .12); }
+.mc-map .tgt { fill: none; stroke: var(--sand); stroke-width: 1.5; }
+.mc-map .haz { fill: rgba(229, 128, 122, .35); }
+.mc-map .ice { fill: var(--data); }
+.mc-route { grid-column: span 1; }
+
+.mc-log ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--fg-2); }
+.mc-log code { font: 500 11.5px var(--mono); color: var(--accent); margin-right: 6px; }
+.mc-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+.mc-gauge { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.mc-gauge svg { width: 100%; max-width: 150px; }
+.mc-gauge path { fill: none; stroke-width: 9; stroke-linecap: round; }
+.mc-gauge .bg { stroke: rgba(240, 238, 230, .1); }
+.mc-gauge .fg { stroke: var(--sage); stroke-dasharray: 1 1; stroke-dashoffset: 1; transition: stroke-dashoffset .5s; }
+.mc-gauge b { font: 400 30px/1 var(--display); color: var(--fg); margin-top: -18px; font-variant-numeric: tabular-nums; }
+.mc-gauge span { font: 500 11.5px/1.3 var(--mono); color: var(--fg-3); margin-top: 6px; }
+.mc-src { text-align: center; color: var(--fg-3); font: 400 12px/1.5 var(--mono); overflow-wrap: anywhere; }
+.mc-failed .mc-grid { opacity: .4; }
+
+@media (max-width: 900px) { .mc-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) {
+  .mc-page { padding: 104px 16px 60px; }
+  .mc-grid { grid-template-columns: 1fr; }
+  .mc-bar { top: 72px; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+  .mc-clock { min-width: 0; flex-basis: 100%; align-items: flex-start; }
+  .mc-t { font-size: 18px; }
+}
+
+/* calm intro: tiles stagger in once (index --i set by js/missioncontrol.js); one beam border on the live tile */
+@keyframes mcIn { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); } to { opacity: 1; transform: none; } }
+.mc-page .mc-card, .mc-page .mc-bar { animation: mcIn .6s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 55ms + 120ms); }
+@property --mc-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.mc-beam { position: relative; }
+.mc-beam::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--mc-a), transparent 0 72%, rgba(217, 119, 87, .25) 82%, var(--accent) 92%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: mcBeam 5s linear infinite; }
+@keyframes mcBeam { to { --mc-a: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .mc-page .mc-card, .mc-page .mc-bar { animation: none; }
+  .mc-beam::before { animation: none; }
+}
+.mc-replay-link { margin: 14px auto 0; font-size: 15px; color: var(--fg-3); }

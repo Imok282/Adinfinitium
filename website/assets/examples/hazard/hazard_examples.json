@@ -1,0 +1,244 @@
+{
+ "model": "hazard U-Net",
+ "checkpoint": "data/models/hazard_unet.pt",
+ "checkpoint_id": "b0ac044446",
+ "trained_on": [
+  "lola5m_site01",
+  "lola5m_site04",
+  "lola5m_site06",
+  "lola5m_site07",
+  "lola5m_site20"
+ ],
+ "validated_on": [
+  "lola5m_site11"
+ ],
+ "threshold": 0.5,
+ "slope_limit_deg": 12.0,
+ "input": "only real LOLA laser pixels (~11% of ground) + uncertainty; gaps refilled by fixed gaussian gap-fill; the input image is a hillshade of that gap-filled surface (amber dots = real laser pixels in the _laser variant)",
+ "truth": "official LOLA 5 m slope >= 12 deg (NASA product; computed from interpolated heights)",
+ "error_legend": {
+  "red": "missed hazard (FN)",
+  "blue": "false alarm (FP)",
+  "light grey": "hazard found (TP)",
+  "dark": "safe, correct"
+ },
+ "mask_legend": {
+  "red": "unsafe",
+  "green": "safe"
+ },
+ "probability_colormap": "magma 0..1 (black = safe, yellow = unsafe)",
+ "provenance": "observed LOLA input; hazard maps MODELLED; not a landing-safety claim on its own",
+ "windows": [
+  {
+   "kind": "steep",
+   "region": "lola5m_site23",
+   "site": "Site23",
+   "split": "TEST (held out: never trained or tuned on)",
+   "window_px": [
+    512,
+    640,
+    256,
+    256
+   ],
+   "meters_per_pixel": 5.0,
+   "size_m": 1280.0,
+   "unsafe_fraction_truth": 0.4486,
+   "laser_pixel_fraction": 0.1127,
+   "mean_official_slope_deg": 11.75,
+   "max_official_slope_deg": 39.98,
+   "unet": {
+    "precision": 0.9109,
+    "recall": 0.9358,
+    "f1": 0.9232,
+    "missed_hazard_rate": 0.0642,
+    "tp": 27509,
+    "fp": 2692,
+    "fn": 1888,
+    "tn": 33447
+   },
+   "backup_slope_rule": {
+    "precision": 0.7583,
+    "recall": 0.7509,
+    "f1": 0.7546,
+    "missed_hazard_rate": 0.2491,
+    "tp": 22074,
+    "fp": 7036,
+    "fn": 7323,
+    "tn": 29103
+   },
+   "unet_prob_mean": 0.4567,
+   "images": {
+    "input_hillshade": "steep_input.webp",
+    "input_laser_pixels": "steep_input_laser.webp",
+    "unet_probability": "steep_unet_prob.webp",
+    "unet_mask": "steep_unet_mask.webp",
+    "backup_slope_rule": "steep_backup.webp",
+    "truth": "steep_truth.webp",
+    "unet_error": "steep_unet_error.webp",
+    "backup_error": "steep_backup_error.webp"
+   }
+  },
+  {
+   "kind": "moderate",
+   "region": "lola5m_site23",
+   "site": "Site23",
+   "split": "TEST (held out: never trained or tuned on)",
+   "window_px": [
+    384,
+    256,
+    256,
+    256
+   ],
+   "meters_per_pixel": 5.0,
+   "size_m": 1280.0,
+   "unsafe_fraction_truth": 0.157,
+   "laser_pixel_fraction": 0.1101,
+   "mean_official_slope_deg": 7.99,
+   "max_official_slope_deg": 30.93,
+   "unet": {
+    "precision": 0.8718,
+    "recall": 0.8477,
+    "f1": 0.8596,
+    "missed_hazard_rate": 0.1523,
+    "tp": 8724,
+    "fp": 1283,
+    "fn": 1567,
+    "tn": 53962
+   },
+   "backup_slope_rule": {
+    "precision": 0.5409,
+    "recall": 0.6303,
+    "f1": 0.5821,
+    "missed_hazard_rate": 0.3697,
+    "tp": 6486,
+    "fp": 5506,
+    "fn": 3805,
+    "tn": 49739
+   },
+   "unet_prob_mean": 0.1542,
+   "images": {
+    "input_hillshade": "moderate_input.webp",
+    "input_laser_pixels": "moderate_input_laser.webp",
+    "unet_probability": "moderate_unet_prob.webp",
+    "unet_mask": "moderate_unet_mask.webp",
+    "backup_slope_rule": "moderate_backup.webp",
+    "truth": "moderate_truth.webp",
+    "unet_error": "moderate_unet_error.webp",
+    "backup_error": "moderate_backup_error.webp"
+   }
+  },
+  {
+   "kind": "flat",
+   "region": "lola5m_site23",
+   "site": "Site23",
+   "split": "TEST (held out: never trained or tuned on)",
+   "window_px": [
+    128,
+    128,
+    256,
+    256
+   ],
+   "meters_per_pixel": 5.0,
+   "size_m": 1280.0,
+   "unsafe_fraction_truth": 0.0536,
+   "laser_pixel_fraction": 0.1068,
+   "mean_official_slope_deg": 6.57,
+   "max_official_slope_deg": 30.29,
+   "unet": {
+    "precision": 0.8183,
+    "recall": 0.7536,
+    "f1": 0.7846,
+    "missed_hazard_rate": 0.2464,
+    "tp": 2648,
+    "fp": 588,
+    "fn": 866,
+    "tn": 61434
+   },
+   "backup_slope_rule": {
+    "precision": 0.3112,
+    "recall": 0.5549,
+    "f1": 0.3988,
+    "missed_hazard_rate": 0.4451,
+    "tp": 1950,
+    "fp": 4316,
+    "fn": 1564,
+    "tn": 57706
+   },
+   "unet_prob_mean": 0.0529,
+   "images": {
+    "input_hillshade": "flat_input.webp",
+    "input_laser_pixels": "flat_input_laser.webp",
+    "unet_probability": "flat_unet_prob.webp",
+    "unet_mask": "flat_unet_mask.webp",
+    "backup_slope_rule": "flat_backup.webp",
+    "truth": "flat_truth.webp",
+    "unet_error": "flat_unet_error.webp",
+    "backup_error": "flat_backup_error.webp"
+   }
+  },
+  {
+   "kind": "hard_case",
+   "region": "lola5m_site42",
+   "site": "Site42",
+   "split": "TEST (held out: never trained or tuned on)",
+   "window_px": [
+    640,
+    128,
+    256,
+    256
+   ],
+   "meters_per_pixel": 5.0,
+   "size_m": 1280.0,
+   "unsafe_fraction_truth": 0.1488,
+   "laser_pixel_fraction": 0.0482,
+   "mean_official_slope_deg": 7.97,
+   "max_official_slope_deg": 28.49,
+   "unet": {
+    "precision": 0.2411,
+    "recall": 0.9066,
+    "f1": 0.3808,
+    "missed_hazard_rate": 0.0934,
+    "tp": 8840,
+    "fp": 27832,
+    "fn": 911,
+    "tn": 27953
+   },
+   "backup_slope_rule": {
+    "precision": 0.2934,
+    "recall": 0.4108,
+    "f1": 0.3423,
+    "missed_hazard_rate": 0.5892,
+    "tp": 4006,
+    "fp": 9647,
+    "fn": 5745,
+    "tn": 46138
+   },
+   "unet_prob_mean": 0.5527,
+   "images": {
+    "input_hillshade": "hard_case_input.webp",
+    "input_laser_pixels": "hard_case_input_laser.webp",
+    "unet_probability": "hard_case_unet_prob.webp",
+    "unet_mask": "hard_case_unet_mask.webp",
+    "backup_slope_rule": "hard_case_backup.webp",
+    "truth": "hard_case_truth.webp",
+    "unet_error": "hard_case_unet_error.webp",
+    "backup_error": "hard_case_backup_error.webp"
+   }
+  }
+ ],
+ "whole_tile_1024px": {
+  "lola5m_site23": {
+   "unet_f1": 0.9503,
+   "backup_f1": 0.8141,
+   "unet_recall": 0.9525,
+   "unsafe_fraction": 0.4957
+  },
+  "lola5m_site42": {
+   "unet_f1": 0.803,
+   "backup_f1": 0.5557,
+   "unet_recall": 0.8673,
+   "unsafe_fraction": 0.5565
+  }
+ },
+ "note": "windows chosen automatically by truth unsafe fraction (targets 0.45 / 0.15 / 0.02), not by model score"
+}

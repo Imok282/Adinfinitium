@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>End-to-end test on DM1 · Research · Adinfinitium</title>
+<meta name="description" content="The frozen hazard, light and terrain models and rover brain v3.1 run together, in order, on unseen lunar site DM1: 65 of 65 integration checks passed in 432 s on a Mac mini CPU. Only the hazard network feeds the rover. An integration test, not a benchmark.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="css/company.css">
+</head>
+<body class="page-research">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/end-to-end.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/end-to-end.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main">
+<article class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Nov 2026 · Integration</p>
+    <h1>The whole navigator, <span class="serif">run once on a site it never saw.</span></h1>
+    <p class="lede">We ran the frozen models and the rover brain together, in the order the code wires them, on lunar site DM1. All 65 integration checks passed. This is an integration test on one site and date, not a benchmark.</p>
+  </header>
+  <div class="post-body">
+    <h2>What we tested</h2>
+    <p>The question was whether the parts work together: does each hand-off carry the right shape, unit and value range, and does the rover read what we say it reads. Site DM1 is not among the training sites, the validation site or the held-out test sites of any model. The three network checkpoints are the frozen ones from the overnight run: their SHA-256 checksums equal the frozen record. Nothing was tuned or chosen from this test. The date, 2027-06-01, is the default of the rover code; DM1 is the first of the six fresh sites by name.</p>
+    <div class="post-stats">
+      <div class="res-card tz sage"><b>65 / 65</b><span>integration checks passed · verdict PASS</span></div>
+      <div class="res-card tz peach"><b>432 s</b><span>whole chain on the Mac mini CPU, 6 threads</span></div>
+      <div class="res-card tz lavender"><b>14.6 GB</b><span>peak memory (14,622 MB)</span></div>
+    </div>
+    <p class="src">Final run with rover brain v3.1: 432.41 s on a Mac mini (Apple silicon, CPU only, 6 threads). The same run on a MacBook a few minutes earlier took 338.42 s with the same 65 checks and identical rover rates. The checks: 33 on the rover, 8 on the rover world, 6 on the hazard map, 6 on the light, 5 on the terrain tile, 4 on the terrain side branch, 3 on checkpoint identity.</p>
+
+    <h2>What ran, in order</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>stage</th><th>seconds</th></tr></thead>
+        <tbody>
+          <tr><td>0. Checkpoint identity (SHA-256 against the frozen record)</td><td>0.2</td></tr>
+          <tr><td>1. Terrain tile: NASA LOLA 5 m, 1024 × 1024 px</td><td>&lt; 0.1</td></tr>
+          <tr><td>2. Hazard map: hazard U-Net on the tile, as the rover code calls it</td><td>20.7</td></tr>
+          <tr><td>3a. Light network: skyline on the rover's 4,096-cell light grid</td><td>209.7</td></tr>
+          <tr><td>3b. Exact ray-cast skyline (physics)</td><td>1.5</td></tr>
+          <tr><td>3c. SPICE Sun directions and light geometry (physics)</td><td>0.1</td></tr>
+          <tr><td>4. Rover world: hazard map + physics light + shadow-edge targets</td><td>1.6</td></tr>
+          <tr><td>5. Rover v3.1, v3 and three planners, 512 rovers, per date (4 dates)</td><td>31.5 to 32.6</td></tr>
+          <tr><td>6. One recorded v3.1 traverse for the figure</td><td>20.3</td></tr>
+          <tr><td>7. Terrain diffusion on a 128 px crop, 2 versions (side branch)</td><td>48.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Stage times from the final run (stages list of records/final/e2e_result_final_v31.json). The light network takes about half of the total time and is not on the rover's path.</p>
+
+    <h2>What is really wired</h2>
+    <ul>
+      <li><b>Hazard U-Net → rover: wired.</b> The rover world loads the hazard U-Net's probability map and uses it for route cost and score. It is the only network the rover reads. The map equals the one the rover v3 evaluation used on the Mac mini (largest difference 0.0; no pixel changed side at 0.5).</li>
+      <li><b>Light network → rover: not wired.</b> The rover's light is the exact physics ray-cast. The light network ran on the same grid and produces the same kind of array, so it could be connected, but no code passes it on. As a sanity number on this one site, its skyline differed from the exact ray-cast by 0.27° on average, against 0.35° for the coarse ray-cast backup.</li>
+      <li><b>Terrain output → anything: not wired.</b> The diffusion network's generated terrain is a side output, labelled "GENERATED — NOT OBSERVED". Hazard, light and rover all read the LOLA tile.</li>
+      <li><b>Rover ↔ lander pilot: not wired.</b> The lander pilot is a separate package. The rover's lander sits at the centre of its world, not at a landing point chosen by the pilot.</li>
+    </ul>
+    <p>No hand-off was found broken and no stage runs on a stub. The models run together; they do not form one connected pipeline beyond the hazard map.</p>
+
+    <figure class="wide">
+      <img src="assets/img/results/e2e_dm1_v31_strict.webp" width="1600" height="1222" loading="lazy" alt="Six panels for site DM1 on 2027-06-01: LOLA terrain, hazard U-Net map, physics illumination used by the rover, light-network illumination not passed to the rover, rover v3.1 routes from the lander to shadow-edge targets, and strict-rule outcome bars: v3.1 45.3% returned and 51.0% lost, v3 41.2% and 58.6%, naive planner 29.7% and 70.3%.">
+      <figcaption>Site DM1, 2027-06-01, central 2.56 × 2.56 km. Panels 1 and 3 are data and physics; panels 2 and 4 are model output (panel 4 is not passed to the rover); panel 5 is simulation. Panel 6 uses the strict rule. Source: records/final/e2e_demo_DM1_v31_strict.png.</figcaption>
+    </figure>
+
+    <h2>The rover on DM1</h2>
+    <p>Strict rule: a rover whose battery is empty at any hour, anywhere, is lost; it returned only if it completed the trip without ever being empty. On 2027-06-01, v3.1 returned 232 of 512 rovers, kept 19 alive without a completed trip and lost 261 (51.0%). v3 lost 58.6% and the naive planner 70.3%. All four dates below were run in the same test; every rate equals the reported rover v3.1 evaluation exactly.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>strict rule, % returned / % lost</th><th style="white-space:nowrap">2027-03-01</th><th style="white-space:nowrap">2027-06-01</th><th style="white-space:nowrap">2027-09-01</th><th style="white-space:nowrap">2027-12-01</th></tr></thead>
+        <tbody>
+          <tr><td>rover v3.1</td><td style="white-space:nowrap">37.3 / 60.5</td><td style="white-space:nowrap">45.3 / 51.0</td><td style="white-space:nowrap">65.4 / 33.2</td><td style="white-space:nowrap">63.7 / 35.4</td></tr>
+          <tr><td>rover v3</td><td style="white-space:nowrap">35.0 / 64.3</td><td style="white-space:nowrap">41.2 / 58.6</td><td style="white-space:nowrap">63.1 / 35.4</td><td style="white-space:nowrap">62.9 / 36.3</td></tr>
+          <tr><td>planner: naive</td><td style="white-space:nowrap">25.4 / 74.6</td><td style="white-space:nowrap">29.7 / 70.3</td><td style="white-space:nowrap">44.1 / 55.5</td><td style="white-space:nowrap">47.1 / 51.8</td></tr>
+          <tr><td>planner: cautious</td><td style="white-space:nowrap">10.7 / 89.3</td><td style="white-space:nowrap">11.1 / 88.9</td><td style="white-space:nowrap">33.6 / 64.8</td><td style="white-space:nowrap">38.5 / 60.2</td></tr>
+          <tr><td>planner: cautious, waits for light</td><td style="white-space:nowrap">11.5 / 86.3</td><td style="white-space:nowrap">11.7 / 85.5</td><td style="white-space:nowrap">41.4 / 53.9</td><td style="white-space:nowrap">42.2 / 53.7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Percent of 512 simulated rovers per date. One site, so no interval; the rover benchmark on untouched sites is on the <a href="research/rover.html">rover page</a>.</p>
+    <figure class="wide f3d" id="f3d-e2e" data-f3d="dm1:e2e">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site DM1 in 3D: the hazard U-Net's unsafe cells in red on the observed terrain, the lander, 16 shadow-edge targets and rover 0's route.">
+        <img class="f3d-still" src="assets/fig3d/dm1/still_e2e.jpg" width="1280" height="720" loading="lazy" alt="Site DM1 terrain in 3D with red hazard patches from the U-Net, the lander and one rover route out to a target and back.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption>The hand-offs in one picture: observed NASA LOLA terrain (rover world, 2.56 km, heights 2.5× exaggerated), the hazard U-Net's cells (P(unsafe) ≥ 0.5, modelled) that set the rover's route cost, and rover 0's simulated v3.1 route. Only rover 0's path was exported; the fleet is given as counts. Source: e2e test arrays via tools/export_fig3d_dm1.py.</figcaption>
+    </figure>
+
+    <h2>Making it faster without changing the answer</h2>
+    <p>On an earlier run (rover v3, MacBook CPU, 2 threads, machine shared with other jobs) two stages on the rover's path were slow. Both were sped up in a separate copy of the code; the frozen run was not touched.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>stage</th><th>before</th><th>after</th></tr></thead>
+        <tbody>
+          <tr><td>Rover evaluation, 4 DM1 worlds</td><td>168.0 s</td><td>69.8 s</td></tr>
+          <tr><td>Hazard map for the rover</td><td>130.3 s</td><td>61.9 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li><b>Rover evaluation.</b> The light sampler read a whole 64 × 64 slice per rover to get one value; it now reads the 4 neighbouring cells. Sampled values differ by at most 1.19e-07, and every rover has the same outcome and the same score in all 4 worlds.</li>
+      <li><b>Hazard map.</b> The U-Net ran on all 16 windows of the tile; the rover needs the central 4. The rover-world crop is identical bit for bit.</li>
+      <li>The rover's path with both speed-ups passed 55 checks, 0 failed, in 266.97 s. The first run of the whole chain (rover v3) had passed 56 checks in 1,293.9 s on the same shared MacBook. Running the hazard U-Net on the Apple GPU was not tried; the GPU was busy with another job.</li>
+    </ul>
+
+    <h2>Limits</h2>
+    <ul>
+      <li>One site and one main date. It shows that the parts run together without error; it is not a score for how well they generalise.</li>
+      <li>Everything is simulation on NASA LOLA terrain. Shadow-edge targets are dark and cold, not confirmed ice.</li>
+      <li>Stage times depend on the machine and on what else it is running, so they vary between runs.</li>
+    </ul>
+
+    <h2>Method &amp; data</h2>
+    <p>One script ran every stage in order and wrote a result file with each array's shape, unit, value range and count of non-finite values, the outcome of every check, the time and peak memory per stage, and the rover rates for every method and date. A second script drew the figure from that file.</p>
+    <p class="src">Sources (hand-off records): records/final/e2e_result_final_v31.json (verdict, checks, stages, seconds_total, peak_rss_mb, hazard, light.sanity_only, rover.worlds, rover.traverse, wiring_summary); records/final/macbook_run_v31/e2e_result_final_v31.json (MacBook re-run); records/final/e2e_result_baseline.json and e2e_result_optimised.json (earlier runs); records/final/opt_rover.json and opt_hazard.json (speed-ups); records/final/e2e_demo_DM1_v31_strict.png (figure); records/rover_v31/eval.json (reference rates); records/SUBMISSION_SUMMARY.md sections 2, 2a and 8.</p>
+  </div>
+</article>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+</body>
+</html>

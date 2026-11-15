@@ -1,0 +1,15 @@
+{
+ "meta": {
+  "provenance": "observed",
+  "source": "data/tiles/lola5m_site23.npz (NASA LOLA PGDA 5 m/px, partly interpolated by LOLA)",
+  "frame": "tile pixel window, row 0 = north",
+  "units": "m"
+ },
+ "row": 160,
+ "col": 160,
+ "size_px": 128,
+ "m_per_px": 5.0,
+ "min_m": 4700.9267578125,
+ "max_m": 4755.6689453125,
+ "mean_slope_deg": 4.510666847229004
+}

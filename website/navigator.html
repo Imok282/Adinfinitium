@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigator · Adinfinitium</title>
+<meta name="description" content="Adinfinitium Navigator: choose the landing cell and the date, then fly the mission thousands of times in simulation before flight.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
+<link rel="stylesheet" href="css/models.css">
+<link rel="stylesheet" href="css/curves.css">
+<link rel="stylesheet" href="css/navigatorpage.css">
+<link rel="stylesheet" href="css/barcharts.css">
+</head>
+<body class="page-navigator">
+<a class="skip" href="#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main" class="nv">
+  <section class="nv-hero">
+    <p class="eyebrow">Product</p>
+    <h1>Adinfinitium <span class="serif">Navigator</span></h1>
+    <p class="lede">Choose the landing cell and the date, then fly the mission thousands of times before flight.</p>
+  </section>
+
+  <section class="nv-sec nv-proof" aria-label="Benchmark results">
+    <div class="nv-charts" id="nv-hero-charts"></div>
+    <p class="nv-src">The Navigator picked the landing cell on Site 23 for 17 March 2027; flown 512 times each in simulation, the pilot landed 99.6 % and classic guidance 99.0 % there (difference not significant; a rehearsal of one planned cell, not an exam).</p>
+    <p class="nv-src">Simulation and model evaluation on NASA LOLA terrain · <a href="research/benchmarks.html">all benchmarks</a> · <a href="research/methodology.html#limits">limits</a></p>
+  </section>
+
+  <section class="nv-sec" aria-labelledby="nv-plan">
+    <div class="nv-head">
+      <h2 id="nv-plan">Where, and <span class="serif">when.</span></h2>
+      <p>At the lunar south pole the Sun circles the horizon. Navigator scores every landing cell and landing hour on light, Earth link and terrain hazard.</p>
+    </div>
+    <div class="nv-pair">
+      <figure class="nv-fig res-card" data-spot>
+        <img src="assets/img/light_site23.jpg" alt="Site 23 sunlight map: sunlit slopes and shadowed ground over the terrain" loading="lazy">
+        <figcaption><b>Sun and Earth visibility</b><span>Skyline model error 0.62° (ray-cast backup 0.65°); Earth-visible wrong 2.33 % (backup 2.45 %), held-out Site 23.</span><code>runs/light/eval.json</code></figcaption>
+      </figure>
+      <figure class="nv-fig res-card" data-spot>
+        <img src="assets/img/hazard_compare_site23.jpg" alt="Site 23: official slope hazard map, slope rule and U-Net prediction side by side" loading="lazy">
+        <figcaption><b>Hazard map</b><span>U-Net F1 0.950 against NASA's slope map (slope rule 0.814), held-out Site 23.</span><code>runs/hazard/eval.json</code></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="nv-sec" aria-labelledby="nv-swarm">
+    <div class="nv-head">
+      <h2 id="nv-swarm">Watch it <span class="serif">learn.</span></h2>
+      <p>The same 960 simulated descents on real NASA LOLA terrain, flown with no guidance, classic guidance and the AI pilot, with the training curves behind them.</p>
+    </div>
+    <div class="nv-ghosts">
+      <section id="landing" class="td">
+        <div class="td-stage">
+          <div class="td-head"><h2 class="nv-ghost-h">960 simulated descents, <span class="serif">Site 06</span></h2></div>
+          <figure class="td-fig">
+            <canvas class="td-bg" aria-hidden="true"></canvas>
+            <canvas class="td-tr" aria-hidden="true"></canvas>
+            <canvas id="ghosts" class="td-fg" role="img" aria-label="Oblique view of 960 simulated descents on NASA LOLA Site 06: green landed, red crashed or failed, one amber chosen path."></canvas>
+          </figure>
+          <p class="td-legend"><span class="bad"><i></i>no guidance <b data-td="ok-open_loop">0 / 320</b></span><span class="ok"><i></i>classic guidance <b data-td="ok-classic">314 / 320</b></span><span class="ok"><i></i>AI pilot <b data-td="ok-pilot">315 / 320</b></span><span class="best"><i></i>the chosen path</span></p>
+          <p class="td-src">Source: <span data-g="src">runs/ghosts_web/lander_lola5m_site06.json</span> · modelled, failures injected at raised rates</p>
+        </div>
+      </section>
+    </div>
+    <div class="cv-grid-wrap nv-curves" id="nv-curves"></div>
+  </section>
+
+  <section class="nv-sec" aria-labelledby="nv-mc">
+    <a class="nv-mc res-card" href="mission-control.html" data-spot>
+      <div class="nv-mc-text">
+        <h2 id="nv-mc">Mission <span class="serif">control</span></h2>
+        <p>Replay one simulated landing and one rover drive, second by second: altitude, speed, battery, sunlight and the decision log.</p>
+        <span class="nv-link">Open mission control →</span>
+      </div>
+      <img src="assets/img/mission_control_preview.jpg" alt="Mission control dashboard: altitude, speed and ground-track charts of a simulated landing" loading="lazy">
+    </a>
+  </section>
+
+  <section class="nv-sec" aria-labelledby="nv-rank">
+    <div class="nv-head">
+      <h2 id="nv-rank">What ships: <span class="serif">the Navigator ranking.</span></h2>
+      <p>We trained a planner to rank landing cell × date. On held-out Site 23 it did not beat the simple Navigator ranking, so the ranking ships and the planner stays in research.</p>
+    </div>
+    <div class="nv-tiles">
+      <div class="tz sage"><b>12.8 %</b><span>simulated full-mission chance of the site the Navigator ranking picks</span></div>
+      <div class="tz sand"><b>12.2 %</b><span>same for the learned planner's pick</span></div>
+      <div class="tz lavender"><b>0.51 vs 0.36</b><span>rank correlation with simulated truth: ranking vs planner</span></div>
+    </div>
+    <div class="nv-charts" id="nv-charts" aria-label="Planner benchmark charts"></div>
+    <p class="nv-src">Source: results_pc/extracted/runs/planner/eval.json, test split (Site 23, 7 dates, 672 candidates) · modelled · <a href="research/methodology.html#planner">full benchmark table</a></p>
+    <h3 class="ex-h">What each ranking puts first: one Site 23 world</h3>
+    <div class="ex" id="ex-planner">Loading the planner examples…</div>
+    <p class="nv-src">Source: assets/examples/planner/planner_examples.json (checkpoints 72b76466c7, 62b6dba29b; read-only) · modelled</p>
+  </section>
+
+  <section class="nv-sec" aria-labelledby="nv-sw">
+    <div class="nv-head">
+      <h2 id="nv-sw">The swarm: <span class="serif">designed, not yet run.</span></h2>
+      <p>An evolving population of mission strategies, scored on landing, rover return and data to Earth, and tested on unseen terrain. The code is written and tested; the first real run is next on our roadmap, so there are no swarm results yet.</p>
+    </div>
+    <figure class="nv-diagram"><img src="assets/diagrams/swarm.png" alt="Diagram of the evolution swarm: population, fly all missions, score, log, select and breed, with an unseen-terrain exam" loading="lazy"></figure>
+  </section>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+
+<script type="module">import { loadCtx } from './js/barcharts.js'; import { mountClean } from './js/benchclean.js';
+  loadCtx().then(ctx => mountClean(document.getElementById('nv-hero-charts'), ctx, [['rehearsal', 'rehearsal'], ['hazard', 'hazard'], ['light', 'light'], ['rover', 'rover']], { min: 420 })
+    .then(() => mountClean(document.getElementById('nv-charts'), ctx, [['planner', 'planner']], { min: 420 }))).catch(e => console.warn('navigator charts', e));</script>
+<script type="module" src="js/nav.js"></script>
+<script type="module">
+  import('./js/curves.js').then(m => m.mountCurves(document.getElementById('nv-curves'), { compact: true })).catch(e => console.warn('curves', e));
+  import('./js/ghosts.js').then(m => m.mount(document.getElementById('landing'), { reducedMotion: true })).catch(e => console.warn('ghosts', e));
+</script>
+<script type="module">import { mountPlanner } from './js/examples.js'; mountPlanner(document.getElementById('ex-planner'));</script>
+</body>
+</html>

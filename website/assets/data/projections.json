@@ -1,0 +1,392 @@
+{
+  "label": "Projected — not measured",
+  "method": "Least-squares fit of a saturating power law y = a + b*(t/t_now)^(-c) (a >= 0, 0.01 <= c <= 3) to the logged Site11 validation metric versus training amount, evaluated at 2x and 5x the training actually done, with a 95% band from 2,000 residual-bootstrap refits; held-out values are the measured held-out number scaled by the projected/observed validation ratio (an assumption, not a fit).",
+  "warning": "Every value under 'projected' is an extrapolation of a training curve. None was measured. Do not show these as results; show them only next to the measured value and labelled 'Projected — not measured'.",
+  "training_record": [
+    {
+      "model": "Hazard U-Net (hazard_unet_big, 60,361,561 params)",
+      "machine": "Mac mini, Apple M5 Pro, 64 GB, MPS (frozen run macmini_night)",
+      "when": "14 Nov 2026 14:28-15:59 UTC (stage 'hazard')",
+      "hours": 1.52,
+      "amount": "37 of 40 planned epochs x 200 steps (7,400 steps)",
+      "start": "epoch 1 val F1 0.908 (Site11)",
+      "best": "epoch 37 val F1 0.941 (Site11); held-out Site23 0.965, Site42 0.917, fresh 0.757",
+      "source": "frozen_run/runs/hazard/train_log.jsonl; frozen_run/runs/overnight/macmini_night/ledger.jsonl"
+    },
+    {
+      "model": "Light skyline transformer (light_skyline_big, 38,279,809 params)",
+      "machine": "Mac mini M5 Pro (frozen run); resume to 6,000 steps on the MacBook (addendum 4)",
+      "when": "14 Nov 13:31-14:25 UTC; resume 15 Nov ~12:00-14:00 IST",
+      "hours": 0.89,
+      "amount": "3,258 of 6,000 planned steps (54%); resume +2,742 steps at a near-zero learning rate",
+      "start": "step 250 val MAE 0.479 deg (backup 0.484)",
+      "best": "step 3,258 val 0.3745 deg; after resume step 5,000 val 0.3734 deg (not adopted); held-out 0.450 deg (backup 0.570)",
+      "source": "frozen_run/runs/light/train_log.jsonl; archive ./macbook/records/weak_flags/light.json validation_curve_site11; ledger.jsonl"
+    },
+    {
+      "model": "Terrain diffusion U-Net (terrain_diffusion_mini, 49,943,681 params)",
+      "machine": "Mac mini M5 Pro (frozen run)",
+      "when": "14 Nov 18:11-19:53 UTC",
+      "hours": 1.71,
+      "amount": "7,671 of 8,000 planned steps; best checkpoint step 7,500",
+      "start": "step 500 val denoising MSE 0.0121",
+      "best": "step 7,500 val MSE 0.00552; hide-and-check RMSE Site23 1.83 m / Site42 2.80 m (kriging 0.94 / 1.11 m)",
+      "source": "frozen_run/runs/terrain/train_log.jsonl; ledger.jsonl"
+    },
+    {
+      "model": "Rover v1 PPO driver (rover_driver_mini, 11,377,354 params)",
+      "machine": "Mac mini M5 Pro (frozen run)",
+      "when": "14 Nov 16:02-18:03 UTC",
+      "hours": 2.03,
+      "amount": "144 of 800 planned PPO updates, 22,621 training episodes",
+      "start": "0 returned",
+      "best": "0 returned and 0 reached-ice in all 144 updates; scored file = update 1; held-out returned 0.0%",
+      "source": "frozen_run/runs/rover/train_log.jsonl; ledger.jsonl"
+    },
+    {
+      "model": "Rover v2 imitation driver (rover_driver_v2, 11,377,354 params)",
+      "machine": "Mac mini M5 Pro (addendum 1)",
+      "when": "15 Nov 02:17-04:16 IST",
+      "hours": 1.83,
+      "amount": "105 DAgger episodes over 32 worlds, 14,605 training steps (110 min)",
+      "start": "candidate 0 (2,022 steps) Site11 returned 0.123",
+      "best": "candidate 6 (12,444 steps) Site11 returned 0.268 (naive planner 0.407); collapsed to 0.023 at 14,022 steps; held-out returned 1.2%",
+      "source": "archive ./macbook/records/rover_v2/ROVER_V2_REPORT.md lines 38-57"
+    },
+    {
+      "model": "Lander pilot (lander_pilot, 14,842,567 params)",
+      "machine": "Team Windows PC, CUDA GPU (model not recorded in the log)",
+      "when": "14 Nov 2026 evening to 15 Nov 00:23 IST (three resumed runs)",
+      "hours": 3.1,
+      "amount": "about 110 PPO updates in the final run (budget 20,000 requested units; 130 then 110 fitted); restart from update 40 after a degradation at update 60",
+      "start": "val success 0.945 = classic (untrained residual)",
+      "best": "update 40 val 0.969 vs classic 0.945 (Site11, 128 missions); shipped pilot; unseen maps 98.39% vs 97.66%; Site23 exam tie 97.95%",
+      "source": "results_pc/adinfinitium_results_deliverables.zip runs/pilot.log and runs/lander/train_log.jsonl"
+    },
+    {
+      "model": "Lander pilot Dream-RSI / gate job",
+      "machine": "Mac mini M5 Pro",
+      "when": "15 Nov 11:49-15:01 IST",
+      "hours": 0.6,
+      "amount": "3 training rounds of 4-5 updates each + 4 authority rules",
+      "start": "gate: pilot 990/1,024, classic 965/1,024 (Site11)",
+      "best": "0 of 7 candidates accepted (best 991/1,024 but lost 14 gate missions)",
+      "source": "data/handoff_macmini_1115/lander_mini/RESULTS_SUMMARY.md; runs/lander/rsi_changelog.md"
+    },
+    {
+      "model": "Planner PlannerSetNet (646,401 params) and logistic (14 params)",
+      "machine": "Team Windows PC",
+      "when": "14 Nov ~19:45-23:42 IST (labels ~8 min per world, then training)",
+      "hours": null,
+      "amount": "labels for 23 training worlds (2,208 candidates) + 7 validation worlds; 400 epochs each",
+      "start": "set val Brier 0.0325 at the first logged point; logistic 0.1155",
+      "best": "set best val Brier 0.0154 (log), logistic 0.0308; test chosen success 12.2% vs Navigator 12.8%",
+      "source": "results_pc/extracted/runs/planner/train_log.jsonl, planner_train.log, labels_*.log"
+    },
+    {
+      "model": "Planner Dream-RSI",
+      "machine": "Team PC / Mac",
+      "when": "14 Nov 18:14-18:24 UTC",
+      "hours": 0.2,
+      "amount": "5 generations, 1,056 simulated missions each",
+      "start": "val Brier 0.01543",
+      "best": "1 of 5 accepted (0.01353)",
+      "source": "data/planner_dream/history.jsonl"
+    },
+    {
+      "model": "Rover brains v3 and v3.1",
+      "machine": "Mac mini",
+      "when": "15 Nov",
+      "hours": null,
+      "amount": "no training (0 learned parameters); gated self-learning rounds only (v3: 9 of 72 accepted; v3.1: 9 of 36, plus 0 of 8 in the completion run)",
+      "start": "-",
+      "best": "-",
+      "source": "archive ./macbook/records/rover_v3/ROVER_V3_REPORT.md, rover_v31/ROVER_V31_REPORT.md"
+    },
+    {
+      "model": "Swarm / TensorNEAT",
+      "machine": "-",
+      "when": "-",
+      "hours": 0,
+      "amount": "no training run exists",
+      "start": "-",
+      "best": "-",
+      "source": "no generation_*.json in repo or hand-off"
+    }
+  ],
+  "projections": [
+    {
+      "family": "hazard",
+      "model": "Hazard U-Net",
+      "kind": "projection",
+      "label": "Projected — not measured",
+      "metric_fitted": "1 - validation F1 (Site11), per epoch",
+      "training_done": 37,
+      "fit": {
+        "n_points": 37,
+        "params": {
+          "a_asymptote": 2.2356180999021704e-16,
+          "b": 0.06284676964311497,
+          "c_exponent": 0.11342134754758362
+        },
+        "residual_rmse": 0.0035712089925233085,
+        "asymptote_band95": [
+          6.0302631912246025e-18,
+          0.05372693446902175
+        ]
+      },
+      "measured_validation_now": {
+        "f1": 0.9409786013180764
+      },
+      "projected": {
+        "2x_training": {
+          "validation": {
+            "point": 0.058095130535578715,
+            "band95": [
+              0.05631864340684959,
+              0.062172809793814864
+            ]
+          },
+          "validation_f1": {
+            "point": 0.9419,
+            "band95": [
+              0.9378,
+              0.9437
+            ]
+          },
+          "heldout_site23_42_f1": {
+            "point": 0.9515,
+            "band95": [
+              0.9481,
+              0.953
+            ]
+          },
+          "fresh_f1": {
+            "point": 0.7606,
+            "band95": [
+              0.7438,
+              0.7679
+            ]
+          }
+        },
+        "5x_training": {
+          "validation": {
+            "point": 0.052360627170222294,
+            "band95": [
+              0.05013203051304574,
+              0.059656065851036555
+            ]
+          },
+          "validation_f1": {
+            "point": 0.9476,
+            "band95": [
+              0.9403,
+              0.9499
+            ]
+          },
+          "heldout_site23_42_f1": {
+            "point": 0.9563,
+            "band95": [
+              0.9502,
+              0.9581
+            ]
+          },
+          "fresh_f1": {
+            "point": 0.7842,
+            "band95": [
+              0.7542,
+              0.7934
+            ]
+          }
+        }
+      },
+      "caveats": [
+        "Fit is poor: the asymptote hit its 0 bound and the fit at 1x (error 0.0628) is above the observed 0.0590; the late rise follows the learning-rate schedule, not just more data.",
+        "The fresh-site weakness (flat ground) is a training-data gap; more epochs on the same 8 sites are not expected to fix it, so the fresh projection is the least trustworthy."
+      ]
+    },
+    {
+      "family": "light",
+      "model": "Light skyline transformer",
+      "kind": "projection",
+      "label": "Projected — not measured",
+      "metric_fitted": "validation skyline MAE deg (Site11)",
+      "training_done": 3258,
+      "fit": {
+        "n_points": 14,
+        "params": {
+          "a_asymptote": 0.341569465146299,
+          "b": 0.03339002983384163,
+          "c_exponent": 0.5416014583904263
+        },
+        "residual_rmse": 0.0074113897427085865,
+        "asymptote_band95": [
+          0.19981966051654348,
+          0.37040959694134357
+        ]
+      },
+      "measured_validation_now": {
+        "mae_deg": 0.3745433986186981
+      },
+      "projected": {
+        "2x_training": {
+          "validation": {
+            "point": 0.36450867859030567,
+            "band95": [
+              0.34979892176994415,
+              0.37580580656562096
+            ]
+          },
+          "heldout_site23_42_mae_deg": {
+            "point": 0.4382,
+            "band95": [
+              0.4206,
+              0.4518
+            ]
+          },
+          "fresh_mae_deg": {
+            "point": 0.2361,
+            "band95": [
+              0.2266,
+              0.2434
+            ]
+          }
+        },
+        "5x_training": {
+          "validation": {
+            "point": 0.3555348733141781,
+            "band95": [
+              0.3277127829821691,
+              0.37265478288944115
+            ]
+          },
+          "heldout_site23_42_mae_deg": {
+            "point": 0.4275,
+            "band95": [
+              0.394,
+              0.448
+            ]
+          },
+          "fresh_mae_deg": {
+            "point": 0.2303,
+            "band95": [
+              0.2123,
+              0.2414
+            ]
+          }
+        }
+      },
+      "out_of_sample_check": {
+        "what": "The checkpoint was in fact trained on to 6,000 steps (1.84x) in addendum 4, at a near-zero learning rate.",
+        "measured_validation_best": 0.3734,
+        "measured_heldout": 0.4489,
+        "projection_at_2x_validation": 0.3645,
+        "reading": "Measured 1.84x validation (0.3734) sits at the top of the 2x band: the curve-fit gain did not materialise with the resumed (wrong) schedule; an uninterrupted 6,000-step run was never done."
+      }
+    },
+    {
+      "family": "terrain",
+      "model": "Terrain diffusion U-Net",
+      "kind": "projection",
+      "label": "Projected — not measured",
+      "metric_fitted": "validation denoising MSE (normalised units, Site11) - not the RMSE benchmark metric",
+      "training_done": 7671,
+      "fit": {
+        "n_points": 16,
+        "params": {
+          "a_asymptote": 0.004174272826658873,
+          "b": 0.0015515785308001856,
+          "c_exponent": 0.5938304444203597
+        },
+        "residual_rmse": 0.0003600828207619862,
+        "asymptote_band95": [
+          0.001269878827499404,
+          0.005270178854094523
+        ]
+      },
+      "measured_validation_now": {
+        "val_mse": 0.005572585340829174
+      },
+      "projected": {
+        "2x_training": {
+          "validation": {
+            "point": 0.005202319863217881,
+            "band95": [
+              0.0046060006497384565,
+              0.005662317039424769
+            ]
+          },
+          "heldout_rmse_m_if_rmse_scaled_like_sqrt_val_mse": {
+            "point": 1.95,
+            "band95": [
+              1.83,
+              2.03
+            ]
+          }
+        },
+        "5x_training": {
+          "validation": {
+            "point": 0.004770901461621369,
+            "band95": [
+              0.003757245793975757,
+              0.005453282286321256
+            ]
+          },
+          "heldout_rmse_m_if_rmse_scaled_like_sqrt_val_mse": {
+            "point": 1.86,
+            "band95": [
+              1.65,
+              1.99
+            ]
+          }
+        }
+      },
+      "caveats": [
+        "The training log holds a denoising loss, not the hide-and-check RMSE; mapping RMSE ~ sqrt(val MSE) is an assumption.",
+        "Even the optimistic end of the 5x band stays far above kriging (0.97 m pooled), so more training of this network is not a route to the best terrain estimate."
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "family": "pilot",
+      "model": "Lander pilot",
+      "kind": "target",
+      "label": "Target — not a projection",
+      "target": "Pass the Site11 gate (lose no mission classic or the current pilot lands, more total landings) and then beat classic on NEW unseen maps under harsh rates with exact McNemar p < 0.05; first sub-goal: engine-out success >= classic (98.4% vs pilot 95.9% on the unseen maps).",
+      "why_no_projection": "The validation curve is not monotone: Site11 success 0.945 -> 0.969 (update 40) -> 0.898 (update 60) -> 0.945 (update 110) on only 128 missions (1 mission = 0.8 pts); no saturating trend to fit. The gate job's training rounds had 4-5 updates each."
+    },
+    {
+      "family": "planner",
+      "model": "PlannerSetNet",
+      "kind": "target",
+      "label": "Target — not a projection",
+      "target": "Chosen-candidate success above the Navigator ranking with a paired CI over worlds that excludes 0 (now -0.6 pts [-15.1, +14.9]), and Brier below the constant-mean predictor (now 0.0145 vs 0.0125).",
+      "why_no_projection": "More epochs make it worse: the logged validation Brier reaches its minimum at the 3rd of 50 logged points and then rises (overfitting on 23 training worlds). The limit is labelled worlds (32 simulated missions per candidate, about +/-5 pts label noise), not training length."
+    },
+    {
+      "family": "rover_learned",
+      "model": "Rover v1 (PPO) / v2 (imitation)",
+      "kind": "target",
+      "label": "Target — not a projection",
+      "target": "Beat the naive planner on held-out worlds (returned 9.3% lenient on Site23+42; 17.9% strict on LM2-LM5) before any claim of a learned driver.",
+      "why_no_projection": "v1 had 0 successes in 22,621 training episodes (flat zero curve); v2's validation returned plateaued at 0.22-0.27 and then collapsed to 0.02, below the planner's 0.41 on the same starts. Neither curve saturates towards the target."
+    },
+    {
+      "family": "rover",
+      "model": "Rover brain v3.1",
+      "kind": "target",
+      "label": "Target — not a projection",
+      "target": "Strict loss below 50% on untouched sites (now 53.9%) without lowering strict returned.",
+      "why_no_projection": "No learning curve: 0 learned parameters; its self-learning layer accepted 9 of 36 rounds, all in rounds 1-2. The diagnosis puts 8% (proven) to ~80% of losses as unavoidable with this battery and landing-hour rule."
+    },
+    {
+      "family": "swarm",
+      "model": "Swarm / NEAT",
+      "kind": "target",
+      "label": "Target — not a projection",
+      "target": "A first real TensorNEAT run with logged generations; no number can be projected.",
+      "why_no_projection": "No run exists."
+    }
+  ]
+}

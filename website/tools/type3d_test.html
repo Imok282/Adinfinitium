@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>type3d test</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #262624; color: #f0eee6; font: 14px/1.4 Inter, system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  .ui { position: fixed; left: 16px; bottom: 14px; display: flex; gap: 12px; align-items: center; }
+  .ui input { width: 320px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .fallback { position: fixed; inset: 0; display: none; place-items: center; text-align: center; font: 500 48px/1.1 "Instrument Sans", sans-serif; }
+  .fallback i { font-family: Newsreader, Georgia, serif; font-weight: 300; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<h1 class="sr-only">Autonomy that lands where missions survive.</h1>
+<div class="fallback" id="fb"><p>Autonomy that lands where <i>missions survive.</i></p></div>
+<div class="ui"><label>p <input id="p" type="range" min="0" max="1" step="0.001" value="0.45"></label><output id="po">0.45</output><label><input id="anim" type="checkbox"> animate</label></div>
+<script type="module">
+import * as THREE from 'three';
+import { loadType3DFonts, createType3D, type3DSupported } from '../js/type3d.js';
+const q = new URLSearchParams(location.search);
+if (!type3DSupported() && !q.has('force')) { document.getElementById('fb').style.display = 'grid'; throw new Error('type3d: fallback'); }
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#1b1b19');
+const cam = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 200);
+cam.position.set(0, 0.4, 9);
+// one sun for everything (Moon + type)
+const sun = new THREE.DirectionalLight('#fff4e6', 2.6); sun.position.set(-6, 3, 5); scene.add(sun);
+scene.add(new THREE.AmbientLight('#8a8580', 0.55));
+const moon = new THREE.Mesh(new THREE.SphereGeometry(7, 96, 64), new THREE.MeshStandardMaterial({ color: '#bdb8ae', roughness: 1 }));
+new THREE.TextureLoader().load('../assets/img/moon_color_2k.jpg', t => { t.colorSpace = THREE.SRGBColorSpace; moon.material.map = t; moon.material.color.set('#ffffff'); moon.material.needsUpdate = true; });
+moon.position.set(0, -8.6, -4); scene.add(moon);
+
+const fonts = await loadType3DFonts();
+const T = createType3D(THREE, fonts);
+await T.ready;
+const hero = T.makeLine('Autonomy that lands where *missions survive.*', { size: 0.36, depth: 0.12 });
+hero.position.set(0, 1.5, 0); scene.add(hero);
+const big = T.makeLine('Lands where\n*missions survive.*', { size: 0.62, depth: 0.14 });
+big.position.set(0, -0.55, 0.4); scene.add(big);
+
+const pIn = document.getElementById('p'), pOut = document.getElementById('po'), anim = document.getElementById('anim');
+if (q.has('p')) pIn.value = q.get('p');
+const pointer = { x: q.has('px') ? +q.get('px') : 0, y: q.has('py') ? +q.get('py') : 0 };
+addEventListener('pointermove', e => { pointer.x = e.clientX / innerWidth * 2 - 1; pointer.y = e.clientY / innerHeight * 2 - 1; });
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
+let t0 = performance.now();
+renderer.setAnimationLoop(() => {
+  let p = +pIn.value;
+  if (anim.checked) { p = ((performance.now() - t0) / 6000) % 1; pIn.value = p; }
+  pOut.textContent = p.toFixed(2);
+  T.update(hero, p, pointer, { instant: q.has('p') });
+  T.update(big, clamp(p - 0.08), pointer, { instant: q.has('p') });
+  renderer.render(scene, cam);
+});
+function clamp(x) { return Math.min(1, Math.max(0, x)); }
+</script>
+</body>
+</html>

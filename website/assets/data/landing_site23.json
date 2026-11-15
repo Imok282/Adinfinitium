@@ -1,0 +1,25 @@
+{
+ "meta": {
+  "provenance": "observed",
+  "source": "data/tiles/lola5m_site23.npz (NASA LOLA PGDA 5 m/px Site 23, Malapert massif; partly interpolated by LOLA)",
+  "frame": "scene: origin = lander (tile centre), x east, z south, y up; PNG row 0 = north",
+  "units": "m"
+ },
+ "center_lat_deg": -85.99478468356075,
+ "center_lon_deg": 359.7642162301234,
+ "height_lo_m": 4057.966796875,
+ "height_hi_m": 4937.26416015625,
+ "lander_height_m": 4783.62939453125,
+ "encoding": "R*256+G -> 0..65535 maps to height_lo..height_hi; B = slope deg * 8",
+ "near": {
+  "png": "assets/img/landing_near_site23.png",
+  "size_px": 256,
+  "m_per_px": 5.0
+ },
+ "wide": {
+  "png": "assets/img/landing_wide_site23.png",
+  "size_px": 256,
+  "m_per_px": 20.0
+ },
+ "hazard_rule": "official LOLA slope >= 12.0 deg (modelled hazard backup)"
+}

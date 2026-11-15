@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A learned pilot measured against classic guidance · Adinfinitium Research</title>
+<meta name="description" content="A paired simulation benchmark of the Adinfinitium landing pilot against classic ZEM/ZEV guidance on three lunar maps it never saw and on the held-out Site 23 final exam, with exact McNemar tests. Simulation.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/fig3d.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="css/results-page.css">
+</head>
+<body class="page-research">
+<a class="skip" href="research/pilot-benchmark.html#main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/pilot-benchmark.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/pilot-benchmark.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="main" class="post">
+  <header class="post-head">
+    <p class="post-meta"><a href="research.html">Research</a> · Nov 2026 · Autonomy</p>
+    <h1>A learned pilot measured against <span class="serif">classic guidance.</span></h1>
+    <p class="lede">We flew the same lunar landings twice, once with textbook guidance and once with our pilot, on terrain the pilot had never seen. Here is what changed, and what did not.</p>
+  </header>
+
+  <article class="post-body">
+    <h2>What the pilot is</h2>
+    <p>Classic zero-effort-miss / zero-effort-velocity (ZEM/ZEV) guidance always flies the lander. The learned pilot, a 14.8 M-parameter transformer, looks at a 32 × 32 camera crop of the ground, 21 sensor values and the classic command, and adds a small correction to the thrust: at most 30 % of full thrust per axis, clipped, with the engine's tilt and throttle limits still applied. Untrained, it adds zero, so the physics pilot is always the floor.</p>
+
+    <h2>How we tested it</h2>
+    <p>The test is <b>paired</b>. Every mission — landing cell, starting state, sensor noise and the failures injected into it (engine-out, navigation drift, blind camera) — is generated once from a seed and flown by both pilots. A difference in outcome is then caused by the pilot alone, not by luck of the draw.</p>
+    <ul>
+      <li><b>Maps:</b> three NASA LOLA 5 m/px tiles the pilot never trained on (Site 42, Shoemaker, DM2), 768 missions per map per condition, 2,304 in total.</li>
+      <li><b>Final exam:</b> Site 23, held out from everything, 1,024 missions per condition, flown once.</li>
+      <li><b>Conditions:</b> normal failure rates, and harsh (3× the failure rates).</li>
+      <li><b>Statistics:</b> 95 % confidence intervals on the success rates and their difference, and an exact McNemar test on the missions where exactly one pilot landed.</li>
+    </ul>
+
+    <figure class="wide results-page">
+      <ul class="stat-row" data-results-stats></ul>
+      <div class="results" id="results-grid" aria-live="polite">
+        <noscript><p class="small">These cards are rendered from assets/data/results.json; turn on JavaScript, or open that file directly.</p></noscript>
+      </div>
+      <figcaption>Every number in these cards is read from assets/data/results.json, which mirrors runs/lander/benchmark.json and benchmark.md.</figcaption>
+    </figure>
+
+    <h2>What we found</h2>
+    <p>At normal failure rates the pilot landed <b>98.39 %</b> of missions against <b>97.66 %</b> for classic guidance: <b>+0.74 points</b>, 95 % CI [+0.2, +1.3]. Of the missions where the two disagreed, <b>32 were landed only by the pilot and 15 only by classic guidance</b> (exact McNemar p = 0.019). Failures fell by about a third.</p>
+    <p>Under harsh failure rates the pilot was still ahead, 96.92 % against 96.31 % (+0.61 points, CI [−0.2, +1.4], 55 vs 41 discordant missions), but the difference is <b>not significant</b> (p = 0.18).</p>
+    <p>The whole pooled gain comes from one map. On Site 42, the hardest of the three, the pilot added +1.95 points under normal rates (22 vs 7, p = 0.008). On Shoemaker and DM2 both pilots already land about 99 % of the time; there the two are a tie under both conditions.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Map · condition</th><th>Classic</th><th>Pilot</th><th>Difference</th><th>Pilot-only / classic-only</th><th>p</th></tr></thead>
+        <tbody>
+          <tr><td>Site 42 · normal</td><td>95.05 %</td><td>97.01 %</td><td>+1.95</td><td>22 / 7</td><td>0.008</td></tr>
+          <tr><td>Site 42 · harsh</td><td>92.97 %</td><td>94.27 %</td><td>+1.30</td><td>32 / 22</td><td>0.220</td></tr>
+          <tr><td>Shoemaker · normal</td><td>98.96 %</td><td>99.09 %</td><td>+0.13</td><td>6 / 5</td><td>1.000</td></tr>
+          <tr><td>Shoemaker · harsh</td><td>98.05 %</td><td>98.31 %</td><td>+0.26</td><td>12 / 10</td><td>0.832</td></tr>
+          <tr><td>DM2 · normal</td><td>98.96 %</td><td>99.09 %</td><td>+0.13</td><td>4 / 3</td><td>1.000</td></tr>
+          <tr><td>DM2 · harsh</td><td>97.92 %</td><td>98.18 %</td><td>+0.26</td><td>11 / 9</td><td>0.824</td></tr>
+          <tr><td>Pooled · normal</td><td>97.66 %</td><td>98.39 %</td><td>+0.74</td><td>32 / 15</td><td>0.019</td></tr>
+          <tr><td>Pooled · harsh</td><td>96.31 %</td><td>96.92 %</td><td>+0.61</td><td>55 / 41</td><td>0.184</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: runs/lander/benchmark.md (768 missions per map per condition, 2,304 pooled). Differences in percentage points.</p>
+
+    <h3>See recorded descents on Site 06</h3>
+    <p>These are recorded descents of the lander twin on Site 06 with failures injected at raised rates: no guidance, classic guidance and the learned pilot on top of it, 320 runs each from the same starts and failure draws. Use the toggle to compare them; green landed, red crashed.</p>
+    <figure class="wide f3d" id="f3d-pairs" data-f3d="training:ghosts">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site 06 terrain in 3D with recorded lander descents by no guidance, classic guidance and the learned pilot; green landed, red crashed.">
+        <img class="f3d-still" src="assets/fig3d/training/still_ghosts.jpg" width="1280" height="720" loading="lazy" alt="Site 06 terrain in 3D with hundreds of recorded descent paths converging on the landing target.">
+      </div>
+      <div class="f3d-ctl"></div>
+      <figcaption data-f3d-cap>Recorded descents on Site 06 · no guidance, classic and pilot from the same starts · simulated, failure rates raised for the visual.</figcaption>
+    </figure>
+
+    <h3>Replicated on a second run</h3>
+    <p>On 15 November we flew the same benchmark command again on the Mac mini with the final pilot. The table it wrote is byte-for-byte identical to the one above: the same missions and the same outcomes on all six map rows and both pooled rows. That confirms the numbers reproduce; it is not new evidence, because the missions are the same.</p>
+    <p class="src">Source: lander_mini/runs/lander/benchmark_replication_macmini.md; records/lander/RESULTS_SUMMARY.md section 5.</p>
+
+    <h2>The final exam: Site 23</h2>
+    <p>Site 23 was held out from training, from model selection and from every self-improvement round. It was flown once, on 15 November, with the shipped pilot (the same weights as above, SHA-256 unchanged), on 1,024 paired missions per condition. It was not re-run.</p>
+    <div class="tbl-wrap">
+      <table style="min-width:600px">
+        <thead><tr><th>Site 23 · condition</th><th>Classic (95 % CI)</th><th>Pilot (95 % CI)</th><th>Difference (95 % CI)</th><th>Pilot-only / classic-only</th><th>p</th></tr></thead>
+        <tbody>
+          <tr><td>Normal</td><td>97.95 % [96.9, 98.7]</td><td>97.95 % [96.9, 98.7]</td><td>0.00 [−0.9, +0.9]</td><td>11 / 11</td><td>1.000</td></tr>
+          <tr><td>Harsh</td><td>96.48 % [95.2, 97.4]</td><td>96.29 % [94.9, 97.3]</td><td>−0.20 [−1.4, +1.0]</td><td>19 / 21</td><td>0.875</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src">Source: lander_mini/runs/lander/benchmark_site23_final.md and .json; records/lander/RESULTS_SUMMARY.md section 6. Intervals from the pooled rows of that table. Differences in percentage points; p is the exact McNemar test.</p>
+    <p>On the final exam the pilot is <b>not better than classic guidance</b>. Under normal rates it is an exact tie: each pilot landed 11 missions the other crashed. Under harsh rates the pilot landed 2 missions of 1,024 fewer than classic, a difference that is not significant. Taken with the unseen maps, the fair summary is: about as safe as classic guidance or safer on every map measured, clearly better on Site 42, and a tie on Shoemaker, DM2 and Site 23.</p>
+
+    <h2>Why the margin is small</h2>
+    <ul>
+      <li><b>Classic guidance is already high.</b> It lands 94 to 99 % of missions depending on the map, and the pilot is a residual capped at 0.3 of full thrust, so it can only move the last few percent.</li>
+      <li><b>The largest failure type is a touchdown slightly too fast sideways.</b> On the validation map Site 11 (2,048 paired missions) the pilot crashed 77 missions; 37 were hard sideways touchdowns, and 27 of those touched down at 0.51 to 0.78 m/s against a 0.5 m/s limit. Classic guidance landed 28 of the 37.</li>
+      <li>A likely cause is that the pilot holds each correction for 0.5 s between decisions while a navigation drift already uses up most of the margin. That is our reading of the touchdown numbers; it was not measured directly.</li>
+      <li>A self-improvement job on 15 November tried four authority rules and three short training rounds to fix this. A gate on Site 11 rejected all seven, so the pilot did not change. Details are in the <a href="research/dream-rsi.html">Dream-RSI post</a>.</li>
+    </ul>
+    <p class="src">Source: records/lander/LANDER_DIAGNOSIS_AND_RECOMMENDATIONS.md section 2; lander_mini/runs/lander/failure_analysis.md.</p>
+
+    <h2>Against real landings</h2>
+    <p>For scale, here is how the limits we judge against compare with real missions. The real missions flew; ours is a simulation.</p>
+    <figure class="wide results-page">
+      <div class="mis-row">
+        <article class="mis sage">
+          <p class="mis-name">JAXA SLIM · January 2024</p>
+          <p class="mis-big">55 m</p>
+          <p class="mis-txt">from its target, inside the 100 m goal for pinpoint landing, after one main engine was lost.</p>
+          <p class="src">Source: <a href="https://global.jaxa.jp/press/2024/01/20240125-1_e.html">JAXA press release, 25 Jan 2024</a></p>
+        </article>
+        <article class="mis peach">
+          <p class="mis-name">ISRO Chandrayaan-3 · August 2023</p>
+          <p class="mis-big">≤ 2 m/s</p>
+          <p class="mis-txt">vertical at touchdown, with ≤ 0.5 m/s sideways and ≤ 12° slope. Our simulated landings are judged on the same limits.</p>
+          <p class="src">Source: <a href="https://www.isro.gov.in/Chandrayaan3_Details.html">ISRO, Chandrayaan-3 details</a></p>
+        </article>
+        <article class="mis lavender">
+          <p class="mis-name">Lunar landers 2019–2023</p>
+          <p class="mis-big">4 lost</p>
+          <p class="mis-txt">Beresheet, Vikram, Hakuto-R M1 and Luna 25 crashed before Chandrayaan-3 landed.</p>
+          <p class="src">Source: <a href="https://www.sciencenews.org/?p=3130597">Science News, Aug 2023</a></p>
+        </article>
+        <article class="mis sand">
+          <p class="mis-name">Adinfinitium pilot · simulation</p>
+          <p class="mis-big" data-ours-big>—</p>
+          <p class="mis-txt" data-ours-txt></p>
+          <p class="src">Source: runs/lander/benchmark.json</p>
+        </article>
+      </div>
+    </figure>
+
+    <h2>Limits of this result</h2>
+    <div class="callout">
+      <p><b>This is a simulation, not a flight.</b> The simulator is a simplified 3-DOF model of the last ~2 km of descent, on real NASA LOLA terrain, with failures injected. It treats the lander as a point mass, so attitude dynamics are not modelled, and sensors are noise models, not real hardware.</p>
+      <p>Hazard labels come from 5 m slope maps, so rocks smaller than 5 m are unknown to both pilots.</p>
+      <p>The pooled gain under normal rates rests on one map (Site 42). On the held-out final exam, Site 23, the pilot ties classic guidance under normal rates and is not better under harsh rates.</p>
+      <p>Per-mission outcomes are not saved by the benchmark; the independent check of the intervals and p-values starts from the per-map counts.</p>
+    </div>
+
+    <h2>What this means</h2>
+    <p>The learned pilot is a correction on top of physics, not a replacement for it. On three unseen maps pooled it lands more missions than classic guidance at normal failure rates, and the gain comes from the hardest map. On the final exam it ties. It never removes the classic controller underneath, and on every map measured it is about as safe as classic guidance or safer.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#pilot">Methodology &amp; data →</a></p>
+  </article>
+
+  <footer class="post-foot">
+    <p>Data: runs/lander/benchmark.json and benchmark.md, mirrored in assets/data/results.json; lander_mini/runs/lander/benchmark_site23_final.md and .json; benchmark_replication_macmini.md; failure_analysis.md; records/lander/RESULTS_SUMMARY.md sections 5 and 6; records/lander/LANDER_DIAGNOSIS_AND_RECOMMENDATIONS.md section 2; records/SUBMISSION_SUMMARY.md section 8. All results are simulation. Terrain: NASA LOLA 5 m/px polar tiles (PGDA). <a href="research.html">All research</a></p>
+  </footer>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/fig3d.js"></script>
+<script type="module">
+  import { mountResults } from './js/results.js';
+  mountResults(document.getElementById('results-grid'), { full: true });
+</script>
+</body>
+</html>

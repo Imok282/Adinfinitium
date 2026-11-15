@@ -1,0 +1,116 @@
+/* Stage beats (js/stage.js): mission (#problem) and results (#results), Poly vocabulary.
+   Default = static, centred, normal flow (reduced motion, ?static, no WebGL, phones, no JS).
+   html.stage-on (set by js/stage.js) = tall section + sticky 100vh stage, everything scrubbed by scroll. */
+
+/* ---------- shared ---------- */
+.stage-sec.sec { padding: 120px var(--gutter); align-items: center; }
+.stage-sec.sec > *, .stage-sec .stage { width: 100%; max-width: 1180px; margin-left: auto; margin-right: auto; }
+.stage-sec .stage-head { max-width: 780px; margin: 0 auto 36px; text-align: center; }
+.stage-sec .stage-head h2 { font-size: clamp(30px, 2.7vw, 44px); margin-bottom: 16px; }
+.stage-sec .stage-head .lede { margin: 0 auto; font-size: 18px; max-width: 40em; }
+.stage-sec .stage-head .eyebrow { margin-bottom: 14px; }
+.words.scrub .w { transition: none; }
+
+html.stage-on .stage-sec.sec { display: block; min-height: 0; padding: 0; }
+html.stage-on .stage-sec .stage { position: sticky; top: 0; height: 100vh; max-width: none; overflow: hidden; }
+html.stage-on .stage-sec .stage-head { position: absolute; z-index: 3; left: 0; right: 0; top: 11vh; width: min(800px, 86vw); margin: 0 auto; }
+html.stage-on .stage-sec .stage-head h2 { text-shadow: 0 2px 24px rgba(20, 20, 19, .55); }
+
+/* ---------- mission ---------- */
+#problem .features { list-style: none; margin: 0 auto; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px;
+  background: none; border-radius: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#problem .features li { position: relative; padding: 8px; border: 0; border-radius: 24px; background: var(--sand); color: var(--ink); min-width: 0;
+  transform-origin: 50% 50%; display: flex; flex-direction: column; }
+#problem .features li::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 34px 70px -18px rgba(10, 10, 9, .75), 0 10px 22px rgba(10, 10, 9, .35); opacity: var(--sh, 1); }
+#problem .ph { aspect-ratio: 16 / 10; border-radius: 18px; background-color: #121211; background-repeat: no-repeat;
+  background-size: var(--bs, cover) auto; background-position: var(--bx, 50%) var(--by, 50%); }
+#problem .ft { padding: 16px 18px 18px; }
+#problem .features .num { display: block; font: 500 11.5px/1 var(--mono); color: var(--fg-3); margin-bottom: 10px; }
+#problem .features h3 { font: 600 20px/1.2 var(--head); margin: 0 0 6px; }
+#problem .features p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--fg-2); }
+#problem .cap { position: absolute; left: 0; right: 0; top: calc(100% + 12px); width: max-content; max-width: 100%; margin: 0 auto; padding: 5px 11px;
+  border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(31, 31, 29, .78); color: var(--fg-2);
+  font: 500 11px/1.35 var(--font); text-align: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+#problem .cap .prov { font-style: normal; font-size: 9.5px; margin-left: 4px; }
+#problem .features { margin-bottom: 44px; }
+#problem .src-box { max-width: 900px; margin: 18px auto 0; text-align: center; background: rgba(31, 31, 29, .6); }
+#problem > .media-slot { max-width: 900px; margin-top: 40px; }
+
+html.stage-on #problem { height: 430vh; }
+/* the optional descent clip rises over the settled grid at the end of the pinned stage, like the next card */
+html.stage-on #problem:has(> .media-slot:not([hidden])) { display: flex; flex-direction: column; }
+html.stage-on #problem > .media-slot { position: relative; z-index: 4; margin: auto auto 12vh; width: min(900px, 86vw);
+  box-shadow: 0 40px 90px -20px rgba(0, 0, 0, .8); }
+html.stage-on #problem .features { position: absolute; z-index: 2; left: 0; right: 0; top: 41vh; width: min(1180px, calc(100vw - 2 * var(--gutter) - 96px)); }
+html.stage-on #problem .features li { will-change: transform; }
+html.stage-on #problem .src-box { position: absolute; left: 0; right: 0; bottom: 3.5vh; width: min(900px, 86vw); margin: 0 auto; }
+@media (max-height: 820px) { html.stage-on #problem .features { top: 38vh; } html.stage-on #problem .ph { aspect-ratio: 16 / 9; } }
+
+/* ---------- results: comparison strip (pinned, slides sideways) + our pastel bento tiles ---------- */
+#results .strip { display: grid; gap: 20px; }
+#results .mis { border-radius: 26px; padding: 34px 36px 28px; color: var(--ink); }
+#results .mis.sage { background: var(--sage); } #results .mis.peach { background: var(--peach); }
+#results .mis.lavender { background: var(--lavender); } #results .mis.sand { background: var(--sand); }
+#results .mis-name { margin: 0 0 18px; font: 600 15px/1.3 var(--font); color: var(--ink-2); }
+#results .mis-big { margin: 0 0 12px; font: 400 clamp(64px, 7vw, 116px)/1 var(--display); letter-spacing: -.02em; color: var(--ink); }
+#results .mis-big b { font-weight: 400; color: inherit; font-variant-numeric: tabular-nums; }
+#results .mis-txt { margin: 0 0 22px; max-width: 30em; font-size: 18px; line-height: 1.45; color: var(--ink); }
+#results .mis .src { margin: 0; color: var(--ink-2); font-size: 12.5px; }
+#results .ours { max-width: 1180px; margin: 72px auto 0; }
+#results .ours-h { font: 500 clamp(24px, 2vw, 32px)/1.2 var(--head); text-align: center; margin: 0 0 24px; }
+#results .stat-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; }
+#results .stat-row li { border-radius: 24px; padding: 26px 24px; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; color: var(--ink); }
+#results .stat-row li.sage { background: var(--sage); } #results .stat-row li.peach { background: var(--peach); }
+#results .stat-row li.lavender { background: var(--lavender); } #results .stat-row li.sand { background: var(--sand); }
+#results .stat-row b { color: var(--ink); font: 400 clamp(40px, 3.6vw, 56px)/1 var(--display); margin: 0 0 12px; }
+#results .stat-row span { font: 500 15px/1.35 var(--font); color: var(--ink-2); }
+#results .results { display: block; margin: 16px 0 0; }
+#results .res-card.pending { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; padding: 24px 28px; border-radius: 24px;
+  background: transparent; border: 1px dashed var(--line-strong); }
+#results .res-card.pending b { font: 400 34px/1.1 var(--display); color: var(--fg-2); }
+#results .res-card.pending span { font-size: 15px; color: var(--fg-3); }
+#results [data-results-foot] { text-align: center; margin: 18px auto 0; }
+
+html.stage-on #results { height: auto; display: block; padding: 0 0 120px; }
+html.stage-on #results .strip-wrap { height: 380vh; }   /* scroll length of the pinned strip */
+html.stage-on #results .stage-head { top: 10vh; }
+html.stage-on #results .strip { position: absolute; left: 0; top: 30vh; width: max-content; display: flex; gap: 4vw; padding: 0 18vw; will-change: transform; }
+html.stage-on #results .mis { flex: none; width: 64vw; min-height: 52vh; display: flex; flex-direction: column; justify-content: center;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .6); }
+html.stage-on #results .ours { padding: 0 var(--gutter); }
+
+@media (max-width: 760px) {
+  .stage-sec.sec { padding: 80px var(--gutter) 64px; }
+  .stage-sec .stage-head { text-align: left; }
+  #problem .features { grid-template-columns: 1fr; gap: 56px; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  #problem .features { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 64px; }
+  html.stage-on #problem .features { top: 34vh; width: min(640px, 80vw); }
+  html.stage-on #problem .ph { aspect-ratio: 16 / 7; }
+  html.stage-on #results .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* round 3b: pastel card backs (ink text), plain captions */
+#problem .features li:nth-child(1) { background: var(--sage); } #problem .features li:nth-child(2) { background: var(--peach); }
+#problem .features li:nth-child(3) { background: var(--lavender); } #problem .features li:nth-child(4) { background: var(--sand); }
+#problem .ft { padding: 14px 12px 10px; }
+#problem .features .num { color: var(--ink-2); }
+#problem .features h3 { color: var(--ink); }
+#problem .features p { color: var(--ink-2); }
+#problem .cap { border: 0; background: none; padding: 0; color: var(--fg-2); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); font: 400 13px/1.4 var(--font); backdrop-filter: none; -webkit-backdrop-filter: none; }
+#problem .src-box { background: none; padding: 0; }
+@media (max-width: 1100px) { #results .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { #results .mis { padding: 26px 24px 22px; } #results .ours { margin-top: 48px; } }
+html.stage-on .stage-sec .stage-head .lede { color: var(--fg); text-shadow: 0 1px 14px rgba(0, 0, 0, .75), 0 0 2px rgba(0, 0, 0, .5); }
+
+/* ---------- round 5: keep a right-hand lane clear for the side lander (x ~1100–1240 px at 1440 wide) ---------- */
+:root { --lane: 300px; }
+@media (max-width: 1100px) { :root { --lane: 0px; } }
+html.stage-on .stage-sec .stage-head { right: var(--lane); width: min(800px, calc(86vw - var(--lane))); }
+html.stage-on #problem .features { right: var(--lane); width: min(1180px, calc(100vw - var(--lane) - 2 * var(--gutter))); }
+html.stage-on #problem .src-box { right: var(--lane); width: min(900px, calc(86vw - var(--lane))); }
+html.stage-on #results .strip { padding: 0 calc(var(--lane) + 6vw) 0 6vw; gap: 3vw; }
+html.stage-on #results .mis { width: calc(100vw - var(--lane) - 12vw); }
+html.stage-on #results [data-results-foot] { right: var(--lane); }

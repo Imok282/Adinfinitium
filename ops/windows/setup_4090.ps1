@@ -2,6 +2,7 @@
 # Run from the package root in PowerShell:   powershell -ExecutionPolicy Bypass -File ops\windows\setup_4090.ps1
 # UNTESTED on Windows by the author (written on a Mac): if a step fails, read its message, fix that step, re-run (every step is safe to repeat).
 Set-Location (Join-Path $PSScriptRoot "..\..")
+[Environment]::CurrentDirectory = (Get-Location).ProviderPath      # child programs (python, pip) start in the package folder too
 $cand = @("$env:LOCALAPPDATA\Programs\Python\Python312\python.exe", "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe",
           "C:\Program Files\Python312\python.exe", "C:\Program Files\Python311\python.exe")
 $py = $cand | Where-Object { Test-Path $_ } | Select-Object -First 1

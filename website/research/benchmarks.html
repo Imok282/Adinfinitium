@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmarks · Adinfinitium Research</title>
+<meta name="description" content="Adinfinitium benchmarks: hazard, light, terrain, pilot, planner and rover models compared with simple baselines.">
+<link rel="icon" href="assets/img/lander_icon.png">
+<meta name="theme-color" content="#262624">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/research.css">
+<link rel="stylesheet" href="css/benchmarks.css">
+<link rel="stylesheet" href="css/barcharts.css">
+</head>
+<body class="page-research">
+<a class="skip" href="research/benchmarks.html#bm-main">Skip to content</a>
+<!-- BEGIN:SHELL-nav -->
+<header class="topnav" id="topnav">
+  <nav class="nav-side nav-left" aria-label="Main">
+    <a class="pill" href="pilot.html" data-page="pilot">Pilot</a>
+    <a class="pill" href="navigator.html" data-page="navigator">Navigator</a>
+    <a class="pill" href="research.html" data-page="research">Research</a>
+    <a class="pill" href="company.html" data-page="company">Company</a>
+  </nav>
+  <a href="index.html" class="brand" aria-label="Adinfinitium, home"><span class="brand-word" aria-hidden="true"><span class="bl bl-a">A</span><span class="bl" style="--i:0">D</span><span class="bl" style="--i:1">I</span><span class="bl" style="--i:2">N</span><span class="bl" style="--i:3">F</span><span class="bl" style="--i:4">I</span><span class="bl" style="--i:5">N</span><span class="bl" style="--i:6">I</span><span class="bl" style="--i:7">T</span><span class="bl" style="--i:8">I</span><span class="bl" style="--i:9">U</span><span class="bl" style="--i:10">M</span></span><span class="brand-inf" aria-hidden="true"><svg viewBox="0 0 40 20" width="30" height="15"><path pathLength="1" d="M20 10C23.5 4.5 27 3 30 3c4 0 7 3 7 7s-3 7-7 7c-3 0-6.5-1.5-10-7-3.5-5.5-7-7-10-7-4 0-7 3-7 7s3 7 7 7c3 0 6.5-1.5 10-7z"/></svg></span></a>
+  <nav class="nav-side nav-right" aria-label="Actions">
+    <a class="pill" href="research.html">Read the research</a>
+    <a class="pill pill-primary" href="research/benchmarks.html#waitlist">Join the waitlist</a>
+    <button class="icon-btn" type="button" id="nav-menu-btn" aria-expanded="false" aria-controls="nav-sheet" aria-label="All pages">
+      <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg>
+    </button>
+  </nav>
+  <div class="nav-sheet" id="nav-sheet" hidden>
+    <p class="sheet-h">Products</p>
+    <a href="pilot.html">Adinfinitium Pilot</a>
+    <a href="navigator.html">Adinfinitium Navigator</a>
+    <a href="mission-control.html">Mission control</a>
+    <a href="landing.html">Watch a landing</a>
+    <p class="sheet-h">Research &amp; company</p>
+    <a href="research.html">Research</a>
+    <a href="company.html">Company</a>
+    <a class="sheet-cta" href="research/benchmarks.html#waitlist">Join the waitlist</a>
+  </div>
+</header>
+<!-- END:SHELL-nav -->
+
+<main id="bm-main" class="bm-page">
+  <header class="bm-hero">
+    <p class="post-meta"><a href="research.html">Research</a> · Nov 2026 · Evaluation</p>
+    <p id="bm-notice" class="bm-notice" hidden>Sample figures — final benchmarks coming</p>
+    <h1>Benchmarks, <span class="serif">model by model.</span></h1>
+    <p class="lede">Each model family against simple baselines on held-out data, with every metric defined in one sentence. All lander, planner and rover numbers are simulation; hazard, light and terrain truth comes from NASA LOLA 5 m data.</p>
+    <p id="bm-meta" class="bm-meta"></p>
+    <nav id="bm-toc" class="bm-toc" aria-label="Benchmark families"></nav>
+  </header>
+  <section class="bm-section bm-headline" id="headline" aria-labelledby="hl-h">
+    <header class="bm-shead">
+      <h2 id="hl-h">Headline <span class="serif">results.</span></h2>
+      <p>Our strongest real results, each with its 95% interval, sample size and test. The weaker results are in each family's section below and in <a href="research/benchmarks.html#limits">Limits</a>.</p>
+    </header>
+    <div id="hl-root"></div>
+  </section>
+
+  <div id="bm-root" class="bm-root" aria-live="polite"></div>
+
+  <section class="bm-section" id="methodology" aria-labelledby="meth-h">
+    <header class="bm-shead">
+      <h2 id="meth-h">Methodology</h2>
+      <p>How every number above was produced, tested and labelled.</p>
+    </header>
+    <div id="meth-root" class="bm-meth"></div>
+  </section>
+
+  <section class="bm-section" id="reproduce" aria-labelledby="repro-h">
+    <header class="bm-shead">
+      <h2 id="repro-h">Reproduce</h2>
+      <p>The commands that produced these results and the checkpoints they used.</p>
+    </header>
+    <div id="repro-root" class="bm-meth"></div>
+  </section>
+
+  <section class="bm-section" id="downloads" aria-labelledby="dl-h">
+    <header class="bm-shead">
+      <h2 id="dl-h">Download raw results</h2>
+      <p>Every table on this page as JSON and CSV.</p>
+    </header>
+    <div id="dl-root" class="bm-meth"></div>
+  </section>
+
+  <section class="bm-section" id="training" aria-labelledby="tl-h">
+    <header class="bm-shead">
+      <h2 id="tl-h">Two days of <span class="serif">training.</span></h2>
+      <p>Every training run behind the numbers above, as logged during the hackathon: where it ran, for how long, how far it got and what it reached. Failed runs are listed with the rest.</p>
+    </header>
+    <ol id="tl-root" class="tl-list"></ol>
+  </section>
+
+  <section class="bm-section" id="projected" aria-labelledby="pj-h">
+    <header class="bm-shead">
+      <h2 id="pj-h">Where we're going: <span class="serif">the most reliable autonomous landing in the world.</span></h2>
+      <p>That is our goal, not a result. Below, each model shows what we measured, what our own training curves project for more training, and the target it still has to reach. Projections are curve fits to our logs, never measurements, and none is compared with a flown mission.</p>
+    </header>
+    <p id="pj-method" class="bm-method"></p>
+    <h3 class="bm-sub">Measured, then projected</h3>
+    <div id="pj-root" class="pj-grid"></div>
+    <h3 class="bm-sub">Targets without a curve</h3>
+    <p class="bm-subp">Where the training curve does not trend towards the goal, or no curve exists, we state a target and the reason we do not project.</p>
+    <div id="tg-root" class="tg-grid"></div>
+    <h3 class="bm-sub">Roadmap</h3>
+    <ol class="rm-list">
+      <li><b>More training.</b> Finish the planned schedules in uninterrupted runs, starting with the light network's 6,000 steps, and score them on the same held-out windows.</li>
+      <li><b>Fresh unseen maps.</b> New sites that no model, rule or person has looked at, held back for one final scoring.</li>
+      <li><b>Hazard on flat ground.</b> Training data from flat sites, where the hazard network misses the most unsafe cells today.</li>
+      <li><b>Light model fully trained.</b> A complete training run, adopted only if it beats the frozen checkpoint by the pre-registered margin.</li>
+      <li><b>Evolution swarm.</b> Designed and throughput-tested, not yet run: a first real run with every generation logged.</li>
+      <li><b>Flight-like 6-DOF simulation.</b> Attitude dynamics, sensor and actuator models for the pilot, in place of today's 3-DOF point-mass descent simulation.</li>
+      <li><b>Hardware-in-the-loop.</b> The pilot and its classic backup running on flight-representative computers in a closed loop with the simulator.</li>
+    </ol>
+  </section>
+
+  <section class="bm-section" id="limits" aria-labelledby="lim-h">
+    <header class="bm-shead">
+      <h2 id="lim-h">Limits and <span class="serif">what's next.</span></h2>
+      <p>The weak spots, in plain words. The <a href="research/benchmarks.html#projected">roadmap above</a> lists what we are doing about them.</p>
+    </header>
+    <div id="limits-root"></div>
+  </section>
+
+  <section class="bm-section bm-sources" aria-labelledby="src-h">
+    <h2 id="src-h" class="bm-sub">Method &amp; data</h2>
+    <p class="src">Benchmarks: assets/data/benchmarks.json, a copy of data/handoff_macmini_1115/benchmarks_final.json (benchmarks only; nothing trained, tuned or re-flown for it). Every row names its own source file above.</p>
+    <p class="src">Statistics: assets/data/stats.json and assets/data/csv/*.csv, written by website/tools/export_bench_csv.py from the hand-off records (exact McNemar p recomputed from discordant counts, Holm adjustment, bootstrap effect sizes, touchdown limits from config/mission.yaml, checkpoint sha256).</p>
+    <p class="src">Training record, projections and targets: assets/data/projections.json, a copy of data/handoff_macmini_1115/projections.json; each training run names its log file. Projected values are extrapolations of the logged Site 11 validation curves and are shown only next to the measured value.</p>
+  </section>
+</main>
+
+<!-- BEGIN:SHELL-waitlist -->
+<section class="waitlist-band" id="waitlist" aria-labelledby="waitlist-h">
+  <div class="waitlist-inner">
+    <h2 id="waitlist-h">Fly it before you fly it. <span class="serif">Join the waitlist.</span></h2>
+    <p class="lede">For space agencies and lander teams evaluating Adinfinitium Pilot and Navigator.</p>
+    <!-- TODO: wire to a form service later. Visual only for now: js/waitlist.js stores and sends NOTHING (no network request). -->
+    <form class="waitlist-form" data-waitlist novalidate>
+      <label class="sr-only" for="wl-email">Work email</label>
+      <input id="wl-email" type="email" name="email" placeholder="you@agency.org" autocomplete="email" required>
+      <button class="btn btn-primary" type="submit">Join the waitlist</button>
+      <p class="waitlist-ok" role="status" aria-live="polite" hidden>Thanks — we'll be in touch.</p>
+    </form>
+  </div>
+</section>
+<!-- END:SHELL-waitlist -->
+<!-- BEGIN:SHELL-footer -->
+<footer class="footer">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="index.html" class="foot-word">ADINFINITIUM</a>
+      <p>Autonomy that lands where missions survive.</p>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div>
+        <h3>Products</h3>
+        <ul>
+          <li><a href="pilot.html">Pilot</a></li>
+          <li><a href="navigator.html">Navigator</a></li>
+          <li><a href="mission-control.html">Mission control</a></li>
+          <li><a href="landing.html">Watch a landing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Research</h3>
+        <ul>
+          <li><a href="research.html">All research</a></li>
+          <li><a href="research/pilot-benchmark.html">Pilot benchmark</a></li>
+          <li><a href="research/hazard-model.html">Hazard model</a></li>
+          <li><a href="research/dream-rsi.html">Dream-RSI</a></li>
+          <li><a href="research/training.html">Watch it learn</a></li>
+          <li><a href="research/rover.html">Rover brain</a></li>
+          <li><a href="research/terrain.html">Terrain: kriging vs diffusion</a></li>
+          <li><a href="research/end-to-end.html">End-to-end test</a></li>
+          <li><a href="research/benchmarks.html">Benchmarks</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Company</h3>
+        <ul>
+          <li><a href="company.html">About</a></li>
+          <li><a href="company.html#careers">Careers</a></li>
+          <li><a href="company.html#news">News</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+          <li><a href="company.html#method">Method &amp; data</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Open source</h3>
+        <ul>
+          <li><a href="https://huggingface.co/Imok282" target="_blank" rel="noopener">Models on Hugging Face</a></li>
+          <li><a href="https://github.com/Imok282/Adinfinitium" target="_blank" rel="noopener">Code on GitHub</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-lander-pilot" target="_blank" rel="noopener">Lander pilot</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-hazard-unet" target="_blank" rel="noopener">Hazard U-Net</a></li>
+          <li><a href="https://huggingface.co/Imok282/lunar-rover-brain" target="_blank" rel="noopener">Rover brain</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Adinfinitium</span>
+    <p class="credits">Terrain: NASA LOLA (PGDA). Moon imagery: NASA/GSFC/Arizona State University (LROC). Ephemeris: NASA/JPL SPICE (DE440). No NASA endorsement implied. All mission results are simulation. The team wrote the software together with AI coding agents; cinematic video and imagery are AI-generated with Google Gemini.</p>
+  </div>
+</footer>
+<!-- END:SHELL-footer -->
+<script type="module" src="js/nav.js"></script>
+<script type="module" src="js/benchmarks.js"></script>
+</body>
+</html>

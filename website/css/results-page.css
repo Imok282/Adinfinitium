@@ -1,0 +1,69 @@
+/* results.html: normal document flow, centred, big pastel cards. Page-scoped (body has .results-page on <main>). */
+.results-page { position: relative; z-index: 5; max-width: 1100px; margin: 0 auto; padding: 150px var(--gutter) 120px; }
+.results-page .page-head { text-align: center; max-width: 780px; margin: 0 auto 72px; }
+.results-page .page-head h1 { font-size: clamp(36px, 4vw, 60px); }
+.results-page .page-head .lede { margin: 0 auto; }
+.results-page .page-sec { margin: 0 0 96px; }
+.results-page .page-sec > h2 { text-align: center; font-size: clamp(28px, 2.6vw, 40px); margin: 0 0 32px; }
+
+/* bento tiles: one real stat each */
+.results-page .stat-row { list-style: none; margin: 0 0 20px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.results-page .stat-row li { display: flex; flex-direction: column; min-width: 0; padding: 26px 24px 22px; border-radius: 24px; color: var(--ink);
+  background: var(--sand); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.results-page .sage { background: var(--sage); } .results-page .peach { background: var(--peach); }
+.results-page .lavender { background: var(--lavender); } .results-page .sand { background: var(--sand); }
+.results-page .stat-row b { font: 400 clamp(40px, 3.6vw, 56px)/1 var(--display); color: var(--ink); margin: 0 0 12px; white-space: nowrap; }
+.results-page .stat-row span { font: 600 15px/1.35 var(--font); color: var(--ink); margin-bottom: 8px; }
+.results-page .stat-row p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.results-page .stat-row code { margin-top: auto; font: 500 11.5px/1.4 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+
+/* result cards: paired classic-vs-pilot bars, KPIs, pending slot */
+.results-page .results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.results-page .res-card { border-radius: 24px; padding: 28px 30px 24px; color: var(--ink); min-width: 0; }
+.results-page .res-card:hover { background-color: inherit; }
+.results-page .res-card.sage:hover { background: var(--sage); } .results-page .res-card.peach:hover { background: var(--peach); }
+.results-page .res-card.lavender:hover { background: var(--lavender); } .results-page .res-card.sand:hover { background: var(--sand); }
+.results-page .res-card h3 { font: 500 22px/1.25 var(--head); color: var(--ink); margin: 0 0 14px; }
+.results-page .res-card .bar { color: var(--ink-2); font-size: 15px; padding-bottom: 16px; }
+.results-page .res-card .bv { color: var(--ink); }
+.results-page .res-card .bar::before { height: 9px; border-radius: 5px; background: rgba(31, 31, 29, .12); }
+.results-page .res-card .bar i { height: 9px; border-radius: 5px; background: var(--ink-2); }
+.results-page .res-card .bar.pilot i { background: var(--accent); }
+.results-page .res-card .bars::after { color: var(--ink-2); }
+.results-page .res-card .delta, .results-page .res-card .small { color: var(--ink-2); font-size: 14.5px; }
+.results-page .res-card b { color: var(--ink); }
+.results-page .res-card .kpis b { font: 400 40px/1.05 var(--display); color: var(--ink); }
+.results-page .res-card .kpis span { color: var(--ink-2); }
+.results-page .res-card .src { color: var(--ink-2); font: 500 11.5px/1.45 var(--mono); }
+.results-page .res-card.pending { background: transparent; border: 1px dashed var(--line-strong); color: var(--fg-2); }
+.results-page .res-card.pending h3, .results-page .res-card.pending b { color: var(--fg); }
+.results-page .res-card.pending .small, .results-page .res-card.pending .src { color: var(--fg-3); }
+.results-page .pending-slot { font: 400 40px/1.1 var(--display); color: var(--fg-2); margin: 8px 0 14px; }
+.results-page [data-results-foot] { text-align: center; max-width: 900px; margin: 24px auto 0; }
+
+/* comparison with real missions */
+.results-page .mis-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.results-page .mis { border-radius: 26px; padding: 32px 34px 26px; color: var(--ink); display: flex; flex-direction: column; min-width: 0; }
+.results-page .mis-name { margin: 0 0 16px; font: 600 15px/1.3 var(--font); color: var(--ink-2); }
+.results-page .mis-big { margin: 0 0 12px; font: 400 clamp(56px, 6vw, 96px)/1 var(--display); letter-spacing: -.02em; color: var(--ink); }
+.results-page .mis-txt { margin: 0 0 20px; font-size: 17px; line-height: 1.45; color: var(--ink); }
+.results-page .mis .src { margin-top: auto; color: var(--ink-2); font-size: 12.5px; }
+.results-page .mis .src a { color: var(--ink); }
+.results-page .caveat { text-align: center; margin: 28px auto 0; max-width: 760px; font-size: 15px; color: var(--fg-3); }
+
+@media (max-width: 960px) {
+  .results-page .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .results-page { padding: 110px var(--gutter) 80px; }
+  .results-page .page-head { margin-bottom: 48px; }
+  .results-page .page-sec { margin-bottom: 64px; }
+  .results-page .stat-row, .results-page .results, .results-page .mis-row { grid-template-columns: 1fr; }
+  .results-page .mis, .results-page .res-card { padding: 24px 22px 20px; }
+  .results-page .bar { flex-wrap: wrap; }
+}
+
+/* this page IS the evidence page: keep each card's one source line (the home-page rule hides .src in sections) */
+main#story.results-page section.page-sec p.src { display: block !important; font-size: 12px; opacity: 1; }
+.results-page .stat-row li.sage { background: var(--sage); } .results-page .stat-row li.peach { background: var(--peach); }
+.results-page .stat-row li.lavender { background: var(--lavender); } .results-page .stat-row li.sand { background: var(--sand); }

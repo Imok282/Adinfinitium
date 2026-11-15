@@ -25,7 +25,7 @@ from worldmodel.hazard.lola import HOLDOUT_SITES, TRAIN_SITES, VAL_SITES
 from worldmodel.lander.env import LanderBatch, make_params
 from worldmodel.lander.fly import fly, summarize
 from worldmodel.lander.guidance import classic_action, guidance_params
-from worldmodel.lander.pilot import build_model, pick_device, pilot_features, residual_action, save_checkpoint
+from worldmodel.lander.pilot import authority, build_model, pick_device, pilot_features, residual_action, save_checkpoint
 from worldmodel.lander.scenes import load_scenes
 
 
@@ -59,7 +59,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-minutes", type=float, default=0.0)
     ap.add_argument("--name", default="lander_pilot")
     ap.add_argument("--fail-boost", type=float, default=1.0, help="multiply the TRAINING failure rates (engine out, nav drift, blind camera); validation stays nominal")
+    ap.add_argument("--scenario-pool", default=None, help="npz of mined failure / near-miss initial conditions (training maps only) for targeted Dream-RSI")
+    ap.add_argument("--pool-frac", type=float, default=0.5, help="share of (re)started training landers drawn from the pool, randomised")
+    ap.add_argument("--td-penalty", type=float, default=0.0, help="extra reward penalty on touchdown speed (vz/limit + vh/limit) for successful landings")
+    ap.add_argument("--residual-rule", default=None, help="JSON authority rule learned by worldmodel.lander.solve (applied in training and validation flights)")
     a = ap.parse_args(argv)
+    rule = json.loads(a.residual_rule) if a.residual_rule else None
 
     cfg = load_mission()
     assert not set(a.sites) & set(HOLDOUT_SITES) and not set(a.val_sites) & set(HOLDOUT_SITES), "a TEST site was requested"
@@ -90,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     gp = guidance_params(params, cfg.scenarios.terminal.hover_gate_altitude_m, cfg.scenarios.terminal.final_descent_speed_m_s)
     kw = {"hidden": a.hidden} if a.arch == "mlp" else {"d": a.d, "layers": a.layers, "heads": a.heads}
     model = build_model(a.arch, **kw).to(device)
+    model.rule = rule
     opt = torch.optim.Adam(model.parameters(), lr=a.lr, eps=1e-5)
     last_p, best_p = model_path(a.name + "_last"), model_path(a.name)
     update, best_val = 0, -1.0
@@ -117,6 +123,39 @@ def main(argv: list[str] | None = None) -> int:
     base = float(np.mean([v["classic"]["success_rate"] for v in first.values()]))
     print(f"start: validation success pilot {np.mean([v['pilot']['success_rate'] for v in first.values()]):.3f} | classic baseline {base:.3f} (untrained pilot == baseline)", flush=True)
 
+    pool = {}
+    if a.scenario_pool:
+        z = np.load(a.scenario_pool, allow_pickle=False)
+        regions = z["region"].astype(str)
+        for reg in np.unique(regions):
+            sel = regions == reg
+            pool[str(reg)] = {k: z[k][sel] for k in LanderBatch.SCENARIO_KEYS}
+        print(f"scenario pool: {len(regions)} missions over {len(pool)} maps, pool-frac {a.pool_frac}", flush=True)
+    prng = np.random.default_rng(a.seed + 99)
+
+    def apply_pool(env, region: str, mask: torch.Tensor) -> None:
+        """Replace a share of the (re)started landers by randomised variants of mined failure scenarios of this map."""
+        P = pool.get(region)
+        if P is None:
+            return
+        idx = torch.nonzero(mask).flatten().cpu().numpy()
+        idx = idx[prng.random(len(idx)) < a.pool_frac]
+        if len(idx) == 0:
+            return
+        pick = prng.integers(len(P["pos"]), size=len(idx))
+        sc = {k: P[k][pick].copy() for k in LanderBatch.SCENARIO_KEYS}
+        sc["pos"][:, :2] += prng.normal(0, 15.0, (len(idx), 2))
+        sc["pos"][:, 2] += prng.normal(0, 40.0, len(idx))
+        sc["vel"] += prng.normal(0, [1.5, 1.5, 2.0], (len(idx), 3))
+        eo = sc["engine_out_t"]
+        fin = np.isfinite(eo)
+        eo[fin] = np.clip(eo[fin] + prng.uniform(-10, 10, fin.sum()), 0, 0.5 * tparams.max_time)
+        extra = (~fin) & (prng.random(len(idx)) < 0.3)                   # variants: an engine-out where there was none
+        eo[extra] = prng.uniform(0, 0.5 * tparams.max_time, extra.sum())
+        ground = env.terrain.height_at(torch.as_tensor(sc["pos"][:, 0], device=device), torch.as_tensor(sc["pos"][:, 1], device=device)).cpu().numpy()
+        sc["pos"][:, 2] = np.maximum(sc["pos"][:, 2], ground + 300.0)
+        env.load_scenarios(torch.as_tensor(idx, device=device), sc)
+
     envs = {}
     states = {}
     def get_env(scene):
@@ -124,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
         if key not in envs:
             tg = scene.sample_targets(a.envs, rng, device)
             envs[key] = LanderBatch(tparams, scene.terrain, a.envs, device, seed=a.seed + len(envs), targets=tg)
+            apply_pool(envs[key], key, torch.ones(a.envs, dtype=torch.bool, device=device))
             states[key] = envs[key].observe()
         return envs[key]
 
@@ -152,15 +192,22 @@ def main(argv: list[str] | None = None) -> int:
             for _k in range(a.repeat):
                 if _k:
                     classic = classic_action(gp, obs)
-                obs, rw, jd = env.step(residual_action(classic, r))
+                obs, rw, jd = env.step(residual_action(classic, r, authority(obs, rule)))
                 rew += rw
                 newly |= jd
             buf["state"].append(st); buf["img"].append(img.half()); buf["r"].append(r); buf["logp"].append(logp); buf["val"].append(val)
+            if a.td_penalty:
+                lim = cfg.lander.touchdown_limits
+                good = newly & env.metrics()["success"]
+                rew = rew - a.td_penalty * good.float() * (env.td[:, 0] / lim.max_vertical_speed_m_s + env.td[:, 1] / lim.max_horizontal_speed_m_s)
             buf["rew"].append(rew); buf["done"].append(newly.float())
             eps += int(newly.sum()); ok += int((newly & env.metrics()["success"]).sum())
             if bool(env.done.any()):
                 fin = env.done
                 obs = env.reset(fin, scene.sample_targets(int(fin.sum()), rng, device))
+                if pool:
+                    apply_pool(env, scene.region, fin)
+                    obs = env.observe()
         states[scene.region] = obs
         with torch.no_grad(), amp():
             last_v = model(pilot_features(obs, classic_action(gp, obs)), env.crop(32))[1].float()
@@ -201,7 +248,8 @@ def main(argv: list[str] | None = None) -> int:
         if bud.expired():
             a.updates = update
         info = {"update": update, "scene": scene.region, "episodes": eps, "train_success": ok / max(eps, 1), "mean_reward": float(rew.mean()), "best_val_success": best_val,
-                "parameters": n_par, "device": str(device), "trained_on": [s.region for s in scenes], "val_regions": [s.region for s in val_scenes]}
+                "parameters": n_par, "device": str(device), "trained_on": [s.region for s in scenes], "val_regions": [s.region for s in val_scenes],
+                **({"residual_rule": rule} if rule else {})}               # the rule the pilot was trained and validated with travels with its checkpoints
         if update % a.eval_every == 0 or update >= a.updates:
             v = validate()
             pil = float(np.mean([x["pilot"]["success_rate"] for x in v.values()]))
@@ -215,7 +263,8 @@ def main(argv: list[str] | None = None) -> int:
         with open(log, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(info) + "\n")
     if not best_p.exists():
-        save_checkpoint(best_p, model, {"update": update, "note": "no validation improvement over the start; equals the classic baseline at init"})
+        save_checkpoint(best_p, model, {"update": update, "note": "no validation improvement over the start; equals the classic baseline at init",
+                                          **({"residual_rule": rule} if rule else {})})
     return 0
 
 

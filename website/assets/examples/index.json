@@ -1,0 +1,183 @@
+{
+ "generated_by": "website/tools/examples/*.py (read-only use of trained checkpoints; no training, no tuning)",
+ "examples": [
+  {
+   "id": "hazard",
+   "model": "hazard U-Net",
+   "checkpoint": "data/models/hazard_unet.pt",
+   "checkpoint_id": "b0ac044446",
+   "data": "hazard/hazard_examples.json",
+   "files": [
+    "hazard/flat_backup.webp",
+    "hazard/flat_backup_error.webp",
+    "hazard/flat_input.webp",
+    "hazard/flat_input_laser.webp",
+    "hazard/flat_truth.webp",
+    "hazard/flat_unet_error.webp",
+    "hazard/flat_unet_mask.webp",
+    "hazard/flat_unet_prob.webp",
+    "hazard/hard_case_backup.webp",
+    "hazard/hard_case_backup_error.webp",
+    "hazard/hard_case_input.webp",
+    "hazard/hard_case_input_laser.webp",
+    "hazard/hard_case_truth.webp",
+    "hazard/hard_case_unet_error.webp",
+    "hazard/hard_case_unet_mask.webp",
+    "hazard/hard_case_unet_prob.webp",
+    "hazard/hazard_examples.json",
+    "hazard/moderate_backup.webp",
+    "hazard/moderate_backup_error.webp",
+    "hazard/moderate_input.webp",
+    "hazard/moderate_input_laser.webp",
+    "hazard/moderate_truth.webp",
+    "hazard/moderate_unet_error.webp",
+    "hazard/moderate_unet_mask.webp",
+    "hazard/moderate_unet_prob.webp",
+    "hazard/steep_backup.webp",
+    "hazard/steep_backup_error.webp",
+    "hazard/steep_input.webp",
+    "hazard/steep_input_laser.webp",
+    "hazard/steep_truth.webp",
+    "hazard/steep_unet_error.webp",
+    "hazard/steep_unet_mask.webp",
+    "hazard/steep_unet_prob.webp"
+   ],
+   "input": "only real LOLA laser pixels (~11% of ground) + uncertainty; gaps refilled by fixed gaussian gap-fill; the input image is a hillshade of that gap-filled surface (amber dots = real laser pixels in the _laser variant)",
+   "output": "per-pixel unsafe probability (threshold 0.5) for a 256 x 256 px (1.28 km) window",
+   "fields": [
+    "windows[].images.{input_hillshade,input_laser_pixels,unet_probability,unet_mask,backup_slope_rule,truth,unet_error,backup_error}",
+    "windows[].unet / backup_slope_rule: precision, recall, f1, missed_hazard_rate, tp/fp/fn/tn"
+   ],
+   "truth": "official LOLA 5 m slope >= 12 deg (NASA product; computed from interpolated heights)",
+   "split": "Site23 (steep, moderate, flat) and Site42 (hard_case): TEST, never trained or tuned on",
+   "trained_on": [
+    "lola5m_site01",
+    "lola5m_site04",
+    "lola5m_site06",
+    "lola5m_site07",
+    "lola5m_site20"
+   ]
+  },
+  {
+   "id": "light",
+   "model": "skyline model (neural light field)",
+   "checkpoint": "data/models/light_skyline.pt",
+   "checkpoint_id": "b1fac75ad7",
+   "data": "light/light_examples.json",
+   "input": "LOLA 5 m heights block-averaged 4x (20 m grid); model = coarse ray-cast + learned correction",
+   "output": "360-value skyline (deg) per cell; Sun fraction / Earth visibility via exact geometry",
+   "fields": [
+    "cells[].skyline_deg.{truth_raycast_5m,model,backup_coarse_raycast_20m}[360]",
+    "cells[].error_deg",
+    "cells[].sunlit_hours / earth_visible_hours {truth,model,backup}",
+    "sun_earth_path.{times_utc,sun_az_deg,sun_elev_deg,earth_az_deg,earth_elev_deg}"
+   ],
+   "truth": "exact ray-cast of the 5 m LOLA grid out to 1280 m (window-limited; far mountains missing)",
+   "split": "TEST (held out: never trained or tuned on) (Site23)",
+   "trained_on": [
+    "lola5m_site01",
+    "lola5m_site04",
+    "lola5m_site06",
+    "lola5m_site07",
+    "lola5m_site20"
+   ]
+  },
+  {
+   "id": "pilot",
+   "model": "lander pilot (PilotFormer, residual on classic ZEM/ZEV guidance)",
+   "checkpoint": "data/models/lander_pilot.pt",
+   "checkpoint_id": "d53a162df9",
+   "data": "pilot/pilot_examples.json",
+   "files": [
+    "pilot/engine_out_crop_t000.webp",
+    "pilot/engine_out_crop_t052.webp",
+    "pilot/engine_out_crop_t078.webp",
+    "pilot/engine_out_crop_t112.webp",
+    "pilot/nav_drift_crop_t000.webp",
+    "pilot/nav_drift_crop_t030.webp",
+    "pilot/nav_drift_crop_t051.webp",
+    "pilot/nav_drift_crop_t082.webp",
+    "pilot/nominal_crop_t000.webp",
+    "pilot/nominal_crop_t038.webp",
+    "pilot/nominal_crop_t062.webp",
+    "pilot/nominal_crop_t091.webp",
+    "pilot/pilot_examples.json"
+   ],
+   "input": "state vector (21: nav estimate, altimeter, velocity, fuel, engines, hazard ring) + classic command + 32x32x3 camera crop",
+   "output": "3-axis residual on the classic ZEM/ZEV thrust command",
+   "fields": [
+    "missions[].pilot_series / classic_series: t, alt_m, vx, vy, vz, classic[3], residual_raw[3], residual_applied[3], final[3], fuel_kg, engines_ok",
+    "missions[].outcome.{pilot,classic}",
+    "missions[].camera_crops[]"
+   ],
+   "map": "lola5m_site11 (Site11, the pilot's VALIDATION map: used to pick the checkpoint, not a test map)",
+   "split": "validation map (Site11); not a test map",
+   "trained_on": [
+    "lola5m_site01",
+    "lola5m_site04",
+    "lola5m_site06",
+    "lola5m_site07",
+    "lola5m_site20"
+   ]
+  },
+  {
+   "id": "planner",
+   "model": "mission planner: PlannerSetNet (listwise set transformer) + LogisticPlanner, vs the Navigator ranking (non-learned backup)",
+   "checkpoints": {
+    "set": {
+     "file": "data/models/planner_set.pt",
+     "checkpoint_id": "72b76466c7",
+     "parameters": 646401,
+     "trained_on": [
+      "lola5m_site01",
+      "lola5m_site06",
+      "lola5m_site07",
+      "lola5m_site20"
+     ],
+     "eval_json_id": "72b76466c7"
+    },
+    "logistic": {
+     "file": "data/models/planner_logistic.pt",
+     "checkpoint_id": "62b6dba29b",
+     "parameters": null,
+     "trained_on": [
+      "lola5m_site01",
+      "lola5m_site06",
+      "lola5m_site07",
+      "lola5m_site20"
+     ]
+    }
+   },
+   "data": "planner/planner_examples.json",
+   "input": "13 features per candidate (cell, hour): sunlight, darkness, Earth link, hazard, slope, clear radius, ice-target distance",
+   "output": "predicted p(mission) per candidate (learned) / Navigator score (backup); top-10 per ranker",
+   "fields": [
+    "top10.{navigator,set,logistic}[]: rank, cell_rc, hour, navigator_score, p_set, p_logistic, simulated, factors",
+    "all_site23_worlds[]",
+    "site23_means_7_worlds"
+   ],
+   "world": {
+    "region": "lola5m_site23",
+    "site": "Site23 (Malapert massif)",
+    "date": "2027-09-01",
+    "candidates": 96,
+    "split": "TEST (held out: never trained or tuned on)",
+    "chosen_because": "Site23 world whose best candidate has the highest simulated p(mission)"
+   },
+   "split": "TEST (Site23), offline ranking of existing simulated labels, no flight"
+  },
+  {
+   "id": "rover",
+   "model": "rover brain v3.1",
+   "data": "rover/rover_v31_trace_excerpt.json",
+   "input": "hazard U-Net map + light model + battery state",
+   "output": "hourly route (excerpt of the route trace; NOT an action/reason log)",
+   "fields": [
+    "rows[]: hour, x_east_m, z_south_m, dist_travelled_m, battery_wh, sun_frac, event"
+   ],
+   "split": "DM1 end-to-end test site (2027-06-01)",
+   "source": "existing file; nothing re-run"
+  }
+ ],
+ "provenance_banner": "Terrain is OBSERVED NASA LOLA 5 m data; all model outputs, trajectories and labels are MODELLED / simulated. Nothing here is GENERATED terrain. Not a safety claim on its own."
+}
