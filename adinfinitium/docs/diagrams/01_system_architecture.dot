@@ -1,0 +1,34 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; fontname="DejaVu Sans"; pad=0.3; nodesep=0.35; ranksep=0.7;
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#555555", penwidth=0.8];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#666666", arrowsize=0.7];
+  label="Adinfinitium — system architecture"; labelloc=t; fontsize=16;
+
+  subgraph cluster_data { label="Real data (NASA / JPL)"; style="rounded,dashed"; color="#999999"; fontsize=12;
+    lola [label="LOLA terrain\n240 m / 20 m / 5 m", fillcolor="#E1F5EE"];
+    spice [label="SPICE kernels\nSun, Earth, libration", fillcolor="#E1F5EE"];
+    ice [label="Ice evidence\nPSRs, Diviner, M3, neutrons", fillcolor="#E1F5EE"];
+    img [label="LRO images\n(hazard training)", fillcolor="#E1F5EE"];
+  }
+  subgraph cluster_ai { label="AI models (each has a physics backup)"; style="rounded,dashed"; color="#999999"; fontsize=12;
+    hz [label="Hazard detector", fillcolor="#EEEDFE"];
+    diff [label="Diffusion terrain\nversions (uncertainty)", fillcolor="#EEEDFE"];
+    lf [label="Neural light field\n(world model)", fillcolor="#EEEDFE"];
+    pilot [label="Evolved pilot\nNEAT → fixed → Dream-RSI → recurrent", fillcolor="#EEEDFE"];
+  }
+  subgraph cluster_sim { label="Physics engines"; style="rounded,dashed"; color="#999999"; fontsize=12;
+    jax [label="JAX GPU sim\n10,000 missions at once\n(RTX 4090, WSL2)", fillcolor="#FAEEDA"];
+    bsk [label="Basilisk (+ our modules)\norbit, descent, rover,\npower + comms", fillcolor="#FAEEDA"];
+  }
+  subgraph cluster_ui { label="What judges see"; style="rounded,dashed"; color="#999999"; fontsize=12;
+    nav [label="Navigator\nsky dome, compare,\nlunar-day timeline", fillcolor="#E6F1FB"];
+    mc [label="Mission-control window\ntelemetry, power & comms,\nphase, decision log", fillcolor="#E6F1FB"];
+    brain [label="Swarm / brain window\nneural net, swarm map, score,\nfamily tree, heatmap, exam", fillcolor="#E6F1FB"];
+    viz [label="Vizard 3D\nlander + rover replays", fillcolor="#E6F1FB"];
+  }
+  lola -> hz; img -> hz; lola -> diff; lola -> lf; spice -> lf; ice -> nav;
+  lf -> nav; spice -> nav;
+  hz -> jax; diff -> jax; lf -> jax; pilot -> jax [dir=both, label="evolve"];
+  jax -> bsk [label="best missions\nre-flown"];
+  bsk -> viz; bsk -> mc; jax -> brain; nav -> jax [label="sites + dates"];
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sites": [
+    {
+      "id": "chandrayaan3_shiv_shakti",
+      "name": "Chandrayaan-3 landing point (Shiv Shakti)",
+      "lat_deg": -69.373,
+      "lon_deg": 32.319,
+      "source": "ISRO published landing coordinates — VERIFY against LROC/ISRO before use (KAN-38)",
+      "provenance": "observed",
+      "notes": "Example entry so code can run before KAN-38 delivers sites/sites.json",
+      "region": null
+    }
+  ]
+}

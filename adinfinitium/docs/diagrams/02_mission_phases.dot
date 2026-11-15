@@ -1,0 +1,19 @@
+digraph G {
+  rankdir=TB; bgcolor="white"; fontname="DejaVu Sans"; pad=0.3; nodesep=0.3; ranksep=0.35;
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#555555", penwidth=0.8, width=3.6];
+  edge [color="#666666", arrowsize=0.7, fontname="DejaVu Sans", fontsize=9];
+  label="Mission timeline — fully autonomous from lunar orbit entry"; labelloc=t; fontsize=16;
+  o1 [label="1. Lunar orbit (propulsion module + lander)\nAI: scan landing zone, build hazard map", fillcolor="#E6F1FB"];
+  o2 [label="2. Lower orbit + release lander\nAI: choose WHEN to descend (Sun + Earth at touchdown)", fillcolor="#E6F1FB"];
+  o3 [label="3. Abort & retry?\nBad conditions → wait for a later orbit", fillcolor="#FCEBEB", shape=diamond, width=2.5];
+  d1 [label="4. Powered descent: rough braking → attitude hold →\nfine braking (evolved AI pilot flies)", fillcolor="#FAEEDA"];
+  d2 [label="5. Hover + hazard scan → re-target if rock / shadow\n(failures may be injected: engine-out, nav drift,\ncamera blinded, surprise hazard)", fillcolor="#FAEEDA"];
+  d3 [label="6. Terminal descent + touchdown\nlimits: vertical ≤ 2 m/s, horizontal ≤ 0.5 m/s, slope ≤ 12°", fillcolor="#FAEEDA"];
+  s1 [label="7. Lander becomes the base\nsolar power + radio relay to Earth", fillcolor="#E1F5EE"];
+  s2 [label="8. Rover (~1 cm/s): multiple stops, rim scans,\nshort dips into dark ice edge on battery,\ndata relayed through lander", fillcolor="#E1F5EE"];
+  s3 [label="9. Before sunset: rover returns, shelters at lander", fillcolor="#E1F5EE"];
+  n1 [label="10. Lunar night: battery + heater mix (evolved)\non a short-night ridge", fillcolor="#EEEDFE"];
+  n2 [label="11. Sunrise: wake up → mission success?", fillcolor="#EEEDFE"];
+  o1 -> o2 -> o3; o3 -> d1 [label=" go"]; o3 -> o2 [label=" retry", style=dashed];
+  d1 -> d2 -> d3 -> s1 -> s2 -> s3 -> n1 -> n2;
+}

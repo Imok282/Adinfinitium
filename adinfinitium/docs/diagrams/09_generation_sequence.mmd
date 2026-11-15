@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  participant M as Dream-RSI meta layer
+  participant E as TensorNEAT (swarm/)
+  participant S as sim_jax (10,000 envs)
+  participant C as Classic guidance
+  participant F as runs/<run>/
+  participant B as brain_window
+  participant K as Basilisk re-fly
+
+  M->>M: replay logged generations → pick strategy (mutation, crossover, missions/candidate)
+  M->>E: strategy for generation g
+  E->>S: population genomes (brain + mission genes)
+  S->>S: reset(keys) · inject failures · noisy sensors
+  loop lax.scan over time (2,400 steps @ 0.1 s)
+    S->>S: obs → pilot net → thrust → physics → touchdown check
+  end
+  C->>S: same missions, same keys (baseline)
+  S-->>E: fitness (landing gate · distance · fuel · surface terms) + failure reasons
+  E->>E: select · breed · mutate
+  E->>F: generation_XXX.json (scores, failures, champion genome, strategy)
+  E->>F: champion_XXX.json (genes + control log)
+  F-->>B: poll new files → charts, swarm map, heatmap
+  F-->>K: champion → Basilisk higher-fidelity check → telemetry_XXX.csv
+  M->>M: add generation g to replay pool

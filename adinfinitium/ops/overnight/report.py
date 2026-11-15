@@ -1,0 +1,146 @@
+"""Build RUN_REPORT.md (+ training-curve PNGs) from an overnight run directory. Every section is independent: a missing file is noted, never fatal."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from contracts.paths import runs_root
+
+
+def _events(run_dir: Path) -> list[dict]:
+    p = run_dir / "ledger.jsonl"
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def _stage_table(events: list[dict]) -> list[str]:
+    rows: dict[str, dict] = {}
+    for e in events:
+        s = e.get("stage")
+        if e.get("event") == "stage_start":
+            rows.setdefault(s, {"attempts": 0})["attempts"] += 1
+        elif e.get("event") == "stage_end":
+            rows.setdefault(s, {"attempts": 1}).update(status=e["status"], minutes=round(e["seconds"] / 60, 1), rc=e.get("rc"))
+    lines = ["| stage | status | minutes | attempts |", "|---|---|---|---|"]
+    for s, r in rows.items():
+        lines.append(f"| {s} | {r.get('status', 'not finished')} | {r.get('minutes', '-')} | {r['attempts']} |")
+    return lines
+
+
+def _failures(events: list[dict]) -> list[str]:
+    out = []
+    for e in events:
+        if e.get("event") == "stage_end" and e.get("status") != "ok":
+            out.append(f"### {e['stage']} - {e['status']} (rc {e.get('rc')}, {e['seconds']:.0f} s)")
+            for name, tail in (e.get("error_tail") or {}).items():
+                out += [f"`{name}` last lines:", "```", *tail[-12:], "```"]
+    return out or ["No failed or timed-out stages."]
+
+
+def _curves(runs: Path, out_dir: Path) -> list[str]:
+    lines = []
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception as e:  # noqa: BLE001
+        return [f"(no matplotlib: curves skipped: {e!r})"]
+    for fam in ("hazard", "light", "terrain", "rover"):
+        log = runs / fam / "train_log.jsonl"
+        if not log.exists():
+            lines.append(f"- {fam}: no train_log.jsonl")
+            continue
+        recs = [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines() if x.strip()]
+        keys = [k for k, v in recs[-1].items() if isinstance(v, (int, float)) and k not in ("epoch", "step", "update", "seconds", "episodes")] if recs else []
+        for k, v in (recs[-1].get("val") or {}).items() if recs and isinstance(recs[-1].get("val"), dict) else []:
+            keys.append(f"val.{k}")
+        if not recs or not keys:
+            lines.append(f"- {fam}: log is empty")
+            continue
+        fig, axes = plt.subplots(1, min(len(keys), 4), figsize=(4 * min(len(keys), 4), 3), squeeze=False)
+        for ax, k in zip(axes[0], keys[:4], strict=False):
+            ys = [(r["val"][k[4:]] if k.startswith("val.") else r.get(k)) if (k[4:] in r.get("val", {}) if k.startswith("val.") else k in r) else None for r in recs]
+            ys = [y for y in ys if y is not None]
+            ax.plot(ys)
+            ax.set_title(k, fontsize=9)
+            ax.set_xlabel("log entry")
+        fig.tight_layout()
+        png = out_dir / f"curve_{fam}.png"
+        fig.savefig(png, dpi=110)
+        plt.close(fig)
+        lines.append(f"- {fam}: {len(recs)} log entries, last: `{json.dumps(recs[-1])[:260]}`  ![{fam}]({png.name})")
+    return lines
+
+
+def _compact(v):
+    """Long numeric lists (per-direction curves) are summarised; every scalar is kept, so test-site numbers are never cut off."""
+    if isinstance(v, dict):
+        return {k: _compact(x) for k, x in v.items()}
+    if isinstance(v, list) and len(v) > 16:
+        return f"[{len(v)} values: see eval.json]"
+    return v
+
+
+def _headline(runs: Path) -> list[str]:
+    lines = []
+    for fam in ("hazard", "light", "terrain", "rover"):
+        p = runs / fam / "eval.json"
+        if not p.exists():
+            lines.append(f"- {fam}: no held-out evaluation file (eval did not run)")
+            continue
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            lines.append(f"- {fam}: eval.json unreadable ({e})")
+            continue
+        tr = d.get("trained_on", [])
+        lines.append(f"### {fam} (checkpoint {d.get('checkpoint_name') or d.get('checkpoint') or ''} {d.get('checkpoint_id')}, "
+                     f"trained on {len(tr) if isinstance(tr, list) else tr} windows)")
+        notes = {k: v for k, v in d.items() if isinstance(v, (str, int, float, bool)) and k not in ("checkpoint_id", "checkpoint_name", "checkpoint")}
+        if notes:
+            lines += ["```", json.dumps(notes, indent=1), "```"]
+        regions = d.get("regions")
+        if isinstance(regions, dict):
+            test = {k: v for k, v in regions.items() if isinstance(v, dict) and str(v.get("role")).lower() == "test"}
+            other = {k: v for k, v in regions.items() if k not in test}
+            lines.append(f"**Held-out TEST sites (the headline numbers; {len(test)} windows: {', '.join(test) or 'NONE'})**")
+            lines += ["```", json.dumps(_compact(test), indent=1), "```"]
+            if not any("site42" in k for k in test):
+                lines.append("NOTE: no Site42 window was evaluated; the held-out evidence rests on Site23 only.")
+            lines.append(f"Validation windows (Site11: used to pick the checkpoint, NOT a held-out result; {len(other)} windows, shortened):")
+            lines += ["```", json.dumps(_compact(other), indent=1)[:2500], "```"]
+        else:
+            lines += ["```", json.dumps(_compact(d.get("summary") or d.get("worlds") or d), indent=1)[:6000], "```"]
+    return lines
+
+
+def build_report(run_dir: Path) -> Path:
+    run_dir = Path(run_dir)
+    ev = _events(run_dir)
+    runs = runs_root()
+    start = next((e for e in ev if e.get("event") == "run_start"), {})
+    parts = [f"# Run report: {start.get('run_id', run_dir.name)} (profile {start.get('profile', '?')})", "",
+             "Generated by ops/overnight/report.py. Failures are kept on purpose (they go in the showcase).", "",
+             "## Stages", *_stage_table(ev), "", "## Failures and timeouts", *_failures(ev), "",
+             "## Training curves", *_curves(runs, run_dir), "", "## Held-out results (never-trained sites; network vs physics backup)", *_headline(runs)]
+    env = runs / "overnight" / "env_check.json"
+    if env.exists():
+        parts += ["", "## Machine", "```", env.read_text(encoding="utf-8")[:1500], "```"]
+    out = run_dir / "RUN_REPORT.md"
+    out.write_text("\n".join(parts) + "\n", encoding="utf-8")
+    return out
+
+
+if __name__ == "__main__":
+    import sys
+
+    print(build_report(Path(sys.argv[1])))

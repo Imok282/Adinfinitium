@@ -1,0 +1,11 @@
+# 4090 venv ~/venvs/adi-jax  (sim_jax, swarm, brain window)
+# Install JAX CUDA separately first:  pip install -U "jax[cuda13]"   (fallback: "jax[cuda12]")
+numpy>=1.26
+pydantic>=2.5
+pyyaml>=6
+tensorneat @ git+https://github.com/EMI-Group/tensorneat.git
+streamlit>=1.35
+plotly>=5.20
+pandas>=2.1
+pytest>=8
+-e .

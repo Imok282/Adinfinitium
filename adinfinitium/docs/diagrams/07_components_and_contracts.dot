@@ -1,0 +1,45 @@
+digraph G {
+  rankdir=LR; splines=spline; nodesep=0.35; ranksep=0.7;
+  graph [fontname="Helvetica", fontsize=12, labelloc=t, label="Components talk only through contract files (contracts/)"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#f4f4f5", color="#52525b"];
+  edge  [fontname="Helvetica", fontsize=9, color="#52525b"];
+
+  raw  [label="Raw data\nLOLA PGDA 78/90 · LPSR\nDiviner · LEND · M3 · SPICE", shape=cylinder, fillcolor="#eef6ff", color="#3b82f6"];
+  node [shape=note, fillcolor="#fff7ed", color="#ea580c"];
+  yaml [label="config/mission.yaml"];
+  tile [label="data/tiles/<region>.npz"];
+  light[label="data/light/<region>_<date>.npz"];
+  sites[label="sites/sites.json"];
+  gen  [label="runs/<run>/generation_XXX.json"];
+  champ[label="runs/<run>/champion_XXX.json"];
+  tel  [label="runs/<run>/telemetry_XXX.csv"];
+
+  node [shape=box, style="rounded,filled", fillcolor="#f4f4f5", color="#52525b"];
+  dt  [label="data_tools/\nKAN-21 · 22"];
+  wm  [label="worldmodel/\nlight field · hazard · diffusion · exams\nKAN-23..27"];
+  sj  [label="sim_jax/\n10,000 landers · classic guidance\nKAN-28 · 29"];
+  sw  [label="swarm/\nTensorNEAT · Dream-RSI layer\nKAN-30..34"];
+  bk  [label="basilisk_mods/\norbit · descent · terrain · rover · power\nKAN-41..46"];
+  node [fillcolor="#ecfdf5", color="#059669"];
+  nv  [label="navigator/  :8501\nKAN-35"];
+  bw  [label="brain_window/  :8503\nKAN-33"];
+  mc  [label="mission_control/  :8502\nKAN-48"];
+  vz  [label="vizard/\nKAN-47"];
+
+  {rank=same; yaml; sites;}
+  {rank=same; sj; sw;}
+  {rank=same; gen; champ;}
+
+  raw -> dt -> tile;
+  tile -> wm -> light;
+  wm -> tile [label="hazard map\nterrain versions", style=dashed];
+  yaml -> sj; tile -> sj; light -> sj;
+  sj -> sw [dir=both, label="fitness"];
+  sw -> gen -> bw;
+  sw -> champ -> bk;
+  tile -> bk; yaml -> bk;
+  bk -> tel -> mc;
+  bk -> vz;
+  tile -> nv; light -> nv; sites -> nv;
+  nv -> sw [label="site + date", style=dashed, constraint=false];
+}
