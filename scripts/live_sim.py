@@ -5,6 +5,7 @@ console, streamed to Mission Control, the 3D view and (optionally) Vizard.
     python -m lunar_ops.server --port 8600          # or by hand, terminal 1: Mission Control, 3D view, AI view
     python -m scripts.live_sim                      # terminal 2: the simulator (connects to /ws/ingest)
     python -m scripts.live_sim --live-viz           # also stream to Vizard (start Vizard with -directComm tcp://localhost:5556)
+    python -m scripts.live_sim --live-viz --viz-terrain   # and give Vizard's Moon the same landing-site terrain as our 3D view (experimental)
 
 Console commands (JSON {"type": "cmd", "cmd": ...} sent by the UI, forwarded by the server):
   play | pause | warp {value} (also "speed")        time control (1x = wall clock; the sim runs ~100x at most on a laptop)
@@ -212,6 +213,7 @@ def main() -> None:
     ap.add_argument("--no-ingest", action="store_true")
     ap.add_argument("--out", default=None, help="record the stream to this JSONL file")
     ap.add_argument("--live-viz", action="store_true")
+    ap.add_argument("--viz-terrain", action="store_true", help="with --live-viz: replace Vizard's smooth Moon by one with the real landing-site terrain (experimental)")
     ap.add_argument("--max-wall-s", type=float, default=None, help="stop after this many wall seconds (tests)")
     a = ap.parse_args()
 
@@ -220,8 +222,14 @@ def main() -> None:
     region = a.region if tile_path(a.region).exists() else "lola5m_site01"
     if region != a.region:
         print(f"[sim] tile {a.region} not found, using {region} as a stand-in", flush=True)
-    setup = MissionSetup(region=region, attitude=a.attitude, engine_out_at_s=a.engine_out_at, live_viz=a.live_viz,
-                         viz_models={k: str(v) for k, v in VIZ_MODELS.items()} if a.live_viz else {})
+    viz_models = {k: str(v) for k, v in VIZ_MODELS.items()} if a.live_viz else {}
+    if a.live_viz and a.viz_terrain:  # the Moon of Vizard gets the same terrain as our 3D view (see basilisk_mods/viz_terrain.py)
+        from basilisk_mods.lunar_terrain import Terrain
+        from basilisk_mods.viz_terrain import moon_with_site_obj
+
+        viz_models["moon"] = str(moon_with_site_obj(Terrain.from_tile(tile_path(region)), REPO / "runs" / "vizard" / f"moon_{region}.obj"))
+        print(f"[sim] Vizard Moon with the {region} terrain: {viz_models['moon']}", flush=True)
+    setup = MissionSetup(region=region, attitude=a.attitude, engine_out_at_s=a.engine_out_at, live_viz=a.live_viz, viz_models=viz_models)
     sim = LiveSim(setup, Path(a.checkpoint) if a.checkpoint else model_path("lander_pilot"), ai=not a.no_ai)
     sim.warp = a.warp
     link = Link(None if a.no_ingest else a.ingest, Path(a.out) if a.out else None)

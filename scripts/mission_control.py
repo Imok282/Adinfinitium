@@ -71,6 +71,7 @@ def main() -> None:
     ap.add_argument("--region", default=None, help="terrain tile for the simulator (its default otherwise)")
     ap.add_argument("--no-ai", action="store_true", help="classic guidance only")
     ap.add_argument("--live-viz", action="store_true", help="also stream to Vizard")
+    ap.add_argument("--viz-terrain", action="store_true", help="with --live-viz: Vizard's Moon gets the real landing-site terrain (experimental)")
     a = ap.parse_args()
 
     signal.signal(signal.SIGTERM, _interrupt)  # a plain kill also stops the children
@@ -93,6 +94,7 @@ def main() -> None:
             cmd += ["--region", a.region] if a.region else []
             cmd += ["--no-ai"] if a.no_ai else []
             cmd += ["--live-viz"] if a.live_viz else []
+            cmd += ["--viz-terrain"] if a.viz_terrain else []
             procs.append(subprocess.Popen(cmd))
         print("\n[mission control] every screen is on one server:")
         for name, path in SCREENS:
