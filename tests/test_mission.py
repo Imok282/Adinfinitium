@@ -33,13 +33,15 @@ def test_footpad_report_tilt_is_the_ground_plane():
 
 
 @pytest.mark.slow
-def test_full_mission_lands_with_ideal_attitude():
-    """Orbit -> separation -> deorbit -> braking -> terminal -> touchdown on the real Site01 terrain (ideal attitude torque)."""
+@pytest.mark.parametrize("attitude", ["rcs", "ideal"])
+def test_full_mission_lands(attitude):
+    """Orbit -> separation -> deorbit -> braking -> terminal -> touchdown on the real Site01 terrain, with the 8 attitude
+    thrusters + differential engine throttle (default) and with the starter's ideal torque."""
     from basilisk_mods.mission import MissionSetup, MissionSim
 
-    ms = MissionSim(MissionSetup(attitude="ideal"))
+    ms = MissionSim(MissionSetup(attitude=attitude))
     while not ms.done and ms.t < 6000.0:
         ms.advance(50.0)
-    assert ms.report is not None and "vertical_speed_m_s" in ms.report, ms.report
+    assert ms.report is not None and ms.report.get("outcome") == "ok", ms.report
     assert ms.report["miss_m"] < 20.0
     assert ms.report["vertical_speed_m_s"] < 2.0 and ms.report["horizontal_speed_m_s"] < 0.5

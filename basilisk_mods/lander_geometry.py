@@ -26,6 +26,25 @@ RCS_EXHAUST_B = np.array([
     [-0.47, 0.89, 0.0], [-0.89, 0.47, 0.0], [-0.89, -0.47, 0.0], [-0.47, -0.89, 0.0],
 ])
 RCS_EXHAUST_B = RCS_EXHAUST_B / np.linalg.norm(RCS_EXHAUST_B, axis=1, keepdims=True)
+RCS_EXHAUST_MODEL_B = RCS_EXHAUST_B  # as drawn in the KAN-47 model: horizontal and nearly radial (weak, ~6 s per 20 deg tilt)
+
+
+def rcs_3axis_exhaust(cant_deg: float = 45.0) -> np.ndarray:
+    """3-axis layout at the same 8 nozzle positions (decided 15 Nov): each nozzle exhausts downward and sideways along its
+    face, away from the face centre. Thrust (opposite) is up + toward the face centre: the vertical part gives pitch/roll
+    with up to 0.97 m lever, the tangential part gives yaw, and the two nozzles of a face have opposite yaw."""
+    out = []
+    for p in RCS_POS_B:
+        f = np.array([np.sign(p[0]), 0.0, 0.0]) if abs(p[0]) > abs(p[1]) else np.array([0.0, np.sign(p[1]), 0.0])  # face normal
+        t = np.cross([0.0, 0.0, 1.0], f)                                                                          # face tangent
+        side = np.sign(p @ t)
+        c = np.radians(cant_deg)
+        out.append(-np.cos(c) * np.array([0.0, 0.0, 1.0]) + np.sin(c) * side * t)
+    out = np.array(out)
+    return out / np.linalg.norm(out, axis=1, keepdims=True)
+
+
+RCS_EXHAUST_3AXIS_B = rcs_3axis_exhaust()
 
 # [m] footpad contact points, body frame (leg0..leg3)
 FOOTPADS_B = np.array([[1.55, -1.55, -1.45], [1.55, 1.55, -1.45], [-1.55, 1.55, -1.45], [-1.55, -1.55, -1.45]])

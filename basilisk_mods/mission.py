@@ -33,7 +33,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
-from Basilisk.architecture import messaging
+from Basilisk.architecture import messaging, sysModel
 from Basilisk.fswAlgorithms import attTrackingError, mrpFeedback, thrFiringSchmitt, thrForceMapping
 from Basilisk.simulation import extForceTorque, fuelTank, simpleNav, spacecraft, spiceInterface, thrusterDynamicEffector
 from Basilisk.utilities import RigidBodyKinematics as rbk
@@ -41,7 +41,7 @@ from Basilisk.utilities import SimulationBaseClass, macros, simIncludeGravBody, 
 
 from basilisk_mods.bsk_common import R_MOON_M, mission, mrp_with_z_along
 from basilisk_mods.lander_descent import INERTIA_KG_M2, DescentGuidance, engine_layout, touchdown_report
-from basilisk_mods.lander_geometry import RCS_EXHAUST_B, RCS_POS_B, footpad_points_N, footpad_report
+from basilisk_mods.lander_geometry import RCS_EXHAUST_3AXIS_B, RCS_EXHAUST_MODEL_B, RCS_POS_B, footpad_points_N, footpad_report
 from basilisk_mods.lunar_terrain import Terrain, latlon_from_ps, moon_fixed_from_latlon
 from basilisk_mods.scenario_orbit_release import PROPULSION_MODULE_MASS_KG
 from contracts.paths import data_root, tile_path
@@ -54,7 +54,7 @@ GATE_UPRANGE_M = 300.0  # [m] the gate is this far short of the target (inside t
 GATE_V_DOWN_M_S = 45.0  # [m/s] down speed at the gate (training range 30-60)
 GATE_V_ALONG_M_S = 10.0  # [m/s] along-track speed at the gate (training range +-25)
 BRAKE_RANGE_M = 650.0e3  # [m] ground distance covered while braking from the PDI; calibrated by runs (see tests)
-BRAKE_THRUST_FRACTION = 0.92  # [-] braking plans with this share of the available thrust
+BRAKE_THRUST_FRACTION = 0.88  # [-] braking plans with this share of the available thrust (rest: steering)
 BRAKE_FREEZE_TGO_S = 90.0  # [s] below this time-to-go it is counted down instead of re-searched (standard final approach)
 DOCK_OFFSET_M = 1.66  # [m] PM centre below the lander origin when docked (from the two models)
 SEPARATION_SPEED_M_S = 0.10  # [m/s] relative push-off speed (assumption: soft spring separation)
@@ -73,6 +73,8 @@ class MissionSetup:
     target_xy: tuple[float, float] | None = None  # [m] tile frame; None = the safe cell nearest the tile centre
     epoch_utc: str = "2027-03-02T00:00:00"  # landing slot of the demo plan (planner plan_000.json)
     attitude: str = "rcs"  # "rcs" (8 attitude thrusters) or "ideal" (ideal torque, the starter's simplification)
+    rcs_layout: str = "3axis"  # "3axis" (decided 15 Nov) or "model" (nozzles as drawn in KAN-47: horizontal, weak)
+    engine_torque: bool = True  # differential throttle of the outer main engines while they fire
     engine_out_at_s: float | None = None  # [s] mission time; index from DescentGuidance.engine_out_index
     engine_out_index: int = 1
     viz: bool = False  # write a Vizard playback file
@@ -140,6 +142,58 @@ def _unit(v):
     return v / np.linalg.norm(v)
 
 
+class AttitudeActuation(sysModel.SysModel):
+    """Splits the attitude controller's torque request between the main engines and the attitude thrusters (or ideal torque).
+
+    While the guidance fires the main engines, the healthy OUTER engines are throttled unevenly around the guidance's
+    collective throttle (least squares, total thrust kept, on-time fraction within [0, 1]) to give pitch/roll torque; the
+    residual (and all yaw) goes to the attitude thrusters. Engines off: everything goes to the attitude thrusters.
+    Runs every attitude period; engine on-times are written for that period.
+
+    Inputs : torqueInMsg (CmdTorqueBodyMsg) from mrpFeedback; collective throttle and healthy engines from the guidance
+    Outputs: engineOnTimeOutMsg (THRArrayOnTimeCmdMsg), rcsTorqueOutMsg (CmdTorqueBodyMsg)
+    """
+
+    def __init__(self, guidance: DescentGuidance, use_engines: bool, use_rcs: bool):
+        super().__init__()
+        self.ModelTag = "attitudeActuation"
+        self.g, self.use_engines = guidance, use_engines
+        self.torqueInMsg = messaging.CmdTorqueBodyMsgReader()
+        self.engineOnTimeOutMsg = messaging.THRArrayOnTimeCmdMsg()
+        self.rcsTorqueOutMsg = messaging.CmdTorqueBodyMsg()
+        lay = engine_layout()
+        # torque [N*m] per unit throttle of each engine about the body origin (the CoM sits within ~0.3 m of it)
+        self.T = np.array([np.cross(r, t) * guidance.eng_max for r, t in lay]).T  # [3, 5]
+        self.throttles = np.zeros(len(lay))
+        self.engine_torque = np.zeros(3)
+
+    def Reset(self, CurrentSimNanos):
+        self.engineOnTimeOutMsg.write(messaging.THRArrayOnTimeCmdMsgPayload())
+        self.rcsTorqueOutMsg.write(messaging.CmdTorqueBodyMsgPayload())
+
+    def UpdateState(self, CurrentSimNanos):
+        req = np.array(self.torqueInMsg().torqueRequestBody)
+        g = self.g
+        base = float(g.last.get("throttle", 0.0))
+        ok = g.engines_ok.copy()
+        th = np.where(ok, base, 0.0)
+        if self.use_engines and base > 0.0:
+            outer = [i for i in range(1, len(ok)) if ok[i]]
+            if outer:
+                A = np.vstack([self.T[:2, outer], np.ones(len(outer)) * 50.0])  # rows: torque x, y; total thrust unchanged
+                d, *_ = np.linalg.lstsq(A, np.r_[req[:2], 0.0], rcond=None)
+                th[outer] = np.clip(base + d, 0.0, 1.0)  # pulse-modulated: any average on-time fraction is physical
+        self.throttles = th
+        self.engine_torque = self.T @ th - (self.T @ np.where(ok, base, 0.0))  # what the uneven part adds
+        on = th * ATT_DT_S
+        cmd = messaging.THRArrayOnTimeCmdMsgPayload()
+        cmd.OnTimeRequest = on.tolist() + [0.0] * (messaging.MAX_EFF_CNT - len(on))
+        self.engineOnTimeOutMsg.write(cmd, CurrentSimNanos, self.moduleID)
+        rest = messaging.CmdTorqueBodyMsgPayload()
+        rest.torqueRequestBody = (req - self.engine_torque).tolist()
+        self.rcsTorqueOutMsg.write(rest, CurrentSimNanos, self.moduleID)
+
+
 class MissionGuidance(DescentGuidance):
     """One guidance module for every phase. TERMINAL is the starter's DescentGuidance law unchanged (pilot hook included)."""
 
@@ -203,8 +257,11 @@ class MissionGuidance(DescentGuidance):
                 self._switch(t_s, "BRAKING")
         elif mode == "BRAKING":
             prev = self.braking.get("tgo_s")
+            thrust_max = int(self.engines_ok.sum()) * self.eng_max
             fixed = prev - CTRL_DT_S if prev is not None and prev < BRAKE_FREEZE_TGO_S else None  # final approach: count down
-            a_cmd, tgo = self.ms.braking_accel(r, v, self.mass_fn(), int(self.engines_ok.sum()) * self.eng_max, tgo_fixed=fixed)
+            a_cmd, tgo = self.ms.braking_accel(r, v, self.mass_fn(), thrust_max, tgo_fixed=fixed)
+            if fixed is None and prev is not None and tgo > prev - CTRL_DT_S:  # time-to-go only counts down: stay on schedule
+                a_cmd, tgo = self.ms.braking_accel(r, v, self.mass_fn(), thrust_max, tgo_fixed=prev - CTRL_DT_S)
             self.braking = {"tgo_s": tgo}
             self._point_and_fire(CurrentSimNanos, self.mass_fn() * a_cmd, sigma, fire=True)
             if tgo <= 2.0 or (self.ms.ground_range(r) < 3.0e3 and self.ms.height_over_site(r) <= GATE_ALT_M):  # [s], [m]
@@ -316,7 +373,7 @@ class MissionSim:
         rcs.ModelTag = "attitudeThrusters"
         rfac = self.rcs_factory = simIncludeThruster.thrusterFactory()
         rcs_n = float(cfg.lander.attitude_thrusters.thrust_n)
-        for p, d in zip(RCS_POS_B, RCS_EXHAUST_B):
+        for p, d in zip(RCS_POS_B, RCS_EXHAUST_3AXIS_B if s.rcs_layout == "3axis" else RCS_EXHAUST_MODEL_B):
             rfac.create("Blank_Thruster", p.tolist(), (-d).tolist(), MaxThrust=rcs_n, steadyIsp=float(cfg.lander.isp_s), MinOnTime=0.0,
                         cutoffFrequency=1000.0)
         rfac.addToSpacecraft("attitudeThrusters", rcs, lander)
@@ -349,7 +406,6 @@ class MissionSim:
         guid.command_fn = command_fn
         guid.ground_height_fn = self.ground_above_target
         sim.AddModelToTask("fsw", guid, 20)
-        eng.cmdsInMsg.subscribeTo(guid.thrOnTimeOutMsg)
 
         att = self.att_err = attTrackingError.attTrackingError()
         att.ModelTag = "attErr"
@@ -365,18 +421,21 @@ class MissionSim:
         ctrl.vehConfigInMsg.subscribeTo(self._veh[1])
         ctrl.Ki = -1.0
         sim.AddModelToTask("att", ctrl, 9)
+        act = self.actuation = AttitudeActuation(guid, use_engines=s.engine_torque, use_rcs=s.attitude == "rcs")
+        act.torqueInMsg.subscribeTo(ctrl.cmdTorqueOutMsg)
+        sim.AddModelToTask("att", act, 8)
+        eng.cmdsInMsg.subscribeTo(act.engineOnTimeOutMsg)
         if s.attitude == "rcs":
-            ctrl.K, ctrl.P = 160.0, 600.0  # [N*m], [N*m*s] tuned for 8 x 58 N thrusters (~25 N*m about x/y)
+            ctrl.K, ctrl.P = 2500.0, 2000.0  # [N*m], [N*m*s] engines give hundreds of N*m in powered flight, thrusters ~40 N*m
             self._thr_cfg = rfac.getConfigMessage()
             fm = self.force_map = thrForceMapping.thrForceMapping()
             fm.ModelTag = "thrForceMapping"
-            fm.cmdTorqueInMsg.subscribeTo(ctrl.cmdTorqueOutMsg)
+            fm.cmdTorqueInMsg.subscribeTo(act.rcsTorqueOutMsg)
             fm.thrConfigInMsg.subscribeTo(self._thr_cfg)
             fm.vehConfigInMsg.subscribeTo(self._veh[1])
-            fm.controlAxes_B = [1, 0, 0, 0, 1, 0]  # pitch and roll only: the model's nozzles give almost no yaw authority, and
-            # the main-engine thrust direction does not depend on yaw, so yaw is left free (stated simplification)
+            fm.controlAxes_B = [1, 0, 0, 0, 1, 0, 0, 0, 1] if s.rcs_layout == "3axis" else [1, 0, 0, 0, 1, 0]  # model layout: no yaw
             fm.thrForceSign = +1
-            sim.AddModelToTask("att", fm, 8)
+            sim.AddModelToTask("att", fm, 7)
             fs = self.firing = thrFiringSchmitt.thrFiringSchmitt()
             fs.ModelTag = "thrFiringSchmitt"
             fs.thrMinFireTime = 0.02  # [s]
@@ -384,7 +443,7 @@ class MissionSim:
             fs.baseThrustState = 0
             fs.thrConfInMsg.subscribeTo(self._thr_cfg)
             fs.thrForceInMsg.subscribeTo(fm.thrForceCmdOutMsg)
-            sim.AddModelToTask("att", fs, 7)
+            sim.AddModelToTask("att", fs, 6)
             rcs.cmdsInMsg.subscribeTo(fs.onTimeOutMsg)
         else:
             ctrl.K, ctrl.P = 3600.0, 1800.0  # [N*m], [N*m*s] the starter's ideal-torque gains
@@ -392,7 +451,7 @@ class MissionSim:
             ext.ModelTag = "attitudeTorque"
             lander.addDynamicEffector(ext)
             sim.AddModelToTask("dyn", ext, 35)
-            ext.cmdTorqueInMsg.subscribeTo(ctrl.cmdTorqueOutMsg)
+            ext.cmdTorqueInMsg.subscribeTo(act.rcsTorqueOutMsg)  # ideal torque takes what the engines do not give
 
         # propulsion module ------------------------------------------------
         pm = self.pm = spacecraft.Spacecraft()
