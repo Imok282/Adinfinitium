@@ -219,8 +219,9 @@ P.gauges = {
     else items = [['Height', 'km', MC.lastFinite('orbAlt'), 0, 100, { fmt: (v) => v.toFixed(1) }], ['Speed', 'm/s', MC.lastFinite('orbSpd'), 0, 1800], ['Latitude', '°', MC.lastFinite('lat'), -90, 90], ['Longitude', '°', MC.lastFinite('lon'), -180, 180]];
     if (cur < 0) return MC.empty(g, w, h, 'Waiting for data…');
     let cols = 1, best = 0; for (let k = 1; k <= items.length; k++) { const rr2 = Math.min(w / k, h / Math.ceil(items.length / k)); if (rr2 > best) { best = rr2; cols = k; } }
-    const rows = Math.ceil(items.length / cols), cw = w / cols, ch = h / rows, r = Math.min(cw * 0.3, ch * 0.3);
-    items.forEach((it, i) => { const o = it[5] || {}; MC.gauge(g, (i % cols + 0.5) * cw, Math.floor(i / cols) * ch + ch * 0.5, r, it[2], { label: it[0], unit: it[1], min: it[3], max: it[4], ...o }); });
+    // ring plus label below must fit the cell: r + 1.28 r + label height <= cell height
+    const rows = Math.ceil(items.length / cols), cw = w / cols, ch = h / rows, r = Math.min(cw * 0.3, (ch - 8) / 2.75);
+    items.forEach((it, i) => { const o = it[5] || {}; MC.gauge(g, (i % cols + 0.5) * cw, Math.floor(i / cols) * ch + r + 6, r, it[2], { label: it[0], unit: it[1], min: it[3], max: it[4], cellW: cw, ...o }); });
   },
 };
 P.engines = {
@@ -252,6 +253,12 @@ P.targets = {
       + rows.map((r, i) => `<tr><td class="dim">${i + 1}</td><td><b>${esc(r.t.id)}</b></td><td class="${r.t.ice_score === top ? 'hi' : ''}">${r.t.ice_score.toFixed(2)}</td><td class="${r.d === near ? 'best' : ''}">${MC.nf('d-' + r.t.id, r.d)}</td><td>${MC.nf('r-' + r.t.id, r.rt)}</td><td class="${r.margin < 0 ? 'bad' : 'ok'}">${MC.nf('m-' + r.t.id, r.margin, { sign: true })}</td><td>${MC.nf('p-' + r.t.id, r.t.depth_m ?? 0)}</td><td class="st-${r.state}">${r.state}</td></tr>`).join('')
       + `</table><div class="note">Round trip = 2 × distance × ${k.toFixed(2)} Wh/m (estimated from energy used so far). Margin = battery above the 20 % floor minus round trip.</div>`;
   },
+  // every target visible without scrolling: shrink text and row padding until the table and its note fit the card
+  update(el) { const t = el.querySelector('.tbl'); if (!t) return; const key = `${el.clientWidth}x${el.clientHeight}:${t.rows.length}`; if (el.dataset.fit === key) return;
+    let fs = 12.5; el.style.setProperty('--tbl-fs', `${fs}px`); el.style.setProperty('--tbl-pad', '4px');
+    while ((el.scrollHeight > el.clientHeight + 1 || t.offsetWidth > el.clientWidth + 1) && fs > 8) { fs -= 0.5; el.style.setProperty('--tbl-fs', `${fs}px`); el.style.setProperty('--tbl-pad', `${Math.max(1, (fs - 8.5) * 0.75).toFixed(1)}px`); }
+    const note = el.querySelector('.note'); if (note) { note.style.display = ''; if (el.scrollHeight > el.clientHeight + 1) note.style.display = 'none'; } // the formula note is dropped, not cut off, when the card is very short
+    el.dataset.fit = key; },
 };
 P.status = {
   title: 'Subsystem status', src: 'derived', dom: true,
@@ -356,9 +363,9 @@ P.gantt = {
     const c = MC.cols, n = MC.n(); if (n < 2) return MC.empty(g, w, h, 'Waiting for data…');
     const LM = 78, pw = w - LM - 8, t0 = c.t[0], t1 = c.t[n - 1], X = (t) => LM + (t - t0) / ((t1 - t0) || 1) * pw;
     const rows = [['Phase', (i) => MC.DATA[c.ph[i]]], ['Sunlight', (i) => (c.lit[i] === 1 ? C.blueL : c.lit[i] === 0 ? C.blueDD : null)], ['Earth link', (i) => (c.earth[i] === 1 ? C.blue : c.earth[i] === 0 ? C.blueDD : null)], ['Dark crater', (i) => (c.psr[i] === 1 ? C.blue : c.psr[i] === 0 ? C.blueDD : null)], ['Activity', (i) => [C.blue, C.blueD, '#235347', C.blueL][c.mode[i]] || null]];
-    const rh = (h - 22) / (rows.length + 1);
-    rows.forEach(([lab, col], r) => { const y = 4 + r * rh; MC.txt(g, lab, 6, y + rh * 0.62, C.dim, 'left', 10); for (let i = 0; i < n; i++) { const cc = col(i); if (cc) SEG(g, X(c.t[i]), X(i + 1 < n ? c.t[i + 1] : c.t[i]) + 0.5, y + 2, rh - 5, cc); } });
-    const ey = 4 + rows.length * rh; MC.txt(g, 'Events', 6, ey + rh * 0.62, C.dim, 'left', 10); for (const e of MC.events) { const bad = /fail|abort|dead|rejected/i.test(e.kind + e.msg); g.fillStyle = bad ? C.orange : C.blueL; g.fillRect(X(e.t_s) - 0.5, ey + 3, 1.5, rh - 6); }
+    const rh = (h - 22) / (rows.length + 1), fs = Math.max(7, Math.min(10, rh * 0.62)); // label size follows the row height, so labels never overlap
+    rows.forEach(([lab, col], r) => { const y = 4 + r * rh; MC.txt(g, lab, 6, y + rh * 0.5 + fs * 0.36, C.dim, 'left', fs); for (let i = 0; i < n; i++) { const cc = col(i); if (cc) SEG(g, X(c.t[i]), X(i + 1 < n ? c.t[i + 1] : c.t[i]) + 0.5, y + 2, rh - 5, cc); } });
+    const ey = 4 + rows.length * rh; MC.txt(g, 'Events', 6, ey + rh * 0.5 + fs * 0.36, C.dim, 'left', fs); for (const e of MC.events) { const bad = /fail|abort|dead|rejected/i.test(e.kind + e.msg); g.fillStyle = bad ? C.orange : C.blueL; g.fillRect(X(e.t_s) - 0.5, ey + 3, 1.5, rh - 6); }
     for (let k = 0; k <= 6; k++) { const tt = t0 + (t1 - t0) * k / 6; MC.txt(g, MC.fmtT(tt), X(tt), h - 4, C.dim, k === 0 ? 'left' : k === 6 ? 'right' : 'center', 9, true); }
     if (MC.cur >= 0) { const cx = X(c.t[MC.cur]); g.strokeStyle = C.white; g.globalAlpha = 0.6; g.beginPath(); g.moveTo(cx, 2); g.lineTo(cx, h - 16); g.stroke(); g.globalAlpha = 1; }
   },

@@ -108,3 +108,10 @@ html.still *, html.still *::before, html.still *::after { animation: none !impor
 
 /* pie / radial charts size themselves square from the width; cap them to the panel's height (--oui-round, set per panel) */
 .openui-pie-chart-svg-wrapper svg, .openui-radial-chart-svg-wrapper svg { max-height: var(--oui-round, 160px); max-width: 100%; width: auto; height: auto; }
+
+/* Fit-to-card tables (ice target board): size set per card by panels.js, no scrolling */
+.pb.dom .tbl { font-size: var(--tbl-fs, 12.5px); } .pb.dom .tbl td { padding-top: var(--tbl-pad, 4px); padding-bottom: var(--tbl-pad, 4px); }
+.pb.dom .tbl th { padding-top: calc(var(--tbl-pad, 4px) * .6); padding-bottom: calc(var(--tbl-pad, 4px) * .6); } .pb.dom .note { font-size: min(12px, var(--tbl-fs, 12.5px)); }
+/* no visible scrollbars anywhere on the console (lists still scroll with the wheel or trackpad) */
+* { scrollbar-width: none; } *::-webkit-scrollbar { display: none; }
+.pb.dom .tbl th { white-space: nowrap; } /* units stay on the header line, so the fit keeps a larger font */

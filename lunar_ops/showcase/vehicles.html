@@ -25,18 +25,27 @@ canvas { display: block; width: 100vw; height: 100vh; }
 </head>
 <body>
 <canvas id="gl"></canvas>
-<div id="brand">Adinfinitium</div><div id="note">Team models (KAN-47) · studio lighting, not lunar</div>
+<div id="brand">∞ Adinfinitium</div><div id="note">Team models (KAN-47) · studio lighting, not lunar</div>
 <div class="cap" id="capL" style="left:38%"><b>Lander</b><span>5 engines · 8 attitude thrusters · 4 legs · rover bay</span></div>
 <div class="cap" id="capR" style="left:76%"><b>Rover</b><span>6 wheels · solar panel · stows inside the lander</span></div>
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
+// Studio environment for reflections: a dim room with a few soft light panels (stands in for three.js RoomEnvironment,
+// which is not vendored). Lighting only; it is not a lunar scene.
+function studioRoom() {
+  const room = new THREE.Scene(), box = new THREE.BoxGeometry(1, 1, 1);
+  const walls = new THREE.Mesh(box, new THREE.MeshStandardMaterial({ color: 0x7f7f7f, side: THREE.BackSide })); walls.scale.set(20, 12, 20); walls.position.y = 4; room.add(walls);
+  room.add(new THREE.AmbientLight(0xffffff, 0.6));
+  for (const [x, y, z, sx, sy, sz, k] of [[0, 9.9, 0, 8, 0.1, 8, 3], [-9.9, 4, 0, 0.1, 5, 7, 2], [9.9, 5, 2, 0.1, 4, 6, 1.5], [0, 4, -9.9, 6, 4, 0.1, 1.2]]) {
+    const panel = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(k) })); panel.position.set(x, y, z); panel.scale.set(sx, sy, sz); room.add(panel); }
+  return room;
+}
 const canvas = document.getElementById('gl');
 const r = new THREE.WebGLRenderer({ canvas, antialias: true }); r.setPixelRatio(Math.min(2, devicePixelRatio)); r.setSize(innerWidth, innerHeight, false);
 r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x02040a);
-const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.7;
+const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(studioRoom(), 0.04).texture; scene.environmentIntensity = 0.7;
 const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
 const key = new THREE.DirectionalLight(0xfff3e2, 3.2); key.position.set(-6, 9, 7); key.castShadow = true; key.shadow.mapSize.set(4096, 4096);
 Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 }); key.shadow.bias = -0.0004; scene.add(key);

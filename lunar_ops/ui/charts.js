@@ -36,6 +36,9 @@ MC.txt = function (g, t, x, y, col = C.dim, align = 'left', size = 10) {
   const parts = MC.splitNum(t); g.fillStyle = col; g.textBaseline = 'alphabetic'; g.textAlign = 'left'; const ws = parts.map(([s, n]) => { g.font = fontOf(size, n); return g.measureText(s).width; }), total = ws.reduce((a, b) => a + b, 0);
   let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x; parts.forEach(([s, n], i) => { g.font = fontOf(size, n); g.fillText(s, cx, y); cx += ws[i]; });
 };
+// Largest size (up to `size`) at which text t fits in maxW pixels; numbers measured in the monospace font, words in the sans.
+MC.fitSize = function (g, t, size, maxW, min = 7) { const parts = MC.splitNum(String(t)); let s = size;
+  for (; s > min; s -= 0.5) { let w = 0; for (const [x, n] of parts) { g.font = fontOf(s, n); w += g.measureText(x).width; } if (w <= maxW) break; } return s; };
 MC.empty = (g, w, h, msg) => MC.txt(g, msg, w / 2, h / 2, C.dim, 'center', 12);
 const HEAT = [[13, 54, 107], [28, 92, 171], [57, 135, 229], [205, 226, 251]]; // blue magnitude ramp, dark -> light (dataviz sequential blue)
 MC.heatRGB = function (v) { v = MC.clamp(v, 0, 1) * 3; const i = Math.min(2, Math.floor(v)), f = v - i, a = HEAT[i], b = HEAT[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; };
@@ -84,8 +87,11 @@ MC.gauge = function (g, cx, cy, r, v, o) {
   const warn = Number.isFinite(v) && ((o.warnAbove != null && v > o.warnAbove) || (o.warnBelow != null && v < o.warnBelow)), col = warn ? C.orange : C.blue;
   g.lineWidth = Math.max(4, r * 0.16); g.lineCap = 'round'; g.strokeStyle = C.blueDD; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke();
   if (f > 0) { g.strokeStyle = col; g.beginPath(); g.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); g.stroke(); }
-  g.lineCap = 'butt'; MC.txt(g, Number.isFinite(v) ? (o.fmt ? o.fmt(v) : v.toFixed(0)) : '—', cx, cy + r * 0.12, warn ? C.orange : C.white, 'center', Math.max(11, r * 0.5), true);
-  MC.txt(g, o.unit || '', cx, cy + r * 0.52, C.dim, 'center', Math.max(8, r * 0.26)); MC.txt(g, o.label, cx, cy + r * 1.28, C.text, 'center', Math.max(9, r * 0.26));
+  // value and unit fit inside the ring, the label fits the gauge's own cell (o.cellW), so nothing touches the card edge
+  const val = Number.isFinite(v) ? (o.fmt ? o.fmt(v) : v.toFixed(0)) : '—', inner = r * 1.45, cellW = (o.cellW || r * 3.2) * 0.92;
+  g.lineCap = 'butt'; MC.txt(g, val, cx, cy + r * 0.12, warn ? C.orange : C.white, 'center', MC.fitSize(g, val, Math.max(11, r * 0.5), inner, 8));
+  MC.txt(g, o.unit || '', cx, cy + r * 0.52, C.dim, 'center', MC.fitSize(g, o.unit || '', Math.max(8, r * 0.26), inner, 7));
+  MC.txt(g, o.label, cx, cy + r * 1.28, C.text, 'center', MC.fitSize(g, o.label, Math.max(9, r * 0.26), cellW, 8));
 };
 // Horizontal bar with value text.
 MC.bar = function (g, x, y, w, h, f, col = C.blue) { g.fillStyle = C.blueDD; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, w * MC.clamp(f, 0, 1), h); };

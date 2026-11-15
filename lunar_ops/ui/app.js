@@ -16,12 +16,12 @@ const S = (MC.S = {
 
 // ---------------------------------------------------------------- workbook layouts: [panel, col1, col2, row1, row2] on a 12 x 12 grid
 const LAYOUTS = {
-  wall: ['Wall', [['gps', 1, 4, 1, 7], ['ouiTraces', 5, 9, 1, 7], ['targets', 10, 12, 1, 5], ['gauges', 10, 12, 6, 7], ['status', 1, 3, 8, 12], ['gantt', 4, 9, 8, 9], ['runtl', 4, 9, 10, 12], ['log', 10, 12, 8, 12]]],
+  wall: ['Wall', [['gps', 1, 4, 1, 5], ['ouiTraces', 5, 9, 1, 5], ['targets', 10, 12, 1, 5], ['gauges', 10, 12, 6, 7], ['status', 1, 3, 6, 12], ['gantt', 4, 9, 6, 8], ['ouiRunTl', 4, 9, 9, 12], ['log', 10, 12, 8, 12]]],
   imagery: ['Imagery', [['imagery', 1, 8, 1, 12], ['locate', 9, 12, 1, 6], ['sitemini', 9, 12, 7, 9], ['track', 9, 12, 10, 12]]],
   charts: ['Charts', [['ouiPower', 1, 4, 1, 4], ['ouiBattery', 5, 8, 1, 4], ['ouiSplit', 9, 10, 1, 4], ['ouiRadar', 11, 12, 1, 4], ['ouiThermal', 1, 4, 5, 8], ['ouiEnergy', 5, 8, 5, 8], ['ouiLander', 9, 12, 5, 8], ['ouiTargets', 1, 4, 9, 12], ['ouiScatter', 5, 8, 9, 12], ['ouiEngines', 9, 10, 9, 12], ['ouiTime', 11, 12, 9, 12]]],
   landing: ['Landing', [['orbit', 1, 4, 1, 5], ['ouiOrbitTr', 5, 8, 1, 5], ['engines', 9, 12, 1, 5], ['ouiDescent', 1, 8, 6, 12], ['gauges', 9, 12, 6, 9], ['log', 9, 12, 10, 12]]],
   rover: ['Rover', [['gps', 1, 5, 1, 8], ['ouiTraces', 6, 9, 1, 8], ['wheels', 10, 12, 1, 4], ['vision', 10, 12, 5, 8], ['ouiProfile', 1, 6, 9, 12], ['ouiHist', 7, 9, 9, 12], ['stats', 10, 12, 9, 12]]],
-  power: ['Power · Thermal', [['flow', 1, 4, 1, 6], ['budget', 5, 8, 1, 6], ['thermal', 9, 12, 1, 6], ['runtl', 1, 8, 7, 12], ['ouiSplit', 9, 12, 7, 9], ['env', 9, 12, 10, 12]]],
+  power: ['Power · Thermal', [['flow', 1, 4, 1, 6], ['budget', 5, 8, 1, 6], ['thermal', 9, 12, 1, 6], ['ouiRunTl', 1, 8, 7, 12], ['ouiSplit', 9, 12, 7, 9], ['env', 9, 12, 10, 12]]],
   comms: ['Comms · Sky', [['link', 1, 4, 1, 6], ['sky', 5, 8, 1, 6], ['skytr', 9, 12, 1, 6], ['gantt', 1, 12, 7, 9], ['ouiSkyEl', 1, 6, 10, 12], ['stats', 7, 12, 10, 12]]],
   terrain: ['Terrain · Ice', [['map', 1, 6, 1, 9], ['targets', 7, 12, 1, 6], ['ouiHist', 7, 12, 7, 9], ['ouiProfile', 1, 6, 10, 12], ['scatter', 7, 12, 10, 12]]],
   ai: ['AI · Systems', [['dream', 1, 6, 1, 5], ['policy', 7, 12, 1, 5], ['ouiTrain', 1, 6, 6, 9], ['status', 7, 12, 6, 9], ['prov', 1, 6, 10, 12], ['log', 7, 12, 10, 12]]],

@@ -1,8 +1,9 @@
 /* Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in index.html. */
 /* Company banner shown across the top of every screen. Palette only: #051F20 #0B2B26 #163832 #235347, accent #8EB69B,
    highlight #DAF1DE, white text; Instrument Sans for text, JetBrains Mono for numbers. */
-.adb { position: relative; display: flex; align-items: center; gap: 26px; height: 74px; padding: 0 22px; box-sizing: border-box; overflow: hidden; color: #FFFFFF;
+.adb { position: relative; height: 74px; box-sizing: border-box; overflow: hidden; color: #FFFFFF; container-type: inline-size;
   font-family: "Instrument Sans", -apple-system, sans-serif; background: #000000; border-bottom: 1px solid #235347; }
+.adb .adb-in { position: relative; display: flex; align-items: center; gap: 26px; height: 100%; padding: 0 22px; box-sizing: border-box; white-space: nowrap; }
 .adb::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, transparent, #8EB69B 30%, #DAF1DE 50%, #8EB69B 70%, transparent);
   background-size: 50% 100%; background-repeat: no-repeat; animation: adb-sweep 7s linear infinite; opacity: .9; } /* light running along the banner's edge */
 .adb::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(218,241,222,.035) 0 1px, transparent 1px 4px); } /* faint scan lines */
@@ -37,3 +38,12 @@
 .adb-menu a { display: block; padding: 9px 12px; border-radius: 9px; color: #FFFFFF; text-decoration: none; }
 .adb-menu a b { display: block; font-size: 14px; font-weight: 600; } .adb-menu a span { display: block; font-size: 12px; color: rgba(255,255,255,.62); margin-top: 1px; }
 .adb-menu a:hover { background: #0B2B26; } .adb-menu a.on { box-shadow: inset 3px 0 0 #8EB69B; } .adb-menu a.on b { color: #8EB69B; }
+/* Fit any window: nothing wraps; sizes step down with the banner's own width (screens drawn on a fixed 1920 px stage keep the full size) */
+.adb .clk, .adb .mark, .adb .nav, .adb .lights { flex: none; } .adb .clk .v.txt { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+@container (max-width: 1800px) { .adb .adb-in { gap: 18px; padding: 0 16px; } .adb .mark { min-width: 0; } .adb .clk .v { font-size: 19px; } .adb .lt { width: 74px; } }
+@container (max-width: 1560px) { .adb .word small { display: none; } .adb .clk .v { font-size: 17px; } .adb .lt { width: 62px; height: 40px; font-size: 9px; letter-spacing: .06em; } .adb .lt b { font-size: 11px; } .adb .clk .v.txt { max-width: 190px; } }
+@container (max-width: 1360px) { .adb .clk .v .d { display: none; } .adb .adb-in { gap: 12px; } .adb .lights { gap: 4px; } .adb .lt { width: 54px; } .adb .word b { font-size: 16px; letter-spacing: .1em; } .adb .sep { display: none; } }
+@container (max-width: 1180px) { .adb .clk .k { font-size: 9px; } .adb .clk .v { font-size: 15px; } .adb .lt { width: 46px; font-size: 8px; } .adb .lt b { font-size: 9.5px; } .adb .mark svg, .adb .mark img { width: 34px; height: 34px; } .adb .nav { padding: 0 10px; } }
+@container (max-width: 1180px) { .adb .word { display: none; } }
+@container (max-width: 980px) { .adb .lt { width: 40px; letter-spacing: 0; } .adb .clk .k { letter-spacing: .04em; } }
+.adb .mark svg { width: 58px; height: 38px; }

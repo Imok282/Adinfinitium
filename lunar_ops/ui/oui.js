@@ -36,8 +36,8 @@ oui('ouiTime', 'Time in each activity', 'derived', () => { const c = MC.cols, cn
 // OpenUI replacements for the canvas telemetry stacks (one measure per chart: never two y-scales in one chart).
 // k charts in one card: side by side when the panel is wide, stacked when it is tall, else OpenUI tabs (one chart at a time,
 // the operator picks). Each chart keeps ~86 px for its legend and x axis.
-const grid = (p, k) => { const W = p.el.clientWidth || 600, H = ch(p), colH = Math.floor((H + 62) / k) - 86, mode = k === 1 ? 'one' : W / k >= 240 ? 'row' : colH >= 90 ? 'col' : 'tabs';
-  return { h: mode === 'col' ? colH : mode === 'tabs' ? Math.max(70, H - 44) : H,
+const grid = (p, k) => { const W = p.el.clientWidth || 600, H = ch(p), colH = Math.floor((H + 62) / k) - 86, mode = k === 1 ? 'one' : W / k >= 150 ? 'row' : colH >= 90 ? 'col' : 'tabs';
+  return { h: mode === 'col' ? colH : mode === 'tabs' ? Math.max(70, H - 44) : mode === 'row' ? Math.max(44, (p.el.clientHeight || 200) - 50) : H,
     root: (ids, names = ids) => (mode === 'row' ? `root = Card([g])\ng = Stack([${ids.join(', ')}], "row", "s")`
       : mode === 'tabs' ? `root = Card([g])\ng = Tabs([${ids.map((_, i) => `t${i}`).join(', ')}])\n` + ids.map((id, i) => `t${i} = TabItem(${q(id)}, ${q(names[i])}, [${id}])`).join('\n')
       : `root = Card([${ids.join(', ')}])`) }; };
@@ -93,6 +93,22 @@ oui('ouiSkyEl', 'Sun and Earth above the horizon', 'feed', (p) => { // same unit
   const su = series1('sunEl'), ea = series1('earthEl'); if (!su && !ea) return wait('Sky angles appear once the feed has a site.'); const ref = (su || ea).s, n = 18, L = labels(ref[0], ref[1], n);
   return [`root = Card([c])`, `c = LineChart(${strs(L)}, [b, a], "natural", "mission time", "degrees", ${ch(p)})`, `a = Series("Sun elevation °", ${arr(su ? su.v(n) : [])})`,
     `b = Series("Earth elevation °", ${arr(ea ? ea.v(n) : [])})`].join('\n'); // Earth first so it is blue and the Sun orange, as in the sky view
+});
+
+// Run timeline as small multiples: the key measures of the current phase, one per chart, side by side (replaces the
+// dense number grid). Phase: orbit -> height and speed; landing -> altitude, vertical speed, thrust, propellant;
+// rover -> battery, power, speed, hazard.
+oui('ouiRunTl', 'Run timeline', 'feed', (p) => {
+  const c = MC.cols, n0 = MC.n(); if (n0 < 2) return wait('Waiting for data…');
+  const rover = MC.has('soc') && Number.isFinite(MC.lastFinite('soc')) && !Number.isFinite(MC.at('alt')), lander = !rover && MC.has('alt');
+  const M = rover ? [['Battery', '%', [['Battery %', c.soc.map((v) => v * 100)]]], ['Power', 'W', [['Solar W', c.solar], ['Load W', c.load]]], ['Speed', 'cm/s', [['Speed cm/s', c.speed.map((v) => v * 100)]]], ['Hazard', 'probability', [['Hazard', c.haz]]]]
+    : lander ? [['Altitude', 'm', [['Altitude m', c.alt]]], ['Vertical speed', 'm/s', [['Down speed m/s', c.vz.map((v) => -v)]]], ['Thrust', 'N', [['Thrust N', c.thrust]]], ['Propellant', 'kg', [['Propellant kg', c.fuel]]]]
+      : [['Height', 'km', [['Height km', c.orbAlt]]], ['Speed', 'm/s', [['Orbital speed m/s', c.orbSpd]]]];
+  let a = n0, b = -1; for (const [, , ser] of M) for (const [, arr] of ser) for (let i = 0; i <= MC.cur && i < arr.length; i++) if (Number.isFinite(arr[i])) { if (i < a) a = i; if (i > b) b = i; }
+  if (b <= a) return wait('No data for this phase yet.'); const n = 14, L = labels(a, b, n), G = grid(p, M.length), out = [G.root(M.map((_, i) => `c${i}`), M.map((m) => m[0]))];
+  M.forEach(([name, unit, ser], i) => { const ids = ser.map((_, j) => `s${i}_${j}`); out.push(`c${i} = ${i === 0 ? 'AreaChart' : 'LineChart'}(${strs(L)}, [${ids.join(', ')}], "natural", "", ${q(unit)}, ${G.h})`);
+    ser.forEach(([sn, src], j) => out.push(`s${i}_${j} = Series(${q(sn)}, ${arr(slices(src, a, b, n))})`)); });
+  return out.join('\n');
 });
 
 // A short notice built from OpenUI's Callout component; it slides in with OpenUI's animation and fades out with OpenUI's callout fade.
