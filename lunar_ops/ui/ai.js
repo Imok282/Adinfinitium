@@ -1,5 +1,5 @@
 /* Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in ai.html. */
-/* AI view: the learned pilot's inputs, its transformer (real attention from scripts/live_mission.py) and its thrust command.
+/* AI view: the learned pilot's inputs, its transformer (real attention from scripts/live_sim.py) and its thrust command.
    Everything drawn comes from the live stream; nothing is decorative. Token order: 0 output (CLS), 1 sensors + classic command,
    2..65 the 8 x 8 camera patches (row-major, north up). */
 (() => {
@@ -60,9 +60,14 @@
   const curve = (g, a, b) => { const mx = (a[0] + b[0]) / 2; g.moveTo(a[0], a[1]); g.bezierCurveTo(mx, a[1], mx, b[1], b[0], b[1]); };
   let TR = null, chainMax = 1;
   function drawBackground(tr) {
-    const g = bgc; g.clearRect(0, 0, NW, NH); g.globalCompositeOperation = 'lighter'; g.lineWidth = 0.7;
+    const g = bgc; g.clearRect(0, 0, NW, NH);
+    // each layer as its own column band, so the eight layers read as layers
+    for (let l = 1; l <= tr.layers; l++) { const x = COLX(l), y0 = tokY(0) - 16, y1 = tokY(tr.tokens - 1) + 16, band = g.createLinearGradient(x - 16, 0, x + 16, 0);
+      band.addColorStop(0, 'rgba(57,135,229,0)'); band.addColorStop(0.5, 'rgba(57,135,229,.16)'); band.addColorStop(1, 'rgba(57,135,229,0)');
+      g.fillStyle = band; g.beginPath(); g.roundRect(x - 16, y0, 32, y1 - y0, 12); g.fill(); g.strokeStyle = 'rgba(57,135,229,.35)'; g.lineWidth = 1; g.beginPath(); g.roundRect(x - 16, y0, 32, y1 - y0, 12); g.stroke(); }
+    g.globalCompositeOperation = 'lighter'; g.lineWidth = 1;
     for (let li = 0; li < tr.layers; li++) for (let q = 0; q < tr.tokens; q++) { const row = tr.top[li][q]; for (let j = 0; j < 4; j++) { const k = row[j], w = row[4 + j];
-      g.strokeStyle = `rgba(57,135,229,${clamp(w * 0.8, 0.02, 0.32)})`; g.beginPath(); curve(g, pos(li, k), pos(li + 1, q)); g.stroke(); } }
+      g.strokeStyle = `rgba(57,135,229,${clamp(w * 1.5, 0.06, 0.55)})`; g.beginPath(); curve(g, pos(li, k), pos(li + 1, q)); g.stroke(); } }
     g.globalCompositeOperation = 'source-over';
     // input: camera patches with how much each one reaches the output (rollout)
     if (camRGB) { g.imageSmoothingEnabled = false; g.save(); g.beginPath(); g.roundRect(GRID.x0, GRID.y0, GRID.cell * 8, GRID.cell * 8, 8); g.clip(); g.globalAlpha = 0.75; g.drawImage(camCanvas('shade'), GRID.x0, GRID.y0, GRID.cell * 8, GRID.cell * 8); g.globalAlpha = 1;
@@ -70,13 +75,12 @@
     g.strokeStyle = 'rgba(57,135,229,.18)'; g.lineWidth = 1; for (let k = 0; k <= 8; k++) { g.beginPath(); g.moveTo(GRID.x0 + k * GRID.cell, GRID.y0); g.lineTo(GRID.x0 + k * GRID.cell, GRID.y0 + 8 * GRID.cell); g.moveTo(GRID.x0, GRID.y0 + k * GRID.cell); g.lineTo(GRID.x0 + 8 * GRID.cell, GRID.y0 + k * GRID.cell); g.stroke(); }
     // tokens: dot size = activity of that token in that layer
     for (let l = 1; l <= tr.layers; l++) { const act = tr.activity[l - 1], m = Math.max(...act, 1e-9);
-      for (let t = 0; t < tr.tokens; t++) { const [x, y] = pos(l, t), v = act[t] / m; g.fillStyle = t < 2 ? `rgba(134,182,239,${0.35 + 0.6 * v})` : `rgba(134,182,239,${0.18 + 0.7 * v})`; g.beginPath(); g.arc(x, y, 1.3 + 2.6 * v, 0, 7); g.fill(); }
+      for (let t = 0; t < tr.tokens; t++) { const [x, y] = pos(l, t), v = act[t] / m; g.fillStyle = t < 2 ? `rgba(134,182,239,${0.55 + 0.45 * v})` : `rgba(134,182,239,${0.4 + 0.6 * v})`; g.beginPath(); g.arc(x, y, 1.8 + 2.8 * v, 0, 7); g.fill(); }
       // MLP neurons of the output token: the 32 strongest of the hidden width, as ticks under the column
       const sx = COLX(l) - 30, sy = 728; g.fillStyle = 'rgba(57,135,229,.08)'; g.fillRect(sx, sy, 60, 8);
       const tn = tr.top_neurons[l - 1], mv = Math.max(...tn.map((p) => Math.abs(p[1])), 1e-9); for (const [i, v] of tn) { g.fillStyle = v >= 0 ? `rgba(134,182,239,${0.4 + 0.6 * Math.abs(v) / mv})` : `rgba(134,182,239,${0.4 + 0.6 * Math.abs(v) / mv})`; g.fillRect(sx + i / tr.mlp_width * 60, sy, 1.4, 8); } }
     for (const [t, c] of [[0, '#86b6ef'], [1, '#86b6ef']]) { const [x, y] = pos(0, t); g.fillStyle = '#000000'; g.strokeStyle = c; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.stroke(); }
-    g.font = '12px "Instrument Sans"'; g.fillStyle = 'rgba(255,255,255,.62)'; g.textAlign = 'left'; g.fillText('output token', pos(0, 0)[0] + 14, pos(0, 0)[1] + 4); g.fillText('sensors + classic', pos(0, 1)[0] + 14, pos(0, 1)[1] + 4); g.fillText('64 camera patches', GRID.x0, GRID.y0 - 10);
-    g.textAlign = 'center'; for (let l = 1; l <= tr.layers; l++) g.fillText(`Layer ${l}`, COLX(l), 752);
+    g.font = '12.5px "Instrument Sans"'; g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; for (let l = 1; l <= tr.layers; l++) g.fillText(`Layer ${l}`, COLX(l), 752);
     g.textAlign = 'right'; g.fillText('top neurons', COLX(1) - 38, 736);
   }
   function drawNet(wall) {
@@ -93,6 +97,15 @@
     const gr = ng.createRadialGradient(OUT.x, OUT.y, 0, OUT.x, OUT.y, 40); gr.addColorStop(0, 'rgba(57,135,229,.45)'); gr.addColorStop(1, 'rgba(57,135,229,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(OUT.x, OUT.y, 40, 0, 7); ng.fill();
     ng.fillStyle = '#000000'; ng.strokeStyle = '#86b6ef'; ng.lineWidth = 2; ng.beginPath(); ng.arc(OUT.x, OUT.y, 16, 0, 7); ng.fill(); ng.stroke();
     ng.font = '12px "Instrument Sans"'; ng.fillStyle = 'rgba(255,255,255,.62)'; ng.textAlign = 'center'; ng.fillText('Thrust', OUT.x, OUT.y + 34);
+    inputLabels(ng);
+  }
+  // Input labels go left of their nodes (all lines leave the nodes to the right) and are drawn last on a black plate, so no line crosses the text.
+  function inputLabels(g) {
+    g.font = '12.5px "Instrument Sans"'; g.textBaseline = 'middle';
+    const plate = (txt, x, y, align) => { const w = g.measureText(txt).width, x0 = align === 'right' ? x - w : x; g.fillStyle = '#000000'; g.beginPath(); g.roundRect(x0 - 5, y - 9, w + 10, 18, 5); g.fill();
+      g.fillStyle = '#FFFFFF'; g.textAlign = align; g.fillText(txt, x, y); };
+    plate('output token', pos(0, 0)[0] - 14, pos(0, 0)[1], 'right'); plate('sensors + classic', pos(0, 1)[0] - 14, pos(0, 1)[1], 'right'); plate('64 camera patches', GRID.x0, GRID.y0 - 14, 'left');
+    g.textBaseline = 'alphabetic';
   }
 
   // ---------------------------------------------------------------------------------------------------- does
@@ -108,7 +121,11 @@
     OUI.render($('attn'), `root = Card([c])\nc = BarChart(["Output token", "Sensors", "Camera"], [a], "grouped", "", "%", ${Math.max(60, $('attn').clientHeight - 70)})\na = Series("Share of attention %", ${OUI.arr([r[0] / tot * 100, r[1] / tot * 100, cam / tot * 100])})`); // a few shares read best as bars
   }
   const norm = (v) => Math.hypot(v[0], v[1], v[2]);
+  const PHASE = { DOCKED: 'in orbit, docked', SEPARATED: 'in orbit, separated', DEORBIT: 'in the deorbit burn', COAST: 'coasting down to 15 km', BRAKING: 'in the braking burn', LANDED: 'landed', ENDED: 'ended' };
   function onFrame(m) {
+    // the simulator is running but the pilot only flies the terminal descent: say so instead of "waiting for a run"
+    if (!TR && m.phase && m.phase !== 'TERMINAL') $('wait').querySelector('.msg').innerHTML = m.phase === 'LANDED' || m.phase === 'ENDED'
+      ? 'The lander is down. Restart the run to watch the AI pilot fly the terminal descent.' : `Mission running, ${PHASE[m.phase] || m.phase}. The AI pilot takes over for the terminal descent; its brain appears here then.`;
     if (m.lander) { const L = m.lander; $('s-t').textContent = `T+ ${String(Math.floor(m.t_s / 60)).padStart(2, '0')}:${String(Math.floor(m.t_s % 60)).padStart(2, '0')}`; $('s-alt').textContent = fmt(L.alt_m); $('s-vd').textContent = fmt(-L.vz_m_s, 1); $('s-eng').textContent = `${L.engines_ok} of 5`;
       $('s-src').innerHTML = L.source === 'pilot' ? '<span class="dot"></span>AI pilot' : '<span class="dot o"></span>Classic backup'; }
     const P = m.pilot; if (P) {
