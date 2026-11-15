@@ -37,7 +37,18 @@ def target_point_N(lat_deg=TARGET_LAT_DEG, lon_deg=TARGET_LON_DEG, height_m=0.0)
 
 
 def run(run_id="demo", alt=2000.0, offset_east=300.0, offset_north=-200.0, v_down=45.0, v_east=10.0,
-        engine_out_at=None, viz=True, max_time=300.0) -> dict:
+        engine_out_at=None, viz=True, max_time=300.0, command_fn=None, ground_height_fn=None, on_step=None,
+        rtf=None, live_viz=False) -> dict:
+    """Fly one descent. Optional live hooks (all default off, so the plain run is unchanged):
+
+    command_fn        outside pilot, see ``DescentGuidance.command_fn`` (classic backup on any error)
+    ground_height_fn  f(r_N) -> ground height [m] above the target point (terrain); default flat
+    on_step           f(t_s, handles, guidance, state_msg_payload, target_N, (E, N, U)) called every control period
+    rtf               real-time factor: 1.0 = wall clock, None = as fast as possible
+    live_viz          stream to a running Vizard (liveStream) instead of only writing the playback file
+    """
+    import time
+
     cfg = mission()
     dyn_dt, ctrl_dt = 0.01, 0.2   # dyn step must be << control period: on-time pulses are quantised to dyn_dt
     sim = new_sim({"dynTask": dyn_dt, "fswTask": ctrl_dt})
@@ -49,18 +60,28 @@ def run(run_id="demo", alt=2000.0, offset_east=300.0, offset_north=-200.0, v_dow
     h = build_lander(sim, cfg, r0, v0, tgt, control_period_s=ctrl_dt)
     guid = h["guidance"]
     guid.engine_out_at_s = engine_out_at
-    if viz:
+    guid.command_fn = command_fn
+    if ground_height_fn is not None:
+        guid.ground_height_fn = ground_height_fn
+    if viz or live_viz:
         vizSupport.enableUnityVisualization(sim, "dynTask", h["sc"], saveFile=str(out_dir() / f"descent_{run_id}"),
-                                            thrEffectorList=[h["engines"]])
+                                            thrEffectorList=[h["engines"]], liveStream=bool(live_viz))
     sim.InitializeSimulation()
 
     rows, t, report = [], 0.0, None
     state_msg = h["sc"].scStateOutMsg
+    wall0 = time.monotonic()
     while t < max_time:
         t += ctrl_dt
         sim.ConfigureStopTime(macros.sec2nano(t))
         sim.ExecuteSimulation()
         st = state_msg.read()
+        if on_step is not None:
+            on_step(t, h, guid, st, tgt, (E, N, U))
+        if rtf:
+            lag = t / rtf - (time.monotonic() - wall0)
+            if lag > 0:
+                time.sleep(lag)
         r, v = np.array(st.r_BN_N), np.array(st.v_BN_N)
         ground = guid.ground_height_fn(r)
         alt_now = float(np.dot(r - tgt, U)) - ground

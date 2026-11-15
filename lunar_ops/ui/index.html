@@ -1,0 +1,67 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026, Adinfinitium team
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+-->
+<html lang="en" data-openui-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Adinfinitium · Mission Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="vendor/openui/openui-styles.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="brand">ADINFINITIUM<small>Mission control</small></div>
+    <div class="kpi"><small>Official time</small><b id="k-met">0 d 00:00:00</b></div>
+    <div class="kpi"><small>Time remaining</small><b id="k-rem">—</b></div>
+    <div class="kpi big"><small>Status</small><b id="k-status">WAITING</b></div>
+    <div class="kpi"><small>Step</small><b id="k-phase">—</b></div>
+    <div class="kpi"><small>Control</small><b id="k-ctl">—</b></div>
+    <div id="lights">
+      <span class="light" id="l-power"><i></i>Power</span><span class="light" id="l-comms"><i></i>Comms</span><span class="light" id="l-mob"><i></i>Mobility</span><span class="light" id="l-therm"><i></i>Thermal</span>
+    </div>
+    <div class="spacer"></div>
+    <div id="theme" role="group" aria-label="Colour mode"><button data-theme="colour" class="on">Colour</button><button data-theme="bw">Black &amp; white</button></div>
+    <div id="conn" class="off">Not connected</div>
+  </header>
+  <nav id="tabs"></nav>
+  <main id="wb"></main>
+  <footer id="scrub">
+    <button id="play" title="Play / pause (space)">Pause</button>
+    <button id="slower">Slower</button>
+    <input id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Mission time">
+    <button id="faster">Faster</button>
+    <span class="clock"><small>Time since start</small><b id="simclock">0 d 00:00:00</b></span>
+    <span class="clock"><small>Speed</small><b id="speedlab">600×</b></span>
+    <span class="spacer"></span>
+    <label class="manual" title="Keys W, A and D drive the rover"><input type="checkbox" id="override"> Drive it myself</label>
+    <button id="openfile" title="Open a recorded .jsonl run or a ghost file">Add files…</button>
+    <button id="abort" title="Stop the rover and keep it safe (live backend only)">Stop rover</button>
+  </footer>
+</div>
+<div id="notice" hidden></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="filepick" accept=".json,.jsonl,.obj,.mtl,.glb,.png,.jpg" multiple hidden>
+<div id="dropveil">Drop files to add them: ghost runs, recordings, models</div>
+<script src="model.js"></script>
+<script src="charts.js"></script>
+<script src="panels.js"></script>
+<script src="ghosts.js"></script>
+<script src="flow.js"></script>
+<script src="oui.js"></script>
+<script src="app.js"></script>
+<script src="vendor/openui/openui-bundle.min.js" defer></script>
+<script type="importmap">{ "imports": { "esm-env": "./vendor/number-flow/esm-env.mjs" } }</script>
+<script type="module">
+  // NumberFlow (vendor/number-flow): animated numbers. Registers the <number-flow> element, then tells the app it is ready.
+  import NumberFlow from "./vendor/number-flow/index.mjs";
+  window.__NumberFlow = NumberFlow; window.dispatchEvent(new Event("nf-ready"));
+</script>
+</body>
+</html>

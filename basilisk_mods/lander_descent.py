@@ -78,6 +78,11 @@ class DescentGuidance(sysModel.SysModel):
         self.engine_out_index = 1
         self.engines_ok = np.ones(self.n_eng, bool)
         self.ground_height_fn = lambda r_N: 0.0   # replace with Arnav's terrain lookup (KAN-44)
+        # optional outside pilot (e.g. the learned residual pilot): f(t_s, r_N, v_N, mass_kg, engines_ok, classic_thrust_N)
+        # -> wanted thrust vector [N] in the inertial frame, or None to keep the classic command. Physics backup first:
+        # any error or non-finite answer falls back to the classic ZEM/ZEV command for that period and is logged.
+        self.command_fn = None
+        self.command_source = "classic"
         # log for telemetry
         self.last = {}
         self.decisions: list[tuple[float, str]] = []
@@ -128,6 +133,21 @@ class DescentGuidance(sysModel.SysModel):
             a_ctrl = a_des - g_vec
 
         thrust_N = mass * a_ctrl
+        self.classic_thrust_N = thrust_N
+        source = "classic"
+        if self.command_fn is not None:
+            try:
+                cmd = self.command_fn(t_s, r, v, mass, int(self.engines_ok.sum()), thrust_N)
+                if cmd is not None:
+                    cmd = np.asarray(cmd, float)
+                    if cmd.shape != (3,) or not np.all(np.isfinite(cmd)):
+                        raise ValueError(f"bad pilot command {cmd!r}")
+                    thrust_N, source = cmd, "pilot"
+            except Exception as exc:  # physics backup first: keep the classic command
+                self.decisions.append((t_s, f"pilot error, classic backup used: {exc}"))
+        if source != self.command_source:
+            self.decisions.append((t_s, f"command source -> {source}"))
+            self.command_source = source
         # tilt limit about local up
         mag = np.linalg.norm(thrust_N)
         dir_N = thrust_N / max(mag, 1e-9)
@@ -160,7 +180,8 @@ class DescentGuidance(sysModel.SysModel):
         if phase != self.last.get("phase"):
             self.decisions.append((t_s, f"phase -> {phase}"))
         self.last = {"t_s": t_s, "phase": phase, "throttle": throttle, "thrust_n": throttle * n_ok * self.eng_max,
-                     "engines_ok": n_ok, "h_m": h_above_target - self.ground_height_fn(r)}
+                     "engines_ok": n_ok, "h_m": h_above_target - self.ground_height_fn(r), "source": source,
+                     "on_time_s": on.tolist()}
 
 
 def build_lander(sim, cfg: MissionConfig, r0_N, v0_N, target_N, dyn_task="dynTask", fsw_task="fswTask",
