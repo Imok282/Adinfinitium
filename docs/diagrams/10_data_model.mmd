@@ -1,0 +1,70 @@
+classDiagram
+  direction LR
+  class Meta {
+    provenance: observed|modelled|generated|unknown
+    source: str
+    frame: str
+    units: dict
+    created_by, created_at
+    schema_version: int
+  }
+  class Tile {
+    region: str
+    meters_per_pixel: float
+    center_lat_deg, center_lon_deg
+    height[H,W] m
+    slope[H,W] deg
+    hazard[H,W] 0..1
+    uncertainty[H,W] m
+    psr_mask[H,W] bool
+    real_mask[H,W] bool?
+  }
+  class LightField {
+    region, date
+    times_utc[T], et_s[T]
+    sun_fraction[T,H,W]
+    sun_elev_deg[T,H,W]
+    earth_elev_deg[T,H,W]
+  }
+  class Site {
+    id, name
+    lat_deg, lon_deg
+    source, provenance
+    region?
+  }
+  class GenerationLog {
+    run, generation, population
+    best_score, mean_score
+    success_rate, classic_success_rate
+    exam_success_rate
+    failures[reason,count]
+    champion_genome, strategy
+  }
+  class Champion {
+    run, generation, champion_id, score
+    genes: MissionGenes
+    initial_state
+    controls[t_s, thrust_n[3]]
+    outcome
+  }
+  class Telemetry {
+    t_s, phase, x_m, y_m, alt_m
+    vx, vy, vz, mass, fuel, thrust
+    engines_ok, battery_wh, solar_w
+    earth_visible, decision
+  }
+  class MissionConfig {
+    moon, lander, rover, power
+    scenarios.terminal
+    failures, sensor_noise
+    scoring, swarm
+  }
+  Tile --> Meta
+  LightField --> Meta
+  GenerationLog --> Meta
+  Champion --> Meta
+  LightField ..> Tile : same grid
+  Site ..> Tile : region
+  Champion ..> Site : genes.site
+  Champion ..> Telemetry : re-flown in Basilisk
+  MissionConfig ..> Champion : limits + weights

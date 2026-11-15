@@ -1,0 +1,28 @@
+flowchart LR
+  classDef i fill:#eef6ff,stroke:#3b82f6
+  classDef n fill:#ecfdf5,stroke:#059669
+  classDef t fill:#fff7ed,stroke:#ea580c
+  classDef a fill:#fdf2f8,stroke:#db2777
+  subgraph Imok[Imok — codes]
+    i1[KAN-19 skeleton · 20 4090 · 21 data · 22 SPICE]:::i
+    i2[KAN-23..27 world model: light field · hazard · diffusion · exams]:::i
+    i3[KAN-28..32 sim + swarm + Dream-RSI]:::i
+    i4[KAN-33 brain window · 34 champions]:::i
+  end
+  subgraph Nimansh[Nimansh — codes]
+    n1[KAN-35 Navigator · 36 tests · 37 README]:::n
+  end
+  subgraph Tanush[Tanush — vibe-codes]
+    t1[KAN-38 sites · 39 ice · 40 CH-3 replay]:::t
+    t2[KAN-41 Basilisk orbit · 42 descent · 43 re-fly]:::t
+    t3[KAN-50 submission page]:::t
+  end
+  subgraph Arnav[Arnav — vibe-codes]
+    a1[KAN-44 terrain · 45 rover · 46 power/comms modules]:::a
+    a2[KAN-47 Vizard · 48 mission control]:::a
+  end
+  i4 -- champion_XXX.json --> t2
+  i1 -- tiles --> a1
+  t2 -- telemetry_XXX.csv --> a2
+  t1 -- sites.json --> n1
+  i2 -- light fields --> n1

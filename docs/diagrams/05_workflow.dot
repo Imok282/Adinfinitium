@@ -1,0 +1,13 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.3; nodesep=0.4; ranksep=0.7;
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#555555", penwidth=0.8];
+  edge [color="#666666", arrowsize=0.7, fontname="DejaVu Sans", fontsize=9];
+  label="Team workflow (the 4090 PC has no Claude)"; labelloc=t; fontsize=16; fontname="DejaVu Sans";
+  lap [label="Laptops\nTanush, Arnav, Nimansh, Imok\nClaude Code / Codex / Specter\nwrite + test code", fillcolor="#E6F1FB"];
+  gh [label="GitHub\nAdinfinitium repo\n(main branch = always runs)", fillcolor="#F1EFE8"];
+  pc [label="RTX 4090 PC (Windows + WSL2)\nImok runs: git pull →\ntraining / swarm jobs", fillcolor="#FAEEDA"];
+  pen [label="Pen drive\nbig data files, model\ncheckpoints, swarm logs", fillcolor="#FBEAF0"];
+  ui [label="Navigator + mission control\n+ Vizard on laptops", fillcolor="#E1F5EE"];
+  lap -> gh [label="push"]; gh -> pc [label="pull"]; pc -> gh [label="small results\n(json, csv, svg)"];
+  pc -> pen [label="large files"]; pen -> ui; gh -> ui;
+}

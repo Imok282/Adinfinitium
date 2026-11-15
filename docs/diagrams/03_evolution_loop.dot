@@ -1,0 +1,17 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.3; nodesep=0.4; ranksep=0.6;
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#555555", penwidth=0.8];
+  edge [color="#666666", arrowsize=0.7, fontname="DejaVu Sans", fontsize=9];
+  label="Evolution swarm + Dream-RSI layer"; labelloc=t; fontsize=16; fontname="DejaVu Sans";
+  pop [label="Population\n10,000 pilots\n(NEAT brains + mission genes:\nsite, date, battery, route)", fillcolor="#EEEDFE"];
+  sim [label="Fly all missions at once\nJAX GPU sim on real LOLA\n+ diffusion terrain versions", fillcolor="#FAEEDA"];
+  score [label="Score each mission\nlanding + rover ice & return\n+ survive night + data to Earth", fillcolor="#E1F5EE"];
+  breed [label="Select + breed\n(NEAT speciation,\nmutation, crossover)", fillcolor="#EEEDFE"];
+  log [label="Log every generation\n(replay pool)", fillcolor="#F1EFE8"];
+  dream [label="Dream-RSI-style meta layer\nreplay logs → tune breeding,\nmutation, test budget", fillcolor="#FBEAF0"];
+  exam [label="Unseen-terrain exam\nhold-out regions, real sites,\ngenerated craters → intelligence score", fillcolor="#E6F1FB"];
+  bsk [label="Basilisk re-flies champions\n→ Vizard replay", fillcolor="#E6F1FB"];
+  pop -> sim -> score -> breed -> pop;
+  score -> log -> dream -> breed [label="better strategy"];
+  score -> exam; score -> bsk;
+}

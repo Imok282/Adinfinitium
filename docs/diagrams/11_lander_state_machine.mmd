@@ -1,0 +1,19 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Flying : reset(key)<br/>random start · failures drawn
+  state Flying {
+    direction LR
+    ZEM_ZEV : Phase 1 — ZEM/ZEV to hover gate<br/>(classic) or evolved pilot
+    Terminal : Phase 2 — vertical descent at -1 m/s<br/>horizontal hold
+    ZEM_ZEV --> Terminal : h ≤ gate + 8 m
+  }
+  Flying --> ok : touchdown within limits
+  Flying --> hard_vertical : vz > 2 m/s
+  Flying --> hard_horizontal : vh > 0.5 m/s
+  Flying --> steep_slope : slope > 12°
+  Flying --> hazard_cell : hazard ≥ 0.5
+  Flying --> out_of_fuel : crash with empty tanks
+  Flying --> out_of_bounds : left the tile
+  Flying --> timeout : t ≥ 240 s
+  ok --> Surface : KAN-103 (rover · power · night)
+  Surface --> [*]

@@ -1,0 +1,36 @@
+# Big files travel by pen drive, never git (docs/plan/02_4090_SETUP_AND_PENDRIVE.md)
+data/
+runs/
+kernels/
+*.bsp
+*.bpc
+*.img
+*.lbl
+*.tif
+*.npz
+*.ckpt
+*.pt
+*.pth
+*.onnx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Secrets
+.env
+*.key
+vizard/*.obj

@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026, Adinfinitium team
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Adinfinitium · Lander and rover</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@font-face { font-family: "Instrument Sans"; src: url("/vendor/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 400 700; }
+@font-face { font-family: "JetBrains Mono"; src: url("/vendor/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; }
+html, body { margin: 0; height: 100%; background: #02040a; color: #e8eef9; font: 14px "Instrument Sans", sans-serif; overflow: hidden; }
+canvas { display: block; width: 100vw; height: 100vh; }
+.cap { position: fixed; bottom: 4vh; text-align: center; transform: translateX(-50%); pointer-events: none; }
+.cap b { display: block; font-size: 22px; font-weight: 600; } .cap span { color: #8a99b6; font-size: 13.5px; } .cap .n { font-family: "JetBrains Mono", monospace; }
+#brand { position: fixed; left: 28px; top: 24px; font-weight: 650; font-size: 15px; color: rgba(232,238,249,.8); }
+#note { position: fixed; right: 28px; top: 26px; font-size: 12px; color: rgba(200,212,235,.55); }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/" } }</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="brand">∞ Adinfinitium</div><div id="note">Team models (KAN-47) · studio lighting, not lunar</div>
+<div class="cap" id="capL" style="left:38%"><b>Lander</b><span>5 engines · 8 attitude thrusters · 4 legs · rover bay</span></div>
+<div class="cap" id="capR" style="left:76%"><b>Rover</b><span>6 wheels · solar panel · stows inside the lander</span></div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
+// Studio environment for reflections: a dim room with a few soft light panels (stands in for three.js RoomEnvironment,
+// which is not vendored). Lighting only; it is not a lunar scene.
+function studioRoom() {
+  const room = new THREE.Scene(), box = new THREE.BoxGeometry(1, 1, 1);
+  const walls = new THREE.Mesh(box, new THREE.MeshStandardMaterial({ color: 0x7f7f7f, side: THREE.BackSide })); walls.scale.set(20, 12, 20); walls.position.y = 4; room.add(walls);
+  room.add(new THREE.AmbientLight(0xffffff, 0.6));
+  for (const [x, y, z, sx, sy, sz, k] of [[0, 9.9, 0, 8, 0.1, 8, 3], [-9.9, 4, 0, 0.1, 5, 7, 2], [9.9, 5, 2, 0.1, 4, 6, 1.5], [0, 4, -9.9, 6, 4, 0.1, 1.2]]) {
+    const panel = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(k) })); panel.position.set(x, y, z); panel.scale.set(sx, sy, sz); room.add(panel); }
+  return room;
+}
+const canvas = document.getElementById('gl');
+const r = new THREE.WebGLRenderer({ canvas, antialias: true }); r.setPixelRatio(Math.min(2, devicePixelRatio)); r.setSize(innerWidth, innerHeight, false);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x02040a);
+const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(studioRoom(), 0.04).texture; scene.environmentIntensity = 0.7;
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
+const key = new THREE.DirectionalLight(0xfff3e2, 3.2); key.position.set(-6, 9, 7); key.castShadow = true; key.shadow.mapSize.set(4096, 4096);
+Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 }); key.shadow.bias = -0.0004; scene.add(key);
+const rim = new THREE.DirectionalLight(0x8db9ff, 1.6); rim.position.set(6, 4, -8); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xa9c2ff, 0x2a241c, 0.6));
+// regolith-grey studio floor fading into the dark
+const floor = new THREE.Mesh(new THREE.CircleGeometry(30, 96), new THREE.MeshStandardMaterial({ color: 0x5d5a55, roughness: 1 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const fade = new THREE.Mesh(new THREE.RingGeometry(6, 30, 96), new THREE.MeshBasicMaterial({ color: 0x02040a, transparent: true, opacity: 1, depthWrite: false,
+  onBeforeCompile: undefined })); fade.rotation.x = -Math.PI / 2; fade.position.y = 0.002;
+fade.material = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: {}, vertexShader: 'varying vec2 p; void main(){ p = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
+  fragmentShader: 'varying vec2 p; void main(){ float d = length(p); gl_FragColor = vec4(0.008,0.016,0.04, smoothstep(6.0, 16.0, d)); }' }); scene.add(fade);
+const load = (n) => new GLTFLoader().loadAsync(`models/${n}_B.glb`).then((g) => { g.scene.traverse((m) => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); return g.scene; });
+const [lander, rover] = await Promise.all([load('lander'), load('rover')]);
+lander.position.set(-1.6, 1.45, 0); lander.rotation.y = -0.55; scene.add(lander);   // model origin is 1.45 m above the footpads
+rover.position.set(3.4, 0.219, 1.2); rover.rotation.y = 2.35; scene.add(rover);     // wheels touch at origin - 0.219 m
+const look = new THREE.Vector3(0.6, 1.25, 0.3);
+cam.position.set(2.2, 4.4, 12.8); cam.lookAt(look);
+r.render(scene, cam);
+// place the captions under each vehicle
+for (const [id, o] of [['capL', lander], ['capR', rover]]) { const p = o.position.clone(); p.y = 0; p.project(cam); document.getElementById(id).style.left = `${(p.x * 0.5 + 0.5) * 100}%`; }
+requestAnimationFrame(() => { r.render(scene, cam); document.title = 'ready'; });
+addEventListener('resize', () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); r.setSize(innerWidth, innerHeight, false); r.render(scene, cam); });
+</script>
+<script src="/fullscreen.js"></script>
+</body>
+</html>
