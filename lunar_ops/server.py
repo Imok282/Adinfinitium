@@ -208,6 +208,15 @@ class Session:
             self.clients.discard(ws)
 
 
+_LAYERS: dict[tuple[str, str], dict[str, Any]] = {}
+
+
+def _layers_cached(region: str, epoch: str, fn) -> dict[str, Any]:
+    if (region, epoch) not in _LAYERS:
+        _LAYERS[(region, epoch)] = fn(region, epoch)
+    return _LAYERS[(region, epoch)]
+
+
 def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = True,
                ghost_dir: Path | None = None) -> FastAPI:
     """Build the FastAPI application.
@@ -308,6 +317,13 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
                 except json.JSONDecodeError:
                     continue  # a partially written last line is expected while training runs
         return {"path": "runs/rover/train_log.jsonl", "rows": rows}
+
+    @app.get("/api/layers")
+    def layers(region: str | None = None, epoch: str = "2027-03-02T00:00:00") -> dict[str, Any]:
+        """Terrain view layers (terrain, AI hazard output, safe cells, SPICE light over the day); see lunar_ops/layers.py."""
+        from lunar_ops.layers import layers_message
+
+        return _layers_cached(region or sess.env.world.region, epoch, layers_message)
 
     @app.get("/api/dream")
     def dream() -> dict[str, Any]:
