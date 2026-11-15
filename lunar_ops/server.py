@@ -63,6 +63,8 @@ def load_policy(spec: str | None) -> Policy:
     return getattr(importlib.import_module(mod), cls)()
 
 
+HISTORY_MAX_FRAMES = 3000  # most frames of an external run kept for screens that connect mid-run (thinned beyond)
+
 class Session:
     """One running mission shared by all connected UIs."""
 
@@ -76,6 +78,10 @@ class Session:
         self.ingest: WebSocket | None = None  # external telemetry producer (e.g. a Basilisk bridge)
         self.ingest_world: dict[str, Any] | None = None
         self.ingest_frame: dict[str, Any] | None = None
+        # history of the external run, replayed to a screen that connects (or refreshes) mid-run: frames thinned evenly
+        # (frames carrying events are always kept), plus the latest pilot trace and simulator status
+        self.ingest_hist: list[dict[str, Any]] = []
+        self.ingest_last: dict[str, dict[str, Any]] = {}
         self.agent_q: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self.playing = True
         self.speed = 600.0  # [x] simulated seconds per wall second
@@ -193,6 +199,17 @@ class Session:
             self.last_frame["events"] = sent_events
             await self.broadcast(self.last_frame)
 
+    def remember(self, msg: dict[str, Any]) -> None:
+        """Keep an external frame in the replay history (a restarted run, i.e. time going back, starts a new history)."""
+        hist = self.ingest_hist
+        if hist and msg.get("t_s", 0.0) < hist[-1].get("t_s", 0.0) - 1.0:
+            hist.clear()
+            self.ingest_last.pop("ai", None)
+        hist.append(msg)
+        if len(hist) > HISTORY_MAX_FRAMES:  # thin the older half by two, never dropping a frame that carries events
+            half = len(hist) // 2
+            self.ingest_hist = [f for i, f in enumerate(hist[:half]) if i % 2 == 0 or f.get("events")] + hist[half:]
+
     async def broadcast(self, msg: dict[str, Any]) -> None:
         """Send ``msg`` to all UIs and write it to the recording."""
         text = json.dumps(msg)
@@ -263,10 +280,13 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
     @app.websocket("/ws/ui")
     async def ws_ui(ws: WebSocket) -> None:
         await ws.accept()
-        if sess.ingest is not None and sess.ingest_world is not None:
-            await ws.send_text(json.dumps(sess.ingest_world))
-            if sess.ingest_frame is not None:
-                await ws.send_text(json.dumps(sess.ingest_frame))
+        if sess.ingest is not None:  # an external run (the live simulator): its world, then its history, then the latest state
+            await ws.send_text(json.dumps(sess.ingest_world if sess.ingest_world is not None else world_message(sess.env)))
+            if sess.ingest_hist:
+                await ws.send_text(json.dumps({"type": "history", "frames": sess.ingest_hist}))
+            for kind in ("sim", "state", "ai"):
+                if kind in sess.ingest_last:
+                    await ws.send_text(json.dumps(sess.ingest_last[kind]))
         else:
             await ws.send_text(json.dumps(world_message(sess.env)))
             sess.fb.reset()
@@ -403,6 +423,8 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
         sess.ingest = ws
         sess.ingest_world = None
         sess.ingest_frame = None
+        sess.ingest_hist = []
+        sess.ingest_last = {}
         try:
             while True:
                 msg = await ws.receive_json()
@@ -412,11 +434,13 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
                     await sess.broadcast(msg)
                 elif kind == "frame":
                     sess.ingest_frame = msg
+                    sess.remember(msg)
                     await sess.broadcast(msg)
                 elif kind == "models":
                     sess.update_models(list(msg.get("models", [])))
                     await sess.broadcast(sess.models_message())
                 elif kind in ("ai", "state", "sim"):  # pilot trace, play/pause state, simulator status: relayed as is
+                    sess.ingest_last[kind] = msg
                     await sess.broadcast(msg)
         except WebSocketDisconnect:
             pass

@@ -107,6 +107,7 @@ MC.toast = function (variant, title, desc) {
 MC.ouiRender = function (p, now) {
   const O = window.__OpenUI; if (!O) { if (!p.msgd) { p.el.innerHTML = '<div class="msg">Loading chart library…</div>'; p.msgd = true; } return; }
   if (now - (p.t || 0) < 900 && p.last) return; p.t = now; const lang = p.def.lang(p); if (lang === p.last) return; p.last = lang;
-  if (!p.root) { p.el.innerHTML = ''; p.root = O.createRoot(p.el); } p.el.style.setProperty('--oui-round', `${Math.max(60, p.el.clientHeight - 58)}px`); // legend below the round charts p.root.render(O.React.createElement(O.Renderer, { response: lang, library: /\bStack\(/.test(lang) && O.openuiLibrary ? O.openuiLibrary : O.openuiChatLibrary }));
+  if (!p.root) { p.el.innerHTML = ''; p.root = O.createRoot(p.el); } p.el.style.setProperty('--oui-round', `${Math.max(60, p.el.clientHeight - 58)}px`); /* legend below the round charts */
+  p.root.render(O.React.createElement(O.Renderer, { response: lang, library: /\bStack\(/.test(lang) && O.openuiLibrary ? O.openuiLibrary : O.openuiChatLibrary }));
 };
 })();

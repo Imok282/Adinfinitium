@@ -110,7 +110,9 @@
 
   // ---------------------------------------------------------------------------------------------------- does
   const H = { t: [], ai: [], cl: [] }, LOG = [];
+  let replaying = false; // true while the run so far is replayed after a refresh: collect, draw once at the end
   function chart() { // AI vs classic throttle as an OpenUI line chart (series 1 blue = AI, series 2 orange = classic)
+    if (replaying) return;
     const now = performance.now(); if (now - (chart.t || 0) < 1200 || !window.OUI || H.t.length < 2) return; chart.t = now;
     const n = Math.min(20, H.t.length), idx = Array.from({ length: n }, (_, k) => Math.round(k * (H.t.length - 1) / Math.max(n - 1, 1)));
     OUI.render($('chart'), `root = Card([c])\nc = LineChart(${OUI.strs(idx.map((i) => H.t[i].toFixed(0)))}, [a, b], "natural", "mission time (s)", "% of max thrust", 150)\na = Series("AI pilot", ${OUI.arr(idx.map((i) => H.ai[i]))})\nb = Series("Classic alone", ${OUI.arr(idx.map((i) => H.cl[i]))})`);
@@ -149,7 +151,8 @@
   let wall = 0, last = performance.now(); const loop = (now) => { wall += (now - last) / 1000; last = now; drawNet(wall); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
   function connect() {
     const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/ui`);
-    ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'ai') onAI(m); else if (m.type === 'frame') onFrame(m); };
+    ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'ai') onAI(m); else if (m.type === 'frame') onFrame(m);
+      else if (m.type === 'history' && m.frames.length) { replaying = true; for (const f of m.frames) onFrame(f); replaying = false; chart(); } };
     ws.onclose = () => setTimeout(connect, 1500);
   }
   connect();

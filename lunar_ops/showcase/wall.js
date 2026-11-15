@@ -313,26 +313,36 @@ function gauges() {
   roll('t-range', f.orbit.ground_range_km, 1); roll('t-gate', f.vehicle.braking_tgo_s, 0);
   roll('t-miss', f.lander ? Math.hypot(f.lander.x_m - f.site.x_m, f.lander.y_m - f.site.y_m) : null, 1); roll('t-peri', ['ORBIT', 'DEORBIT'].includes(f.mission_phase) ? f.orbit.periapsis_km : null, 1);
 }
-function onFrame(m) {
-  lastFrame = m; const h = Math.floor(m.t_s / 3600), mi = Math.floor(m.t_s % 3600 / 60), se = Math.floor(m.t_s % 60);
-  void h; void mi; void se; // clocks are in the banner
-  $('site').textContent = m.site ? `${m.site.region} · target ${fmt(m.site.x_m)} m E, ${fmt(m.site.y_m)} m N` : '';
+// One frame into the run's history (trajectory, events, lander track) without drawing; used live and for the replayed
+// history a refreshed page receives.
+function absorb(m) {
+  lastFrame = m;
   if (live.hist.length && m.t_s < live.hist[live.hist.length - 1].t) { live.hist = []; live.track = []; live.events = []; }
   live.hist.push({ t: m.t_s, r: m.orbit.ground_range_km, a: m.lander ? m.lander.alt_m / 1000 : m.orbit.alt_km, ph: m.mission_phase, phase: m.phase, fuel: m.vehicle.fuel_kg }); if (live.hist.length > 4000) live.hist.splice(0, 2);
   for (const e of m.events || []) { e._fresh = true; live.events.unshift(e); if (live.events.length > 12) live.events.pop(); }
-  if ((m.events || []).length) { $('evlist').innerHTML = live.events.map((e) => `<div class="${e._fresh ? 'fresh' : ''}"><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join(''); for (const e of live.events) e._fresh = false; }
+  if (L && m.lander) { const p = toScene(m.lander.x_m, m.lander.y_m, 0); p.y = (heightAt(m.lander.x_m, m.lander.y_m) - h0) * exag + m.lander.alt_m; live.track.push(p); }
+}
+function drawEvents(fresh) { $('evlist').innerHTML = live.events.map((e) => `<div class="${fresh && e._fresh ? 'fresh' : ''}"><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join(''); for (const e of live.events) e._fresh = false; }
+function onFrame(m, replayed = false) {
+  if (!replayed) absorb(m);
+  $('site').textContent = m.site ? `${m.site.region} · target ${fmt(m.site.x_m)} m E, ${fmt(m.site.y_m)} m N` : '';
+  if ((m.events || []).length || replayed) drawEvents(!replayed);
   if (L && liveTime && m.utc) syncTime(m.utc);
-  if (L && m.lander) { const p = toScene(m.lander.x_m, m.lander.y_m, heightAt(m.lander.x_m, m.lander.y_m) + m.lander.alt_m / exag * 1); p.y = (heightAt(m.lander.x_m, m.lander.y_m) - h0) * exag + m.lander.alt_m; live.track.push(p);
+  if (L && live.track.length && m.lander) { const p = live.track[live.track.length - 1];
     if (!live.lander) { live.lander = new THREE.Mesh(new THREE.ConeGeometry(8, 22, 16), new THREE.MeshBasicMaterial({ color: PAL.hi })); live.lander.rotation.x = Math.PI; live.group.add(live.lander); }
     live.lander.position.copy(p).add(new THREE.Vector3(0, 11, 0)); if (live.trackLine) live.group.remove(live.trackLine);
     live.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(live.track), new THREE.LineBasicMaterial({ color: PAL.hi })); live.group.add(live.trackLine); }
   globeLive(m); if (globe.trueSun) aimSun(); placeTarget(); trajectory(); gauges(); vehicle(); lights();
 }
+function onHistory(frames) { // the run so far (sent once when the page connects): absorb all, draw once
+  const F = frames.filter((f) => f.orbit); if (!F.length) return; for (const f of F) absorb(f); trajectory.t = 0; onFrame(F[F.length - 1], true);
+}
 
 // ---------------------------------------------------------------------------------------------------- boot
 async function boot() {
   const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/ui`);
-  const gotWorld = new Promise((res) => { ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'world') { world = m; res(); } else if (m.type === 'frame' && m.orbit) { if (L) onFrame(m); else lastFrame = m; } }; setTimeout(res, 4000); });
+  let pendingHist = null;
+  const gotWorld = new Promise((res) => { ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'world') { world = m; res(); } else if (m.type === 'history') pendingHist = m.frames; else if (m.type === 'frame' && m.orbit) { if (L) onFrame(m); else { lastFrame = m; if (pendingHist) pendingHist.push(m); } } }; setTimeout(res, 4000); });
   await gotWorld;
   const r = await fetch(`/api/layers?region=${encodeURIComponent(world?.region || lastFrame?.site?.region || 'lola5m_site01')}`); const J = await r.json();
   const n = J.rows * J.cols; L = { ...J, height: new Float32Array(b64(J.height_f32).buffer), slope: b64(J.slope_u8), hazard: b64(J.hazard_u8), ice: b64(J.ice_u8), safe: bits(b64(J.safe_bits), n), psr: bits(b64(J.psr_bits), n) };
@@ -342,8 +352,8 @@ async function boot() {
   const s = lastFrame?.site || { x_m: 0, y_m: 0 }; h0 = heightAt(s.x_m, s.y_m); $('tslider').max = String(T - 1);
   const photo = new Image(); photo.onload = () => { tex.photo = photo; tex.photoFilter = photoFilter(photo); paint(); }; photo.src = '/' + (world?.photo?.tile || 'assets/site01/photo_1m.jpg');
   buildTerrain(); paint(); setTime(0, false); camera.position.set(-1500, 1400, 1900); controls.target.set(0, 0, 0); controls.update(); $('wait').style.display = 'none';
-  ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'frame' && m.orbit) onFrame(m); };
-  if (lastFrame) onFrame(lastFrame); else { lights(); vehicle(); trajectory(); }
+  ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'frame' && m.orbit) onFrame(m); else if (m.type === 'history') onHistory(m.frames); };
+  if (pendingHist) { onHistory(pendingHist); pendingHist = null; } else if (lastFrame) onFrame(lastFrame); else { lights(); vehicle(); trajectory(); }
   const v0 = new URLSearchParams(location.search).get('view'); if (v0 === 'moon') { globe.mode = 'moon'; controls.target.copy(globe.center); camera.position.copy(globe.center).add(new THREE.Vector3(-0.9, 1.6, 2.1).normalize().multiplyScalar(R_MOON * 3.4)); controls.minDistance = R_MOON * 1.08; }
   else if (v0 === 'near') { const d = Number(new URLSearchParams(location.search).get('cam') || 12000); controls.target.set(0, 0, 0); camera.position.copy(new THREE.Vector3(-0.45, 0.55, 0.7).normalize().multiplyScalar(d)); }
   else if (v0 !== 'site') { globe.mode = 'pole'; controls.target.set(0, -3000, 0); camera.position.copy(new THREE.Vector3(-0.35, 0.62, 0.7).normalize().multiplyScalar(160e3)); } // opens on the south-pole region

@@ -111,8 +111,8 @@ function notify(prev, f) {
   if (prev.earth_visible !== undefined && f.earth_visible !== undefined && prev.earth_visible !== f.earth_visible) MC.toast(f.earth_visible ? 'info' : 'warning', f.earth_visible ? 'Earth link up' : 'Earth link lost', f.earth_visible ? 'The rover can talk to Earth.' : 'Earth is below the horizon.');
   const ds = (x) => (x.targets || []).filter((t) => t.sampled).length; if (ds(f) > ds(prev)) MC.toast('success', 'Sample taken', 'An ice target was sampled (evidence, not confirmation).');
 }
-function applyFrame(f, light = false) {
-  notify(S.last, f); S.last = f; S.phaseNow = f.mission_phase || 'ROVER OPS'; S.dirty = true; S.domDirty = true;
+function applyFrame(f, light = false, quiet = false) { // quiet: a replayed frame (no alerts or toasts for the past)
+  if (!quiet) notify(S.last, f); S.last = f; S.phaseNow = f.mission_phase || 'ROVER OPS'; S.dirty = true; S.domDirty = true;
   for (const e of f.events || []) { S.logs.unshift(e); } if (S.logs.length > 250) S.logs.length = 250; if (f.path) S.path = f.path;
   if (S.mode === 'live') { if (MC.n() < 30000) { MC.push(f); MC.simUpdate(); } MC.cur = MC.n() - 1; } else MC.cur = S.idx;
   if (light) return;
@@ -152,7 +152,7 @@ function connectLive(url) {
   return new Promise((resolve) => {
     let opened = false; const ws = new WebSocket(url), to = setTimeout(() => { if (!opened) { ws.close(); resolve(false); } }, 1500);
     ws.onopen = () => { opened = true; clearTimeout(to); S.ws = ws; S.mode = 'live'; setConn('live', 'Live from the mission'); notice(''); $('abort').disabled = false; $('override').disabled = false; $('seek').disabled = true; resolve(true); };
-    ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.type === 'world') { loadWorld(m); MC.reset(); } else if (m.type === 'frame' && S.W) applyFrame(m); else if (m.type === 'models') { S.models = m.models; S.dirty = true; } else if (m.type === 'state') { S.playing = m.playing; $('play').textContent = m.playing ? 'Pause' : 'Play'; } };
+    ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.type === 'world') { loadWorld(m); MC.reset(); } else if (m.type === 'frame' && S.W) applyFrame(m); else if (m.type === 'history' && S.W && m.frames.length) { const F = m.frames; for (let i = 0; i < F.length - 1; i++) applyFrame(F[i], true, true); applyFrame(F[F.length - 1], false, true); } /* the run so far, after a refresh */ else if (m.type === 'models') { S.models = m.models; S.dirty = true; } else if (m.type === 'state') { S.playing = m.playing; $('play').textContent = m.playing ? 'Pause' : 'Play'; } };
     ws.onerror = () => { if (!opened) resolve(false); };
     ws.onclose = () => { if (opened) { setConn('off', 'Connection lost'); S.mode = 'none'; notice('<b>The connection was lost.</b><br>Reload the page to connect again.'); } };
   });
