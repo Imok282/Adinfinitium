@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in index.html.
 // Adinfinitium Mission Control: 2D pit-wall viewer. Draws whatever lunar_ops/PROTOCOL.md messages it receives.
 // All 3D (vehicle models, descent and surface views) belongs to Basilisk / Vizard, not to this page.
-// Palette: midnight black, electric blue, cantaloupe orange. Blue = normal, cantaloupe = needs attention.
+// Palette (15 Nov): #051F20 #0B2B26 #163832 #235347, accent #8EB69B = normal, highlight #DAF1DE = needs attention; white text.
 (function () {
 'use strict';
 const MC = (window.MC = window.MC || {});
@@ -60,7 +60,7 @@ addEventListener('hashchange', () => { const t = location.hash.slice(1); if (t !
 MC.layerCanvas = null;
 MC.setLayer = function (L) { S.layer = L; buildLayer(); };
 function ramp(stops, v) { v = Math.min(1, Math.max(0, v)) * (stops.length - 1); const i = Math.min(Math.floor(v), stops.length - 2), f = v - i, a = stops[i], b = stops[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; }
-const ICE_RAMP = [[2, 4, 10], [14, 40, 110], [47, 125, 255], [141, 185, 255], [255, 165, 102]];
+const ICE_RAMP = [[5, 31, 32], [22, 56, 50], [35, 83, 71], [142, 182, 155], [218, 241, 222]]; // palette ramp
 function buildLayer() {
   const W = S.W; if (!W) return; const { rows, cols } = W, clamp = MC.clamp;
   if (!MC.layerCanvas) MC.layerCanvas = document.createElement('canvas'); const cv = MC.layerCanvas; cv.width = cols; cv.height = rows;

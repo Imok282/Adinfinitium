@@ -16,7 +16,13 @@ function photoFilter(img) { // brightness gain from the image's own mean (measur
 const stage = $('stage'); const fit = () => { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(${-960 * s}px, ${-540 * s}px) scale(${s})`; }; addEventListener('resize', fit); fit();
 const b64 = (s) => { const bin = atob(s), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; };
 const bits = (u8, n) => { const o = new Uint8Array(n); for (let i = 0; i < n; i++) o[i] = (u8[i >> 3] >> (7 - (i & 7))) & 1; return o; };
-function turbo(t) { t = clamp(t, 0, 1); const r = 34.61 + t * (1172.33 - t * (10793.56 - t * (33300.12 - t * (38394.49 - t * 14825.05)))), g = 23.31 + t * (557.33 + t * (1225.33 - t * (3574.96 - t * (1073.77 + t * 707.56)))), b = 27.2 + t * (3211.1 - t * (15327.97 - t * (27814 - t * (22569.18 - t * 6838.66)))); return [clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)]; }
+// The only colours on this screen (decided 15 Nov): main 1 #051F20, main 2 #163832 (steps #0B2B26, #235347), accent
+// #8EB69B, highlight #DAF1DE, white text. Data colour scales are ramps through these six.
+const PAL = { p0: '#051F20', p1: '#0B2B26', p2: '#163832', p3: '#235347', acc: '#8EB69B', hi: '#DAF1DE', text: '#FFFFFF' };
+const RAMP = [[5, 31, 32], [11, 43, 38], [22, 56, 50], [35, 83, 71], [142, 182, 155], [218, 241, 222]];
+const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+function ramp(t, from = 0) { t = clamp(t, 0, 1); const R = RAMP.slice(from), x = t * (R.length - 1), i = Math.min(Math.floor(x), R.length - 2), f = x - i; return R[i].map((v, k) => lerp(v, R[i + 1][k], f)); }
+const rampCss = (from = 0) => 'linear-gradient(90deg,' + RAMP.slice(from).map((c) => `rgb(${c})`).join(',') + ')';
 const ps = (latDeg, lonDeg) => { const k = 2 * R_MOON * Math.tan(Math.PI / 4 + latDeg * Math.PI / 360), lo = lonDeg * Math.PI / 180; return [k * Math.sin(lo), k * Math.cos(lo)]; };
 const latlon = (x, y) => [(2 * Math.atan(Math.hypot(x, y) / (2 * R_MOON)) - Math.PI / 2) * 180 / Math.PI, Math.atan2(x, y) * 180 / Math.PI];
 
@@ -24,42 +30,42 @@ const latlon = (x, y) => [(2 * Math.atan(Math.hypot(x, y) / (2 * R_MOON)) - Math
 const host = $('terrain'), W = 1260, H = 900;
 const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(W, H); host.prepend(renderer.domElement);
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
-const scene = new THREE.Scene(); scene.background = new THREE.Color(0x02040a);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(PAL.p0);
 const camera = new THREE.PerspectiveCamera(38, W / H, 0.5, 1e8);
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 40; controls.maxDistance = 9e6;
-const sun = new THREE.DirectionalLight(0xfff1dc, 2.6); scene.add(sun, sun.target); scene.add(new THREE.HemisphereLight(0xa9c2ff, 0x2b241d, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 2.6); scene.add(sun, sun.target); scene.add(new THREE.HemisphereLight(0xffffff, PAL.p0, 0.75)); // neutral light: colour comes from the data and the palette
 
 let L = null, world = null, terrainMesh = null, ctxMesh = null, h0 = 0, exag = 1.5, layer = new URLSearchParams(location.search).get('layer') || 'hazard', tIdx = 0, liveTime = true, lastFrame = null;
 const tex = { canvas: document.createElement('canvas'), photo: null }; tex.canvas.width = tex.canvas.height = 1536; const ctex = new THREE.CanvasTexture(tex.canvas); ctex.colorSpace = THREE.SRGBColorSpace; ctex.anisotropy = 8;
 const live = { group: new THREE.Group(), track: [], trackLine: null, lander: null, target: null, hist: [], events: [] }; scene.add(live.group);
 
 const LAYERS = {
-  imagery: { name: 'Imagery', title: 'LROC NAC photo mosaic', a: '', z: '', bar: 'linear-gradient(90deg,#222,#bbb)', prov: 'OBSERVED · NASA LRO LROC NAC, 1 m/px (averaged lighting)' },
-  elevation: { name: 'Elevation', title: 'Height (LOLA)', bar: 'linear-gradient(90deg,' + [0, .2, .4, .6, .8, 1].map((t) => `rgb(${turbo(t).map(Math.round)})`).join(',') + ')', prov: 'OBSERVED · NASA LRO LOLA 5 m' },
-  slope: { name: 'Slope', title: 'Slope · limit 12°', a: '0°', z: '30°', bar: 'linear-gradient(90deg,' + [0, .2, .4, .6, .8, 1].map((t) => `rgb(${turbo(t).map(Math.round)})`).join(',') + ')', prov: 'derived from LOLA 5 m' },
-  hazard: { name: 'Hazard (AI)', title: 'Hazard probability', a: 'safe 0', z: '1 unsafe', bar: 'linear-gradient(90deg,rgba(255,165,102,0),#ffa566,#f43f5e)', prov: '' },
-  safe: { name: 'Safe cells', title: 'Where a lander may aim', a: '', z: '', bar: 'linear-gradient(90deg,#2f7dff,#8db9ff)', prov: 'no hazard within 15 m and slope < 6° within 10 m' },
-  sun: { name: 'Sunlight', title: 'Sun above the local horizon', a: 'shadow', z: 'sunlit', bar: 'linear-gradient(90deg,#0b1430,#ffd696)', prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
-  earth: { name: 'Earth link', title: 'Earth above the local horizon', a: 'no link', z: 'direct link', bar: 'linear-gradient(90deg,#0b1430,#5ee6ff)', prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
-  psr: { name: 'Dark craters', title: 'Permanently shadowed regions', a: '', z: '', bar: 'linear-gradient(90deg,#3b2a8f,#8c6cff)', prov: 'MODELLED · horizon test over the lunar year' },
-  ice: { name: 'Ice evidence', title: 'Ice EVIDENCE score (not confirmed ice)', a: '0', z: '1', bar: 'linear-gradient(90deg,#123a8a,#2f7dff,#5ee6ff,#ffffff)', prov: 'MODELLED · PSR + cold-trap + neutron evidence' },
+  imagery: { name: 'Imagery', title: 'LROC NAC photo mosaic', a: '', z: '', bar: `linear-gradient(90deg,${PAL.p0},${PAL.hi})`, prov: 'OBSERVED · NASA LRO LROC NAC, 1 m/px (averaged lighting)' },
+  elevation: { name: 'Elevation', title: 'Height (LOLA)', bar: rampCss(1), prov: 'OBSERVED · NASA LRO LOLA 5 m' },
+  slope: { name: 'Slope', title: 'Slope · limit 12°', a: '0°', z: '30°', bar: rampCss(1), prov: 'derived from LOLA 5 m' },
+  hazard: { name: 'Hazard (AI)', title: 'Hazard probability', a: 'safe 0', z: '1 unsafe', bar: `linear-gradient(90deg,${PAL.p1},${PAL.acc},${PAL.hi})`, prov: '' },
+  safe: { name: 'Safe cells', title: 'Where a lander may aim', a: '', z: '', bar: `linear-gradient(90deg,${PAL.acc},${PAL.acc})`, prov: 'no hazard within 15 m and slope < 6° within 10 m' },
+  sun: { name: 'Sunlight', title: 'Sun above the local horizon', a: 'shadow', z: 'sunlit', bar: `linear-gradient(90deg,${PAL.p0},${PAL.hi})`, prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
+  earth: { name: 'Earth link', title: 'Earth above the local horizon', a: 'no link', z: 'direct link', bar: `linear-gradient(90deg,${PAL.p0},${PAL.acc})`, prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
+  psr: { name: 'Dark craters', title: 'Permanently shadowed regions', a: '', z: '', bar: `linear-gradient(90deg,${PAL.p3},${PAL.p3})`, prov: 'MODELLED · horizon test over the lunar year' },
+  ice: { name: 'Ice evidence', title: 'Ice EVIDENCE score (not confirmed ice)', a: '0', z: '1', bar: rampCss(3), prov: 'MODELLED · PSR + cold-trap + neutron evidence' },
 };
 const lw = $('layers'); for (const [k, v] of Object.entries(LAYERS)) { const b = document.createElement('button'); b.className = 'lb' + (k === layer ? ' on' : ''); b.textContent = v.name; b.onclick = () => { layer = k; for (const x of lw.children) x.classList.toggle('on', x === b); paint(); }; lw.appendChild(b); }
 
 function paint() { // compose photo + the active layer into the terrain texture
-  if (!L) return; const g = tex.canvas.getContext('2d'), N = tex.canvas.width; g.globalAlpha = 1; g.fillStyle = '#4a4844'; g.fillRect(0, 0, N, N);
+  if (!L) return; const g = tex.canvas.getContext('2d'), N = tex.canvas.width; g.globalAlpha = 1; g.fillStyle = PAL.p2; g.fillRect(0, 0, N, N);
   if (tex.photo) { g.filter = tex.photoFilter || 'none'; g.drawImage(tex.photo, 0, 0, N, N); g.filter = 'none'; }
   const { rows, cols } = L, im = new ImageData(cols, rows), d = im.data, lay = layer;
   const hmin = L.hmin, hmax = L.hmax, sunT = L.sun ? L.sun.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null, earthT = L.earth ? L.earth.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null;
   for (let i = 0; i < rows * cols; i++) { let c = null, a = 0;
-    if (lay === 'elevation') { c = turbo((L.height[i] - hmin) / (hmax - hmin)); a = 0.82; }
-    else if (lay === 'slope') { c = turbo(L.slope[i] / 4 / 30); a = 0.8; }
-    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = p > 0.5 ? [244, 63, 94] : [255, 165, 102]; a = p * 0.5; }
-    else if (lay === 'safe') { if (L.safe[i]) { c = [47, 125, 255]; a = 0.6; } }
-    else if (lay === 'sun') { c = sunT[i] ? [255, 214, 150] : [8, 16, 44]; a = sunT[i] ? 0.35 : 0.72; }
-    else if (lay === 'earth') { c = earthT[i] ? [94, 230, 255] : [8, 16, 44]; a = earthT[i] ? 0.55 : 0.6; }
-    else if (lay === 'psr') { if (L.psr[i]) { c = [140, 108, 255]; a = 0.7; } }
-    else if (lay === 'ice') { const s = L.ice[i] / 255; if (s > 0.12) { c = s < 0.5 ? [lerp(18, 47, s * 2), lerp(58, 125, s * 2), lerp(138, 255, s * 2)] : [lerp(47, 255, (s - .5) * 2), lerp(125, 255, (s - .5) * 2), 255]; a = 0.35 + 0.55 * s; } }
+    if (lay === 'elevation') { c = ramp((L.height[i] - hmin) / (hmax - hmin), 1); a = 0.85; }
+    else if (lay === 'slope') { c = ramp(L.slope[i] / 4 / 30, 1); a = 0.82; }
+    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = p > 0.5 ? RAMP[5] : RAMP[4]; a = p * 0.6; }
+    else if (lay === 'safe') { if (L.safe[i]) { c = RAMP[4]; a = 0.65; } }
+    else if (lay === 'sun') { c = sunT[i] ? RAMP[5] : RAMP[0]; a = sunT[i] ? 0.32 : 0.75; }
+    else if (lay === 'earth') { c = earthT[i] ? RAMP[4] : RAMP[0]; a = earthT[i] ? 0.6 : 0.65; }
+    else if (lay === 'psr') { if (L.psr[i]) { c = RAMP[3]; a = 0.85; } }
+    else if (lay === 'ice') { const sc = L.ice[i] / 255; if (sc > 0.12) { c = ramp(sc, 3); a = 0.35 + 0.55 * sc; } }
     if (c) { d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = a * 255; } }
   const tmp = document.createElement('canvas'); tmp.width = cols; tmp.height = rows; tmp.getContext('2d').putImageData(im, 0, 0); g.imageSmoothingEnabled = lay !== 'safe' && lay !== 'psr'; g.drawImage(tmp, 0, 0, N, N);
   ctex.needsUpdate = true; legend();
@@ -82,7 +88,7 @@ function buildTerrain() {
     const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cg.setIndex(idx); cg.userData.H = Hc;
     const cv = document.createElement('canvas'); cv.width = cv.height = 2560; const ct = new THREE.CanvasTexture(cv); ct.colorSpace = THREE.SRGBColorSpace; ct.anisotropy = 8;
     const img = new Image(); img.onload = () => { const g = cv.getContext('2d'); g.filter = photoFilter(img); g.drawImage(img, 0, 0, cv.width, cv.height); ct.needsUpdate = true; }; img.src = '/' + (world?.photo?.context || 'assets/site01/photo_ctx_2m.jpg'); // same processing as the tile photo
-    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, roughness: 1, color: new URLSearchParams(location.search).get('debug') === 'levels' ? 0xffff60 : 0xffffff })); scene.add(ctxMesh); setHeights(); }
+    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, roughness: 1, color: new URLSearchParams(location.search).get('debug') === 'levels' ? 0xffffff : 0xffffff })); scene.add(ctxMesh); setHeights(); }
   buildGlobe(); buildPolar().catch((e) => console.warn('polar terrain', e));
 }
 // ---------------------------------------------------------------------------------------------------- the whole Moon
@@ -120,9 +126,9 @@ function buildGlobe() {
   };
   globe.mesh = new THREE.Mesh(geo, mat); globe.mesh.matrixAutoUpdate = false; scene.add(globe.mesh);
   // site marker seen from far away
-  globe.ring = new THREE.Mesh(new THREE.RingGeometry(9000, 13000, 64), new THREE.MeshBasicMaterial({ color: 0xffa566, side: THREE.DoubleSide, transparent: true, opacity: 0.9, depthTest: false }));
+  globe.ring = new THREE.Mesh(new THREE.RingGeometry(9000, 13000, 64), new THREE.MeshBasicMaterial({ color: PAL.acc, side: THREE.DoubleSide, transparent: true, opacity: 0.9, depthTest: false }));
   globe.ring.rotation.x = -Math.PI / 2; globe.ring.renderOrder = 5; scene.add(globe.ring);
-  globe.dot = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false })); globe.dot.renderOrder = 6; globe.dot.visible = false; scene.add(globe.dot);
+  globe.dot = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 8), new THREE.MeshBasicMaterial({ color: PAL.hi, depthTest: false })); globe.dot.renderOrder = 6; globe.dot.visible = false; scene.add(globe.dot);
   placeGlobe();
 }
 function placeGlobe() { // Moon-fixed -> scene: rotation M, then the site (at its LOLA height h0) to the origin
@@ -146,7 +152,7 @@ async function buildPolar() {
     for (let r2 = 0; r2 < v.rows; r2++) for (let c = 0; c < v.cols; c++) { const i = r2 * v.cols + c, X = v.x0_m + c * v.step_m, Y = v.y0_m - r2 * v.step_m; xy[2 * i] = X; xy[2 * i + 1] = Y; uv[2 * i] = 0.5 + X / (2 * half); uv[2 * i + 1] = 0.5 + Y / (2 * half); }
     const idx = []; for (let r2 = 0; r2 < v.rows - 1; r2++) for (let c = 0; c < v.cols - 1; c++) { const a = r2 * v.cols + c; idx.push(a, a + v.cols, a + 1, a + 1, a + v.cols, a + v.cols + 1); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('psxy', new THREE.Float32BufferAttribute(xy, 2)); g.setIndex(idx);
-    const DBG = new URLSearchParams(location.search).get('debug') === 'levels', mat = new THREE.MeshStandardMaterial({ map: wac, roughness: 1, metalness: 0, color: DBG ? { cap: 0xff6060, region: 0x60ff60, local: 0x6090ff }[v.name] : v.name === 'local' ? 0xd8d8d8 : 0xffffff });
+    const DBG = new URLSearchParams(location.search).get('debug') === 'levels', mat = new THREE.MeshStandardMaterial({ map: wac, roughness: 1, metalness: 0, color: DBG ? { cap: PAL.p3, region: PAL.acc, local: PAL.hi }[v.name] : 0xffffff });
     const useCtx = v.name === 'local' && ctxTex;
     mat.onBeforeCompile = (sh) => { sh.uniforms.hole = { value: new THREE.Vector4(...inner) }; sh.uniforms.ctxMap = { value: ctxTex }; sh.uniforms.ctxC = { value: new THREE.Vector2(cx, cy) }; sh.uniforms.ctxGain = { value: ctxGain };
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 psxy; varying vec2 vXY;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvXY = psxy;');
@@ -170,7 +176,7 @@ function globeLive(m) { // lander position and ground track on the globe while i
   if (globe.track.length && m.t_s < globe.lastT) globe.track = []; globe.lastT = m.t_s;
   if (!m.lander) { globe.track.push(p); if (globe.track.length > 3000) globe.track.splice(0, 2); }
   globe.dot.visible = !m.lander; globe.dot.position.copy(p); globe.dot.scale.setScalar(Math.max(d * 0.006, 2));
-  if (globe.trackLine) scene.remove(globe.trackLine); if (globe.track.length > 1) { globe.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(globe.track), new THREE.LineBasicMaterial({ color: 0x8db9ff, transparent: true, opacity: 0.85 })); scene.add(globe.trackLine); }
+  if (globe.trackLine) scene.remove(globe.trackLine); if (globe.track.length > 1) { globe.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(globe.track), new THREE.LineBasicMaterial({ color: PAL.hi, transparent: true, opacity: 0.85 })); scene.add(globe.trackLine); }
   if (m.sun_dir_P) globe.sunP = new THREE.Vector3(...m.sun_dir_P);
 }
 function aimSun() { // the scene's light: the true SPICE Sun, or (readable) the Sun's azimuth raised 35 deg above the site's horizon
@@ -200,8 +206,8 @@ const toScene = (x, y, h) => new THREE.Vector3(x, (h - h0) * exag, -y);
 // target ring + label
 function placeTarget() {
   if (!L) return; const s = lastFrame?.site || { x_m: 0, y_m: 0 };
-  if (!live.target) { const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(14, 20, 64), new THREE.MeshBasicMaterial({ color: 0xffa566, side: THREE.DoubleSide, transparent: true, opacity: .95, depthTest: false }));
-    ring.rotation.x = -Math.PI / 2; g.add(ring); const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 300, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xffa566, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 150; g.add(beam); live.target = g; live.group.add(g); }
+  if (!live.target) { const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(14, 20, 64), new THREE.MeshBasicMaterial({ color: PAL.acc, side: THREE.DoubleSide, transparent: true, opacity: .95, depthTest: false }));
+    ring.rotation.x = -Math.PI / 2; g.add(ring); const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 300, 8, 1, true), new THREE.MeshBasicMaterial({ color: PAL.acc, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 150; g.add(beam); live.target = g; live.group.add(g); }
   live.target.position.copy(toScene(s.x_m, s.y_m, heightAt(s.x_m, s.y_m))).add(new THREE.Vector3(0, 2, 0));
 }
 
@@ -243,26 +249,26 @@ function lights() {
 const NS = 'http://www.w3.org/2000/svg';
 function trajectory() {
   const svg = $('trajsvg'), X0 = 60, X1 = 590, Y0 = 220, Y1 = 46, xm = (km) => X0 + (1 - Math.log10(1 + km) / Math.log10(6000)) * (X1 - X0), ym = (a) => Y0 - Math.sqrt(clamp(a, 0, 110) / 110) * (Y0 - Y1);
-  let s = ''; for (const a of [0, 2, 15, 50, 100]) s += `<line x1="${X0}" x2="${X1}" y1="${ym(a)}" y2="${ym(a)}" stroke="rgba(141,185,255,.08)"/><text x="${X0 - 8}" y="${ym(a) + 4}" text-anchor="end" font-size="10.5" fill="#5d6b87" font-family="JetBrains Mono">${a} km</text>`;
-  for (const k of [5000, 1000, 100, 10, 1, 0]) s += `<text x="${xm(k)}" y="${Y0 + 18}" text-anchor="middle" font-size="10.5" fill="#5d6b87" font-family="JetBrains Mono">${k ? fmt(k) : 'site'}</text>`;
-  const col = { ORBIT: '#8db9ff', DEORBIT: '#2f7dff', DESCENT: '#ffa566', LANDED: '#34d399' }; let prev = null;
-  for (const p of live.hist) { if (prev) s += `<line x1="${xm(prev.r).toFixed(1)}" y1="${ym(prev.a).toFixed(1)}" x2="${xm(p.r).toFixed(1)}" y2="${ym(p.a).toFixed(1)}" stroke="${col[p.ph] || '#8db9ff'}" stroke-width="2.2" stroke-linecap="round"/>`; prev = p; }
-  if (prev) s += `<circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="5" fill="#fff"/><circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="11" fill="#fff" opacity=".18"/>`;
-  s += `<text x="${X1}" y="${Y1 - 14}" text-anchor="end" font-size="11" fill="#8a99b6">orbit · deorbit · descent · landed</text>`; svg.innerHTML = s;
+  let s = ''; for (const a of [0, 2, 15, 50, 100]) s += `<line x1="${X0}" x2="${X1}" y1="${ym(a)}" y2="${ym(a)}" stroke="${PAL.p3}"/><text x="${X0 - 8}" y="${ym(a) + 4}" text-anchor="end" font-size="10.5" fill="rgba(255,255,255,.55)" font-family="JetBrains Mono">${a} km</text>`;
+  for (const k of [5000, 1000, 100, 10, 1, 0]) s += `<text x="${xm(k)}" y="${Y0 + 18}" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.55)" font-family="JetBrains Mono">${k ? fmt(k) : 'site'}</text>`;
+  const col = { ORBIT: PAL.p3, DEORBIT: PAL.acc, DESCENT: PAL.hi, LANDED: PAL.hi }; let prev = null;
+  for (const p of live.hist) { if (prev) s += `<line x1="${xm(prev.r).toFixed(1)}" y1="${ym(prev.a).toFixed(1)}" x2="${xm(p.r).toFixed(1)}" y2="${ym(p.a).toFixed(1)}" stroke="${col[p.ph] || PAL.acc}" stroke-width="2.2" stroke-linecap="round"/>`; prev = p; }
+  if (prev) s += `<circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="5" fill="${PAL.hi}"/><circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="11" fill="${PAL.hi}" opacity=".2"/>`;
+  s += `<text x="${X1}" y="${Y1 - 14}" text-anchor="end" font-size="11" fill="rgba(255,255,255,.62)">orbit · deorbit · descent · landed</text>`; svg.innerHTML = s;
 }
 const ENG = [[0, 0], [0.8, 0], [0, 0.8], [-0.8, 0], [0, -0.8]], RCS = [[0.411, -0.974], [0.974, -0.411], [0.974, 0.411], [0.411, 0.974], [-0.411, 0.974], [-0.974, 0.411], [-0.974, -0.411], [-0.411, -0.974]], PADS = [[1.55, -1.55], [1.55, 1.55], [-1.55, 1.55], [-1.55, -1.55]];
 function vehicle() {
   const f = lastFrame, sc = 46, cx = 220, cy = 140, P = (x, y) => [cx + y * sc, cy - x * sc]; // top view: body +x up the screen, +y to the right
   const th = f?.attitude?.engine_throttle || [], rc = f?.attitude?.rcs_on || [], fuel = f?.vehicle?.fuel_kg ?? 0, f0 = f?.vehicle?.fuel_start_kg || 740;
-  let s = ''; for (const [x, y] of PADS) { const [a, b] = P(x, y); s += `<line x1="${cx}" y1="${cy}" x2="${a}" y2="${b}" stroke="#5d6b87" stroke-width="3"/><circle cx="${a}" cy="${b}" r="13" fill="#0c1426" stroke="#8a99b6" stroke-width="2"/>`; }
+  let s = ''; for (const [x, y] of PADS) { const [a, b] = P(x, y); s += `<line x1="${cx}" y1="${cy}" x2="${a}" y2="${b}" stroke="${PAL.p3}" stroke-width="3"/><circle cx="${a}" cy="${b}" r="13" fill="${PAL.p0}" stroke="${PAL.acc}" stroke-width="2"/>`; }
   const oct = Array.from({ length: 8 }, (_, k) => { const t = (k + .5) * Math.PI / 4, [a, b] = P(1.05 * Math.cos(t), 1.05 * Math.sin(t)); return `${a},${b}`; }).join(' ');
-  s += `<polygon points="${oct}" fill="#0c1426" stroke="#8db9ff" stroke-width="2"/>`;
-  ENG.forEach(([x, y], i) => { const [a, b] = P(x, y), t = th[i] || 0, dead = f && f.vehicle && i > 0 && t === 0 && (f.vehicle.engines_ok ?? 5) < 5 && [1, 3].includes(i); s += `<circle cx="${a}" cy="${b}" r="12" fill="rgba(255,165,102,${(0.12 + 0.88 * t).toFixed(2)})" stroke="${dead ? '#f43f5e' : '#ffa566'}" stroke-width="2"/><text x="${a}" y="${b + 4}" text-anchor="middle" font-size="10" fill="#02040a" font-family="JetBrains Mono">${i}</text>`; });
-  RCS.forEach(([x, y], i) => { const [a, b] = P(x * 1.12, y * 1.12), on = rc[i]; s += `<rect x="${a - 5}" y="${b - 5}" width="10" height="10" rx="3" fill="${on ? '#5ee6ff' : '#14203a'}" stroke="${on ? '#5ee6ff' : '#5d6b87'}"/>`; });
-  const fr = clamp(fuel / f0, 0, 1); s += `<rect x="420" y="40" width="34" height="180" rx="8" fill="#0c1426" stroke="#5d6b87"/><rect x="424" y="${44 + 172 * (1 - fr)}" width="26" height="${172 * fr}" rx="5" fill="${fr > .05 ? '#2f7dff' : '#f43f5e'}"/>`;
-  s += `<text x="437" y="236" text-anchor="middle" font-size="11" fill="#8a99b6">tank</text>`;
+  s += `<polygon points="${oct}" fill="${PAL.p0}" stroke="${PAL.acc}" stroke-width="2"/>`;
+  ENG.forEach(([x, y], i) => { const [a, b] = P(x, y), t = th[i] || 0, dead = f && f.vehicle && i > 0 && t === 0 && (f.vehicle.engines_ok ?? 5) < 5 && [1, 3].includes(i); s += `<circle cx="${a}" cy="${b}" r="12" fill="${PAL.hi}" fill-opacity="${(0.08 + 0.92 * t).toFixed(2)}" stroke="${dead ? PAL.hi : PAL.acc}" stroke-width="2" ${dead ? 'stroke-dasharray="3 3"' : ''}/><text x="${a}" y="${b + 4}" text-anchor="middle" font-size="10" fill="${PAL.p0}" font-family="JetBrains Mono">${i}</text>`; });
+  RCS.forEach(([x, y], i) => { const [a, b] = P(x * 1.12, y * 1.12), on = rc[i]; s += `<rect x="${a - 5}" y="${b - 5}" width="10" height="10" rx="3" fill="${on ? PAL.hi : PAL.p1}" stroke="${on ? PAL.hi : PAL.p3}"/>`; });
+  const fr = clamp(fuel / f0, 0, 1); s += `<rect x="420" y="40" width="34" height="180" rx="8" fill="${PAL.p0}" stroke="${PAL.p3}"/><rect x="424" y="${44 + 172 * (1 - fr)}" width="26" height="${172 * fr}" rx="5" fill="${fr > .05 ? PAL.acc : PAL.hi}"/>`;
+  s += `<text x="437" y="236" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.62)">tank</text>`;
   const lines = [['Engines', `${f?.vehicle?.engines_ok ?? '—'} of 5`], ['Throttle', th.length ? `${Math.round(Math.max(...th) * 100)} % max` : '—'], ['Attitude thrusters', rc.length ? `${rc.filter(Boolean).length} firing` : '—'], ['Pointing error', `${fmt(f?.attitude?.pointing_error_deg, 1)}°`], ['Propellant', `${fmt(fuel, 1)} kg`]];
-  s += lines.map(([k, v], i) => `<text x="482" y="${70 + i * 34}" font-size="11" fill="#8a99b6">${k}</text><text x="482" y="${86 + i * 34}" font-size="14" fill="#e8eef9" font-family="JetBrains Mono">${v}</text>`).join('');
+  s += lines.map(([k, v], i) => `<text x="482" y="${70 + i * 34}" font-size="11" fill="rgba(255,255,255,.62)">${k}</text><text x="482" y="${86 + i * 34}" font-size="14" fill="#FFFFFF" ${/\d/.test(v) ? 'font-family="JetBrains Mono"' : ''}>${v}</text>`).join('');
   $('vehsvg').innerHTML = s;
 }
 function gauges() {
@@ -282,9 +288,9 @@ function onFrame(m) {
   $('evlist').innerHTML = live.events.map((e) => `<div><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join('');
   if (L && liveTime && m.utc) syncTime(m.utc);
   if (L && m.lander) { const p = toScene(m.lander.x_m, m.lander.y_m, heightAt(m.lander.x_m, m.lander.y_m) + m.lander.alt_m / exag * 1); p.y = (heightAt(m.lander.x_m, m.lander.y_m) - h0) * exag + m.lander.alt_m; live.track.push(p);
-    if (!live.lander) { live.lander = new THREE.Mesh(new THREE.ConeGeometry(8, 22, 16), new THREE.MeshBasicMaterial({ color: 0xffffff })); live.lander.rotation.x = Math.PI; live.group.add(live.lander); }
+    if (!live.lander) { live.lander = new THREE.Mesh(new THREE.ConeGeometry(8, 22, 16), new THREE.MeshBasicMaterial({ color: PAL.hi })); live.lander.rotation.x = Math.PI; live.group.add(live.lander); }
     live.lander.position.copy(p).add(new THREE.Vector3(0, 11, 0)); if (live.trackLine) live.group.remove(live.trackLine);
-    live.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(live.track), new THREE.LineBasicMaterial({ color: 0xffa566 })); live.group.add(live.trackLine); }
+    live.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(live.track), new THREE.LineBasicMaterial({ color: PAL.hi })); live.group.add(live.trackLine); }
   globeLive(m); if (globe.trueSun) aimSun(); placeTarget(); trajectory(); gauges(); vehicle(); lights();
 }
 

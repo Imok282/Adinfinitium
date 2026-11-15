@@ -51,7 +51,7 @@ addEventListener('resize', resize);
 function envMap() { // soft studio reflections so metal and foil read well; not a light source in the story
   const pm = new THREE.PMREMGenerator(renderer), env = new THREE.Scene(); env.background = new THREE.Color(0x05080f);
   const panel = (c, k, p, s) => { const m = new THREE.Mesh(new THREE.BoxGeometry(...s), new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(k) })); m.position.set(...p); env.add(m); };
-  panel(0xffffff, 7, [6, 4, 3], [2, 2, 0.2]); panel(0x4d7dff, 2.5, [-6, 2, -3], [2, 3, 0.2]); panel(0xffa566, 1.4, [0, -5, 6], [3, 0.2, 2]); panel(0x8db9ff, 1.2, [0, 7, 0], [4, 0.2, 4]);
+  panel(0xffffff, 7, [6, 4, 3], [2, 2, 0.2]); panel(0xffffff, 2.5, [-6, 2, -3], [2, 3, 0.2]); panel(0xffffff, 1.4, [0, -5, 6], [3, 0.2, 2]); panel(0xffffff, 1.2, [0, 7, 0], [4, 0.2, 4]);
   return pm.fromScene(env, 0.04).texture;
 }
 const ENV = envMap();
@@ -160,7 +160,7 @@ const tex = (url, srgb = true) => { const t = TL.load(url); if (srgb) t.colorSpa
 let W, frames, OB, DS, RV, models = {}, ghostFiles = [];
 const moonGroup = new THREE.Group(); orbit.add(moonGroup);
 const orbitSun = addSun(orbit, new THREE.Vector3(0.62, -0.3, 0.72)), orbitEarth = addEarth(orbit, new THREE.Vector3(-0.35, 0.2, -0.92));
-orbit.add(new THREE.HemisphereLight(0x8fb0ff, 0x1a120a, 0.15));
+orbit.add(new THREE.HemisphereLight(0xffffff, 0x0B2B26, 0.15));
 const stack = new THREE.Group(), pmHolder = new THREE.Group(), landerOrbit = new THREE.Group(); orbit.add(stack, pmHolder, landerOrbit);
 let surfSun, hRef = 0;
 const landerSurf = new THREE.Group(), roverG = new THREE.Group(); surf.add(landerSurf, roverG);
@@ -250,14 +250,14 @@ function buildSurface() {
     const ctx = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ctxPhoto, color: new THREE.Color(1.6, 1.6, 1.65), roughness: 1 })); ctx.receiveShadow = true; surf.add(ctx); }
   const s = RV.sun; const az = s.az * DEG, el = Math.max(s.el, 0.5) * DEG; // sun azimuth and elevation from the recorded run
   surfSun = addSun(surf, new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))); surfSun.light.intensity = 3.0;
-  surf.add(new THREE.HemisphereLight(0xa9c2ff, 0x3a2f24, 1.7)); // earthshine and scattered fill, so shadowed ground stays readable addEarth(surf, new THREE.Vector3(0.0, 0.12, 1)); surf.fog = new THREE.FogExp2(0x02040a, 0.00005);
+  surf.add(new THREE.HemisphereLight(0xffffff, 0x0B2B26, 1.7)); // earthshine and scattered fill, so shadowed ground stays readable addEarth(surf, new THREE.Vector3(0.0, 0.12, 1)); surf.fog = new THREE.FogExp2(0x051F20, 0.00005);
   for (const t of W.targets || []) { // ice-evidence targets: a soft ring and a thin beam
-    const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 4.2, 64), new THREE.MeshBasicMaterial({ color: 0xffa566, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; g.add(ring);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xffa566, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 20; g.add(beam);
+    const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 4.2, 64), new THREE.MeshBasicMaterial({ color: 0xDAF1DE, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; g.add(ring);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xDAF1DE, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 20; g.add(beam);
     g.position.copy(toScene(t.x_m, t.y_m, groundY(t.x_m, t.y_m))); g.userData = { t, ring, beam }; surf.add(g); marks.push(g); label(g, `Ice target ${t.id}`, 'warn', 5, { maxD: 900 }); }
-  const tg = new THREE.TubeGeometry(RV.curve, RV.segs, 0.3, 8, false); trail = new THREE.Mesh(tg, new THREE.MeshBasicMaterial({ color: 0x2f7dff, transparent: true, opacity: 0.8 })); surf.add(trail);
+  const tg = new THREE.TubeGeometry(RV.curve, RV.segs, 0.3, 8, false); trail = new THREE.Mesh(tg, new THREE.MeshBasicMaterial({ color: 0x8EB69B, transparent: true, opacity: 0.8 })); surf.add(trail);
   const dp = DS.frames.map((f) => toScene(f.lander.x_m, f.lander.y_m, f.lander.alt_m + LANDER_FEET));
-  descentLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(dp), new THREE.LineDashedMaterial({ color: 0xffa566, dashSize: 6, gapSize: 5, transparent: true, opacity: 0.55 })); descentLine.computeLineDistances(); surf.add(descentLine);
+  descentLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(dp), new THREE.LineDashedMaterial({ color: 0xDAF1DE, dashSize: 6, gapSize: 5, transparent: true, opacity: 0.55 })); descentLine.computeLineDistances(); surf.add(descentLine);
 }
 
 // ------------------------------------------------------------------------------------------------ labels
@@ -285,7 +285,7 @@ function buildStory() {
   CH.push({ id: 'deorbit', dur: 24, a: d[0].t_s, b: d[d.length - 1].t_s, warp: [[0, 0], [0.32, 0.004], [1, 1]], title: 'Deorbit burn', text: 'The lander turns around and fires its engines to drop towards the south pole.' });
   CH.push({ id: 'descent', dur: 36, a: ds[0].t_s, b: ds[ds.length - 1].t_s, warp: [[0, 0], [0.7, 0.84], [1, 1]], title: 'Powered descent', text: 'Five engines brake from 1,955 m. One engine fails; the opposite one shuts down so the lander stays balanced.' });
   CH.push({ id: 'surface', dur: 62, a: 0, b: 1, title: 'Rover on the surface', text: 'The ramp swings down and the rover drives out of the lander, then across real NASA terrain towards signs of ice.' });
-  CH.push({ id: 'ghosts', dur: 30, a: 0, b: 1, title: 'Ghost runs', text: 'Simulated attempts side by side. Blue is the best run; orange runs stop where they failed.' });
+  CH.push({ id: 'ghosts', dur: 30, a: 0, b: 1, title: 'Ghost runs', text: 'Simulated attempts side by side. The brightest run is the best one; failed runs stop where they failed.' });
   let t = 0; for (const c of CH) { c.T0 = t; t += c.dur; c.T1 = t; } S.total = t;
 }
 function chapterAt(T) { for (let i = 0; i < CH.length; i++) if (T < CH[i].T1) return i; return CH.length - 1; }
@@ -363,7 +363,7 @@ function updateSurface(c, u, sim, dt, wall) {
     R.set(x, groundY(x, y) + ROVER_WHEELS, tgt.z); roverG.quaternion.slerp(o.quaternion, 1 - Math.pow(0.85, dt * 60));
     trail.geometry.setDrawRange(RV.trailStart, Math.max(0, Math.floor(RV.segs * s) * 8 * 6 - RV.trailStart)); }
   if (u < 0.28) trail.geometry.setDrawRange(0, 0);
-  const t = RV.tOfS(lerp(RV.s0, 1, prog)), f = RV.frame(t); for (const g of marks) { const done = u > 0.34 && f?.targets?.find((q) => q.id === g.userData.t.id)?.sampled, col = done ? 0x2f7dff : 0xffa566; g.userData.ring.material.color.setHex(col); g.userData.beam.material.color.setHex(col); }
+  const t = RV.tOfS(lerp(RV.s0, 1, prog)), f = RV.frame(t); for (const g of marks) { const done = u > 0.34 && f?.targets?.find((q) => q.id === g.userData.t.id)?.sampled, col = done ? 0x8EB69B : 0xDAF1DE; g.userData.ring.material.color.setHex(col); g.userData.beam.material.color.setHex(col); }
   fx.dust.step(dt, 0.5); const zf = S.zoom, L = landerSurf.position, bay = new THREE.Vector3(-1, 0, 0).applyQuaternion(landerSurf.quaternion), side = new THREE.Vector3().crossVectors(Y, bay).normalize();
   if (u < 0.34) aim(L.clone().addScaledVector(bay, 6.5 * zf).addScaledVector(side, 4.5 * zf).add(new THREE.Vector3(0, 1.6 * zf, 0)), L.clone().addScaledVector(bay, 1.6 + 1.8 * out).add(new THREE.Vector3(0, -0.6, 0)), 0.03, dt); // side view of the bay and ramp
   else if (u < 0.82) { const a = (u - 0.34) * 1.6, sd = new THREE.Vector3().crossVectors(Y, fwd).normalize(); aim(R.clone().addScaledVector(fwd, -6.5 * zf).addScaledVector(sd, (2.5 + 2 * Math.sin(a)) * zf).add(new THREE.Vector3(0, 2.4 * zf, 0)), R.clone().addScaledVector(fwd, 3).add(new THREE.Vector3(0, 0.3, 0)), 0.02, dt); }
@@ -376,7 +376,7 @@ const ghostG = new THREE.Group(); surf.add(ghostG); const ghostRuns = [];
 const SUCCESS = new Set(['returned', 'ok', 'reached_ice_only']), OUTCOME = { returned: 'returned', reached_ice_only: 'reached the ice, did not return', died_battery: 'battery empty', blocked: 'blocked', timeout: 'ran out of time', ok: 'landed OK', hard_vertical: 'landed too hard', hard_horizontal: 'landed sliding sideways', steep_slope: 'landed on a steep slope', hazard_cell: 'landed in a hazard cell', out_of_fuel: 'out of fuel', out_of_bounds: 'left the allowed area' };
 function buildGhosts() {
   for (const file of ghostFiles) for (const run of file.runs.slice(0, 12)) {
-    const ok = SUCCESS.has(run.outcome), col = run.best ? 0x2f7dff : ok ? 0x8db9ff : 0xffa566, kind = file.kind;
+    const ok = SUCCESS.has(run.outcome), col = run.best ? 0x8EB69B : ok ? 0x235347 : 0xDAF1DE, kind = file.kind;
     const pt = (i) => { const [x, y, z] = run.xyz_m[i]; return kind === 'rover' ? toScene(x, y, groundY(x, y) + ROVER_WHEELS) : toScene(x, y, Math.abs(z) > 300 ? z - hRef : z + groundY(x, y)); };
     const pts = run.t_s.map((_, i) => pt(i)), line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: run.best ? 1 : 0.7 })); ghostG.add(line);
     const body = new THREE.Group(), model = (kind === 'rover' ? models.rover : models.lander).clone(true); body.add(model);
@@ -550,8 +550,8 @@ async function boot() {
   RV.sAt = (m) => clamp(m / RV.curve.getLength(), 0, 1);
   try { const pj = await (await fetch('assets/moon/polar_south.json')).json(); POLAR.half = pj.half_m; POLAR.tex = tex('assets/moon/' + pj.image); POLAR.tex.generateMipmaps = true; POLAR.on.value = 1; } catch (e) { /* no polar mosaic: global map only */ }
   const moon = new THREE.Mesh(new THREE.SphereGeometry(R_MOON, 256, 128), moonMaterial(tex('assets/moon/moon_color_4k.jpg'))); moonGroup.add(moon);
-  const track = of.map((f) => llr(f.orbit.lat_deg, f.orbit.lon_deg, R_MOON + f.orbit.alt_km * 1000)); moonGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(track), new THREE.LineBasicMaterial({ color: 0x8db9ff, transparent: true, opacity: 0.4 })));
-  const site = new THREE.Mesh(new THREE.RingGeometry(14e3, 20e3, 96), new THREE.MeshBasicMaterial({ color: 0xffa566, side: THREE.DoubleSide, transparent: true, opacity: 0.95, depthWrite: false })); const sp = llr(W.site.lat_deg, W.site.lon_deg, R_MOON + 500); site.position.copy(sp); site.lookAt(sp.clone().multiplyScalar(2)); moonGroup.add(site);
+  const track = of.map((f) => llr(f.orbit.lat_deg, f.orbit.lon_deg, R_MOON + f.orbit.alt_km * 1000)); moonGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(track), new THREE.LineBasicMaterial({ color: 0xDAF1DE, transparent: true, opacity: 0.4 })));
+  const site = new THREE.Mesh(new THREE.RingGeometry(14e3, 20e3, 96), new THREE.MeshBasicMaterial({ color: 0xDAF1DE, side: THREE.DoubleSide, transparent: true, opacity: 0.95, depthWrite: false })); const sp = llr(W.site.lat_deg, W.site.lon_deg, R_MOON + 500); site.position.copy(sp); site.lookAt(sp.clone().multiplyScalar(2)); moonGroup.add(site);
   label(site, 'South-pole landing site', 'warn', 0, { minD: 2e5 });
   const [lander, rover, pm] = await Promise.all([loadModel('lander'), loadModel('rover'), loadModel('propulsion_module')]);
   rover.rotation.y = Math.PI / 2; // the rover model's front (cameras, arm, front wheels) is +X; the film drives along -Z

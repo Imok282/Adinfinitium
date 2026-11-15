@@ -33,16 +33,16 @@
     const H = (x, y) => a[(clamp(y, 0, px - 1) * px + clamp(x, 0, px - 1)) * 3 + 2] / 255 * 8 - 4; // relative height /50 m
     for (let y = 0; y < px; y++) for (let x = 0; x < px; x++) { const k = (y * px + x) * 3, o = (y * px + x) * 4; let r, gg, b;
       if (kind === 'shade') { const dx = (H(x + 1, y) - H(x - 1, y)) * 25, dy = (H(x, y + 1) - H(x, y - 1)) * 25, l = clamp(0.62 + (-dx * 0.7 + dy * 0.7) * 0.9, 0.08, 1), hz = a[k + 1] / 255;
-        r = 200 * l + 55 * hz; gg = 205 * l * (1 - 0.35 * hz) + 20 * hz; b = 220 * l * (1 - 0.6 * hz); }
-      else { const v = a[k + kind] / 255; r = 20 + 235 * v; gg = 24 + 141 * v; b = 40 + 62 * v; }
+        r = lerp(5 + 213 * l, 142, 0.6 * hz); gg = lerp(31 + 210 * l, 182, 0.6 * hz); b = lerp(32 + 190 * l, 155, 0.6 * hz); /* grey-green relief, hazard toward the accent */ }
+      else { const v = a[k + kind] / 255; r = lerp(5, 218, v); gg = lerp(31, 241, v); b = lerp(32, 222, v); /* palette ramp */ }
       im.data[o] = r; im.data[o + 1] = gg; im.data[o + 2] = b; im.data[o + 3] = 255; }
     g.putImageData(im, 0, 0); return c;
   }
   function drawCam() {
     if (!camRGB) return; const cv = $('cam'), g = cv.getContext('2d'), S = cv.width; g.imageSmoothingEnabled = false; g.drawImage(camCanvas('shade'), 0, 0, S, S);
-    const lo = Math.min(...sal), m = Math.max(...sal) - lo || 1e-9, cell = S / 8; for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; if (v < 0.35) continue; g.fillStyle = `rgba(120,175,255,${0.55 * (v - 0.35) / 0.65})`; g.fillRect((i % 8) * cell, Math.floor(i / 8) * cell, cell, cell); }
-    for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; if (v > 0.8) { g.strokeStyle = 'rgba(225,238,255,.95)'; g.lineWidth = 2; g.strokeRect((i % 8) * cell + 1, Math.floor(i / 8) * cell + 1, cell - 2, cell - 2); } }
-    g.strokeStyle = 'rgba(141,185,255,.9)'; g.lineWidth = 2; g.beginPath(); g.arc(S / 2, S / 2, 9, 0, 7); g.stroke(); // the lander is at the centre
+    const lo = Math.min(...sal), m = Math.max(...sal) - lo || 1e-9, cell = S / 8; for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; if (v < 0.35) continue; g.fillStyle = `rgba(142,182,155,${0.55 * (v - 0.35) / 0.65})`; g.fillRect((i % 8) * cell, Math.floor(i / 8) * cell, cell, cell); }
+    for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; if (v > 0.8) { g.strokeStyle = 'rgba(218,241,222,.95)'; g.lineWidth = 2; g.strokeRect((i % 8) * cell + 1, Math.floor(i / 8) * cell + 1, cell - 2, cell - 2); } }
+    g.strokeStyle = 'rgba(142,182,155,.9)'; g.lineWidth = 2; g.beginPath(); g.arc(S / 2, S / 2, 9, 0, 7); g.stroke(); // the lander is at the centre
     for (const [id, ch] of [['ch0', 0], ['ch1', 1]]) { const c = $(id), cg = c.getContext('2d'); cg.imageSmoothingEnabled = false; cg.drawImage(camCanvas(ch), 0, 0, c.width, c.height); }
   }
 
@@ -62,20 +62,20 @@
   function drawBackground(tr) {
     const g = bgc; g.clearRect(0, 0, NW, NH); g.globalCompositeOperation = 'lighter'; g.lineWidth = 0.7;
     for (let li = 0; li < tr.layers; li++) for (let q = 0; q < tr.tokens; q++) { const row = tr.top[li][q]; for (let j = 0; j < 4; j++) { const k = row[j], w = row[4 + j];
-      g.strokeStyle = `rgba(110,160,255,${clamp(w * 0.8, 0.02, 0.32)})`; g.beginPath(); curve(g, pos(li, k), pos(li + 1, q)); g.stroke(); } }
+      g.strokeStyle = `rgba(142,182,155,${clamp(w * 0.8, 0.02, 0.32)})`; g.beginPath(); curve(g, pos(li, k), pos(li + 1, q)); g.stroke(); } }
     g.globalCompositeOperation = 'source-over';
     // input: camera patches with how much each one reaches the output (rollout)
     if (camRGB) { g.imageSmoothingEnabled = false; g.save(); g.beginPath(); g.roundRect(GRID.x0, GRID.y0, GRID.cell * 8, GRID.cell * 8, 8); g.clip(); g.globalAlpha = 0.75; g.drawImage(camCanvas('shade'), GRID.x0, GRID.y0, GRID.cell * 8, GRID.cell * 8); g.globalAlpha = 1;
-      const lo = Math.min(...sal), m = Math.max(...sal) - lo || 1e-9; for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; g.fillStyle = `rgba(120,175,255,${0.6 * v * v})`; g.fillRect(GRID.x0 + (i % 8) * GRID.cell, GRID.y0 + Math.floor(i / 8) * GRID.cell, GRID.cell, GRID.cell); } g.restore(); }
-    g.strokeStyle = 'rgba(141,185,255,.18)'; g.lineWidth = 1; for (let k = 0; k <= 8; k++) { g.beginPath(); g.moveTo(GRID.x0 + k * GRID.cell, GRID.y0); g.lineTo(GRID.x0 + k * GRID.cell, GRID.y0 + 8 * GRID.cell); g.moveTo(GRID.x0, GRID.y0 + k * GRID.cell); g.lineTo(GRID.x0 + 8 * GRID.cell, GRID.y0 + k * GRID.cell); g.stroke(); }
+      const lo = Math.min(...sal), m = Math.max(...sal) - lo || 1e-9; for (let i = 0; i < 64; i++) { const v = (sal[i] - lo) / m; g.fillStyle = `rgba(142,182,155,${0.6 * v * v})`; g.fillRect(GRID.x0 + (i % 8) * GRID.cell, GRID.y0 + Math.floor(i / 8) * GRID.cell, GRID.cell, GRID.cell); } g.restore(); }
+    g.strokeStyle = 'rgba(142,182,155,.18)'; g.lineWidth = 1; for (let k = 0; k <= 8; k++) { g.beginPath(); g.moveTo(GRID.x0 + k * GRID.cell, GRID.y0); g.lineTo(GRID.x0 + k * GRID.cell, GRID.y0 + 8 * GRID.cell); g.moveTo(GRID.x0, GRID.y0 + k * GRID.cell); g.lineTo(GRID.x0 + 8 * GRID.cell, GRID.y0 + k * GRID.cell); g.stroke(); }
     // tokens: dot size = activity of that token in that layer
     for (let l = 1; l <= tr.layers; l++) { const act = tr.activity[l - 1], m = Math.max(...act, 1e-9);
-      for (let t = 0; t < tr.tokens; t++) { const [x, y] = pos(l, t), v = act[t] / m; g.fillStyle = t < 2 ? `rgba(255,190,140,${0.35 + 0.6 * v})` : `rgba(141,185,255,${0.18 + 0.7 * v})`; g.beginPath(); g.arc(x, y, 1.3 + 2.6 * v, 0, 7); g.fill(); }
+      for (let t = 0; t < tr.tokens; t++) { const [x, y] = pos(l, t), v = act[t] / m; g.fillStyle = t < 2 ? `rgba(218,241,222,${0.35 + 0.6 * v})` : `rgba(218,241,222,${0.18 + 0.7 * v})`; g.beginPath(); g.arc(x, y, 1.3 + 2.6 * v, 0, 7); g.fill(); }
       // MLP neurons of the output token: the 32 strongest of the hidden width, as ticks under the column
-      const sx = COLX(l) - 30, sy = 728; g.fillStyle = 'rgba(141,185,255,.08)'; g.fillRect(sx, sy, 60, 8);
-      const tn = tr.top_neurons[l - 1], mv = Math.max(...tn.map((p) => Math.abs(p[1])), 1e-9); for (const [i, v] of tn) { g.fillStyle = v >= 0 ? `rgba(141,185,255,${0.4 + 0.6 * Math.abs(v) / mv})` : `rgba(255,165,102,${0.4 + 0.6 * Math.abs(v) / mv})`; g.fillRect(sx + i / tr.mlp_width * 60, sy, 1.4, 8); } }
-    for (const [t, c] of [[0, '#ffa566'], [1, '#ffa566']]) { const [x, y] = pos(0, t); g.fillStyle = '#08101f'; g.strokeStyle = c; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.stroke(); }
-    g.font = '12px "Instrument Sans"'; g.fillStyle = '#8a99b6'; g.textAlign = 'left'; g.fillText('output token', pos(0, 0)[0] + 14, pos(0, 0)[1] + 4); g.fillText('sensors + classic', pos(0, 1)[0] + 14, pos(0, 1)[1] + 4); g.fillText('64 camera patches', GRID.x0, GRID.y0 - 10);
+      const sx = COLX(l) - 30, sy = 728; g.fillStyle = 'rgba(142,182,155,.08)'; g.fillRect(sx, sy, 60, 8);
+      const tn = tr.top_neurons[l - 1], mv = Math.max(...tn.map((p) => Math.abs(p[1])), 1e-9); for (const [i, v] of tn) { g.fillStyle = v >= 0 ? `rgba(218,241,222,${0.4 + 0.6 * Math.abs(v) / mv})` : `rgba(218,241,222,${0.4 + 0.6 * Math.abs(v) / mv})`; g.fillRect(sx + i / tr.mlp_width * 60, sy, 1.4, 8); } }
+    for (const [t, c] of [[0, '#DAF1DE'], [1, '#DAF1DE']]) { const [x, y] = pos(0, t); g.fillStyle = '#051F20'; g.strokeStyle = c; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.stroke(); }
+    g.font = '12px "Instrument Sans"'; g.fillStyle = 'rgba(255,255,255,.62)'; g.textAlign = 'left'; g.fillText('output token', pos(0, 0)[0] + 14, pos(0, 0)[1] + 4); g.fillText('sensors + classic', pos(0, 1)[0] + 14, pos(0, 1)[1] + 4); g.fillText('64 camera patches', GRID.x0, GRID.y0 - 10);
     g.textAlign = 'center'; for (let l = 1; l <= tr.layers; l++) g.fillText(`Layer ${l}`, COLX(l), 752);
     g.textAlign = 'right'; g.fillText('top neurons', COLX(1) - 38, 736);
   }
@@ -83,16 +83,16 @@
     ng.clearRect(0, 0, NW, NH); ng.drawImage(bg, 0, 0, NW, NH); if (!TR) return;
     ng.globalCompositeOperation = 'lighter';
     for (const [li, q, k, w] of TR.chain) { const a = pos(li, k), b = pos(li + 1, q), s = clamp(w / chainMax, 0.25, 1);
-      for (const [lw, al] of [[7, 0.07], [3, 0.2], [1.4, 0.85]]) { ng.strokeStyle = `rgba(141,185,255,${al * s})`; ng.lineWidth = lw; ng.beginPath(); curve(ng, a, b); ng.stroke(); }
-      ng.setLineDash([3, 14]); ng.lineDashOffset = -wall * 40; ng.strokeStyle = `rgba(230,240,255,${0.8 * s})`; ng.lineWidth = 1.6; ng.beginPath(); curve(ng, a, b); ng.stroke(); ng.setLineDash([]); }
+      for (const [lw, al] of [[7, 0.07], [3, 0.2], [1.4, 0.85]]) { ng.strokeStyle = `rgba(218,241,222,${al * s})`; ng.lineWidth = lw; ng.beginPath(); curve(ng, a, b); ng.stroke(); }
+      ng.setLineDash([3, 14]); ng.lineDashOffset = -wall * 40; ng.strokeStyle = `rgba(218,241,222,${0.8 * s})`; ng.lineWidth = 1.6; ng.beginPath(); curve(ng, a, b); ng.stroke(); ng.setLineDash([]); }
     const lit = new Map(); for (const [li, q, k] of TR.chain) { lit.set(`${li + 1}:${q}`, 1); lit.set(`${li}:${k}`, 1); }
-    for (const key of lit.keys()) { const [l, t] = key.split(':').map(Number), [x, y] = pos(l, t), r = 11, gr = ng.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(210,228,255,.95)'); gr.addColorStop(0.35, 'rgba(90,150,255,.45)'); gr.addColorStop(1, 'rgba(47,125,255,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(x, y, r, 0, 7); ng.fill(); }
+    for (const key of lit.keys()) { const [l, t] = key.split(':').map(Number), [x, y] = pos(l, t), r = 11, gr = ng.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(218,241,222,.95)'); gr.addColorStop(0.35, 'rgba(142,182,155,.45)'); gr.addColorStop(1, 'rgba(142,182,155,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(x, y, r, 0, 7); ng.fill(); }
     // last layer's output token -> thrust
-    const a = pos(TR.layers, 0); ng.strokeStyle = 'rgba(141,185,255,.8)'; ng.lineWidth = 2; ng.beginPath(); ng.moveTo(a[0], a[1]); ng.lineTo(OUT.x - 18, OUT.y); ng.stroke();
+    const a = pos(TR.layers, 0); ng.strokeStyle = 'rgba(142,182,155,.8)'; ng.lineWidth = 2; ng.beginPath(); ng.moveTo(a[0], a[1]); ng.lineTo(OUT.x - 18, OUT.y); ng.stroke();
     ng.globalCompositeOperation = 'source-over';
-    const gr = ng.createRadialGradient(OUT.x, OUT.y, 0, OUT.x, OUT.y, 40); gr.addColorStop(0, 'rgba(141,185,255,.45)'); gr.addColorStop(1, 'rgba(47,125,255,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(OUT.x, OUT.y, 40, 0, 7); ng.fill();
-    ng.fillStyle = '#08101f'; ng.strokeStyle = '#8db9ff'; ng.lineWidth = 2; ng.beginPath(); ng.arc(OUT.x, OUT.y, 16, 0, 7); ng.fill(); ng.stroke();
-    ng.font = '12px "Instrument Sans"'; ng.fillStyle = '#8a99b6'; ng.textAlign = 'center'; ng.fillText('Thrust', OUT.x, OUT.y + 34);
+    const gr = ng.createRadialGradient(OUT.x, OUT.y, 0, OUT.x, OUT.y, 40); gr.addColorStop(0, 'rgba(142,182,155,.45)'); gr.addColorStop(1, 'rgba(142,182,155,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(OUT.x, OUT.y, 40, 0, 7); ng.fill();
+    ng.fillStyle = '#051F20'; ng.strokeStyle = '#DAF1DE'; ng.lineWidth = 2; ng.beginPath(); ng.arc(OUT.x, OUT.y, 16, 0, 7); ng.fill(); ng.stroke();
+    ng.font = '12px "Instrument Sans"'; ng.fillStyle = 'rgba(255,255,255,.62)'; ng.textAlign = 'center'; ng.fillText('Thrust', OUT.x, OUT.y + 34);
   }
 
   // ---------------------------------------------------------------------------------------------------- does
@@ -101,9 +101,9 @@
     const svg = $('chart'), X = 62, Y = 12, W = 254, Hh = 160, t1 = H.t.length ? H.t[H.t.length - 1] : 60, t0 = Math.max(0, t1 - 60);
     const xm = (t) => X + (t - t0) / Math.max(t1 - t0, 1) * W, ym = (v) => Y + Hh - clamp(v, 0, 100) / 100 * Hh;
     const path = (arr) => H.t.map((t, i) => (t < t0 ? '' : `${i && H.t[i - 1] >= t0 ? 'L' : 'M'}${xm(t).toFixed(1)},${ym(arr[i]).toFixed(1)}`)).join('');
-    svg.innerHTML = [0, 50, 100].map((v) => `<line x1="${X}" x2="${X + W}" y1="${ym(v)}" y2="${ym(v)}" stroke="rgba(141,185,255,.08)"/><text x="${X - 10}" y="${ym(v) + 4}" text-anchor="end" font-size="11" fill="#5d6b87" font-family="JetBrains Mono">${v}%</text>`).join('')
-      + `<text x="${X}" y="${Y + Hh + 20}" font-size="11" fill="#5d6b87" font-family="JetBrains Mono">${Math.round(t0)} s</text><text x="${X + W}" y="${Y + Hh + 20}" text-anchor="end" font-size="11" fill="#5d6b87" font-family="JetBrains Mono">${Math.round(t1)} s</text>`
-      + `<path d="${path(H.cl)}" fill="none" stroke="#8a99b6" stroke-width="2" stroke-dasharray="6 6" opacity=".7"/><path d="${path(H.ai)}" fill="none" stroke="#8db9ff" stroke-width="2.4" stroke-linejoin="round"/>`;
+    svg.innerHTML = [0, 50, 100].map((v) => `<line x1="${X}" x2="${X + W}" y1="${ym(v)}" y2="${ym(v)}" stroke="rgba(142,182,155,.08)"/><text x="${X - 10}" y="${ym(v) + 4}" text-anchor="end" font-size="11" fill="rgba(255,255,255,.38)" font-family="JetBrains Mono">${v}%</text>`).join('')
+      + `<text x="${X}" y="${Y + Hh + 20}" font-size="11" fill="rgba(255,255,255,.38)" font-family="JetBrains Mono">${Math.round(t0)} s</text><text x="${X + W}" y="${Y + Hh + 20}" text-anchor="end" font-size="11" fill="rgba(255,255,255,.38)" font-family="JetBrains Mono">${Math.round(t1)} s</text>`
+      + `<path d="${path(H.cl)}" fill="none" stroke="rgba(255,255,255,.62)" stroke-width="2" stroke-dasharray="6 6" opacity=".7"/><path d="${path(H.ai)}" fill="none" stroke="#DAF1DE" stroke-width="2.4" stroke-linejoin="round"/>`;
   }
   const norm = (v) => Math.hypot(v[0], v[1], v[2]);
   function onFrame(m) {

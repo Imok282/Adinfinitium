@@ -28,7 +28,7 @@ function drawTargets(g, M, big) {
 function drawRover(g, M, big) {
   const i = MC.cur, x = MC.at('x', i), y = MC.at('y', i), hd = MC.at('hd', i); if (!Number.isFinite(x)) return;
   const [px, py] = M.P(x, y); g.save(); g.translate(px, py);
-  if (Number.isFinite(hd)) { g.rotate(hd * Math.PI / 180); g.fillStyle = MC.S.last?.aborted ? C.orange : '#fff'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6, 7); g.lineTo(-6, 7); g.closePath(); g.fill(); }
+  if (Number.isFinite(hd)) { g.rotate(hd * Math.PI / 180); g.fillStyle = MC.S.last?.aborted ? C.orange : '#FFFFFF'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6, 7); g.lineTo(-6, 7); g.closePath(); g.fill(); }
   else { g.fillStyle = C.orange; g.beginPath(); g.arc(0, 0, big ? 6 : 4, 0, 7); g.fill(); }
   g.restore();
 }
@@ -52,7 +52,7 @@ P.gps = {
     g.globalAlpha = 1; g.lineCap = 'butt'; drawTargets(g, M, true); drawRover(g, M, true);
     const gx = 12, gw = Math.min(220, w - 24), gy = h - 14; for (let k = 0; k < gw; k++) { g.fillStyle = MC.heat(0.25 + 0.75 * k / gw); g.fillRect(gx + k, gy, 1, 6); }
     MC.txt(g, f1(scale[0], 0), gx, gy - 2, C.dim, 'left', 9, true); MC.txt(g, f1(scale[1], key === 'soc' || key === 'haz' || key === 'lit' ? 1 : 0), gx + gw, gy - 2, C.dim, 'right', 9, true);
-    MC.txt(g, 'orange = out of limits', gx + gw + 10, gy + 6, C.orange, 'left', 9);
+    MC.txt(g, 'light = out of limits', gx + gw + 10, gy + 6, C.orange, 'left', 9);
   },
 };
 P.map = {
@@ -66,7 +66,7 @@ P.map = {
     if (S.path && S.path.length > 1) { g.strokeStyle = C.blueL; g.setLineDash([6, 5]); g.lineWidth = 1.5; g.beginPath(); S.path.forEach((q, i) => { const [x, y] = M.P(q[0], q[1]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]); }
     g.strokeStyle = C.blue; g.lineWidth = 2.5; g.beginPath(); let pen = false; for (let i = 0; i <= cur && i < n; i++) { if (!Number.isFinite(c.hd[i])) { pen = false; continue; } const [x, y] = M.P(c.x[i], c.y[i]); pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; } g.stroke();
     drawTargets(g, M, true); drawRover(g, M, true);
-    const m100 = 100 * M.s; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(M.vx + 8, h - 12); g.lineTo(M.vx + 8 + m100, h - 12); g.stroke(); MC.txt(g, '100 m', M.vx + 14 + m100, h - 8, C.text, 'left', 10, true);
+    const m100 = 100 * M.s; g.strokeStyle = '#FFFFFF'; g.lineWidth = 3; g.beginPath(); g.moveTo(M.vx + 8, h - 12); g.lineTo(M.vx + 8 + m100, h - 12); g.stroke(); MC.txt(g, '100 m', M.vx + 14 + m100, h - 8, C.text, 'left', 10, true);
     MC.txt(g, p.hover || 'Point at the map to read the ground there.', w - 8, h - 8, C.dim, 'right', 10);
   },
 };
@@ -99,7 +99,7 @@ P.imagery = {
     if (MC.shade && (ph?.tile || ph?.ctx)) { g.globalCompositeOperation = 'lighten'; g.globalAlpha = 0.5; photoRect(g, MC.shade, W.half_x, X0, X1, Y0, Y1, 0, 0, w, h); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
     if (!ph?.tile && !ph?.ctx && MC.layerCanvas) { g.globalAlpha = 0.9; photoRect(g, MC.layerCanvas, W.half_x, X0, X1, Y0, Y1, 0, 0, w, h); g.globalAlpha = 1; }
     // site grid every 100 m or 500 m
-    const step = sm.span > 3000 ? 500 : sm.span > 800 ? 100 : 50; g.strokeStyle = 'rgba(141,185,255,.14)'; g.lineWidth = 1; g.beginPath(); for (let x = Math.ceil(X0 / step) * step; x < X1; x += step) { const [a] = Pm(x, 0); g.moveTo(a, 0); g.lineTo(a, h); } for (let y = Math.ceil(Y0 / step) * step; y < Y1; y += step) { const [, b] = Pm(0, y); g.moveTo(0, b); g.lineTo(w, b); } g.stroke();
+    const step = sm.span > 3000 ? 500 : sm.span > 800 ? 100 : 50; g.strokeStyle = 'rgba(142,182,155,.14)'; g.lineWidth = 1; g.beginPath(); for (let x = Math.ceil(X0 / step) * step; x < X1; x += step) { const [a] = Pm(x, 0); g.moveTo(a, 0); g.lineTo(a, h); } for (let y = Math.ceil(Y0 / step) * step; y < Y1; y += step) { const [, b] = Pm(0, y); g.moveTo(0, b); g.lineTo(w, b); } g.stroke();
     // targets
     const f = S.last; for (const t of W.targets || []) { const [x, y] = Pm(t.x_m, t.y_m); if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue; const st = f?.targets?.find((q) => q.id === t.id), done = st?.sampled, act = f?.drill_target === t.id, col = done ? C.blue : act ? C.blueL : C.orange; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 8, 0, 7); done || act ? g.fill() : g.stroke(); MC.txt(g, t.id, x + 12, y - 9, col, 'left', 12); }
     // lander descent trail coloured by altitude
@@ -110,17 +110,17 @@ P.imagery = {
     for (let k = 1; k < idx.length; k++) { const i0 = idx[k - 1], i1 = idx[k], [a, b] = Pm(c.x[i0], c.y[i0]), [d, e] = Pm(c.x[i1], c.y[i1]); g.strokeStyle = C.blue; g.globalAlpha = 0.25 + 0.75 * (k / idx.length); g.lineWidth = 3.5; g.beginPath(); g.moveTo(a, b); g.lineTo(d, e); g.stroke(); if (k % 5 === 0) { const ang = Math.atan2(e - b, d - a); g.globalAlpha = 1; g.fillStyle = C.blueL; g.save(); g.translate(d, e); g.rotate(ang); g.beginPath(); g.moveTo(5, 0); g.lineTo(-4, -4); g.lineTo(-4, 4); g.closePath(); g.fill(); g.restore(); } }
     g.globalAlpha = 1; for (let k = 0; k < idx.length; k++) { const i = idx[k]; if (k && k % 12 !== 0) continue; const [x, y] = Pm(c.x[i], c.y[i]); g.fillStyle = C.white; g.fillRect(x - 2, y - 2, 4, 4); if (s * 100 > 40) MC.txt(g, MC.fmtHMS(c.t[i]).slice(0, 5), x + 5, y + 12, C.text, 'left', 9, true); }
     if (S.path && S.path.length > 1) { g.strokeStyle = C.blueL; g.setLineDash([6, 5]); g.lineWidth = 1.8; g.beginPath(); S.path.forEach((q, i) => { const [x, y] = Pm(q[0], q[1]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]); }
-    const call = (x, y, lines, col) => { const tw = Math.max(...lines.map((t) => MC.txtWidth(g, t, 11.5))) + 18, lx = Math.min(Math.max(4, x + 16), w - tw - 4), ly = Math.min(Math.max(4, y - 20), h - 16 * lines.length - 10); g.fillStyle = 'rgba(2,4,10,.86)'; g.fillRect(lx, ly, tw, 16 * lines.length + 6); g.strokeStyle = col; g.lineWidth = 1; g.strokeRect(lx + 0.5, ly + 0.5, tw - 1, 16 * lines.length + 5); lines.forEach((t, i) => MC.txt(g, t, lx + 9, ly + 16 + i * 16 - 3, i ? C.text : col, 'left', 11.5)); g.strokeStyle = col; g.beginPath(); g.moveTo(x, y); g.lineTo(lx, ly + 8); g.stroke(); };
+    const call = (x, y, lines, col) => { const tw = Math.max(...lines.map((t) => MC.txtWidth(g, t, 11.5))) + 18, lx = Math.min(Math.max(4, x + 16), w - tw - 4), ly = Math.min(Math.max(4, y - 20), h - 16 * lines.length - 10); g.fillStyle = 'rgba(5,31,32,.86)'; g.fillRect(lx, ly, tw, 16 * lines.length + 6); g.strokeStyle = col; g.lineWidth = 1; g.strokeRect(lx + 0.5, ly + 0.5, tw - 1, 16 * lines.length + 5); lines.forEach((t, i) => MC.txt(g, t, lx + 9, ly + 16 + i * 16 - 3, i ? C.text : col, 'left', 11.5)); g.strokeStyle = col; g.beginPath(); g.moveTo(x, y); g.lineTo(lx, ly + 8); g.stroke(); };
     // lander
     const L = landerSite(); if (v.state !== 'In orbit') { const lp = v.lander || L, [x, y] = Pm(lp.x, lp.y); g.strokeStyle = C.blueL; g.lineWidth = 2; g.strokeRect(x - 8, y - 8, 16, 16); if (v.state === 'Descending') { g.fillStyle = C.orange; g.beginPath(); g.moveTo(x, y - 11); g.lineTo(x + 10, y + 8); g.lineTo(x - 10, y + 8); g.closePath(); g.fill(); g.strokeStyle = C.orange; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 26); g.stroke(); g.setLineDash([]); } else { g.fillStyle = C.blueL; g.fillRect(x - 3, y - 3, 6, 6); }
       call(x, y, [v.state === 'Descending' ? 'LANDER · descending' : 'LANDER · touchdown point', `E ${lp.x.toFixed(0)}  N ${lp.y.toFixed(0)} m`, v.state === 'Descending' ? `altitude ${lp.alt.toFixed(0)} m · fall ${Math.abs(MC.lastFinite('vz')).toFixed(1)} m/s` : `rover is ${v.rov ? Math.hypot(v.rov.x - lp.x, v.rov.y - lp.y).toFixed(0) : '—'} m away`], v.state === 'Descending' ? C.orange : C.blueL); }
     // rover
-    if (v.rov) { const [x, y] = Pm(v.rov.x, v.rov.y), a = v.rov.hd * Math.PI / 180; g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = S.last?.aborted ? C.orange : '#fff'; g.strokeStyle = C.blue; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -13); g.lineTo(9, 10); g.lineTo(-9, 10); g.closePath(); g.fill(); g.stroke(); g.restore();
+    if (v.rov) { const [x, y] = Pm(v.rov.x, v.rov.y), a = v.rov.hd * Math.PI / 180; g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = S.last?.aborted ? C.orange : '#FFFFFF'; g.strokeStyle = C.blue; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -13); g.lineTo(9, 10); g.lineTo(-9, 10); g.closePath(); g.fill(); g.stroke(); g.restore();
       call(x, y + 40, ['ROVER · ' + (MC.MODES[MC.at('mode')] || '—'), `E ${v.rov.x.toFixed(0)}  N ${v.rov.y.toFixed(0)} m`, `heading ${v.rov.hd.toFixed(0)}° · ${MC.at('speed').toFixed(2)} cm/s`, `driven ${MC.lastFinite('dist').toFixed(0)} m`], C.white); }
     if (v.state === 'In orbit') { const lat = MC.lastFinite('lat'), lon = MC.lastFinite('lon'); call(w / 2 - 80, h / 2, ['LANDER · in orbit', `${v.ph === 0 ? 'circling at' : 'lowering to'} ${f1(MC.lastFinite('orbAlt'))} km`, `over ${f1(lat)}°, ${f1(lon)}°`, 'imagery shows the landing site below'], C.blueL); }
     // scale bar + north + credit
-    const nice = [10, 20, 50, 100, 200, 500, 1000, 2000].find((m) => m * s > 90) || 2000; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(14, h - 34); g.lineTo(14 + nice * s, h - 34); g.stroke(); MC.txt(g, `${nice} m`, 14 + nice * s + 8, h - 30, C.white, 'left', 11, true);
-    g.fillStyle = '#fff'; g.beginPath(); g.moveTo(w - 26, 16); g.lineTo(w - 20, 32); g.lineTo(w - 32, 32); g.closePath(); g.fill(); MC.txt(g, 'N', w - 26, 48, C.white, 'center', 11);
+    const nice = [10, 20, 50, 100, 200, 500, 1000, 2000].find((m) => m * s > 90) || 2000; g.strokeStyle = '#FFFFFF'; g.lineWidth = 3; g.beginPath(); g.moveTo(14, h - 34); g.lineTo(14 + nice * s, h - 34); g.stroke(); MC.txt(g, `${nice} m`, 14 + nice * s + 8, h - 30, C.white, 'left', 11, true);
+    g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(w - 26, 16); g.lineTo(w - 20, 32); g.lineTo(w - 32, 32); g.closePath(); g.fill(); MC.txt(g, 'N', w - 26, 48, C.white, 'center', 11);
     MC.txt(g, ph?.tile || ph?.ctx ? `Image: ${ph.prov}. Where the photo is black, LOLA elevation hillshade is blended in.` : 'No site photo available: showing the terrain model instead', 12, h - 10, C.dim, 'left', 9); MC.txt(g, `view ${sm.span.toFixed(0)} m wide`, w - 12, h - 10, C.dim, 'right', 9, true);
   },
 };
@@ -129,10 +129,10 @@ P.sitemini = {
   draw(g, w, h) {
     const W = MC.S.W; if (!W) return MC.empty(g, w, h, 'Waiting…'); const m = 6, s = Math.min((w - 2 * m) / (2 * W.half_x), (h - 2 * m) / (2 * W.half_y)), vx = (w - 2 * W.half_x * s) / 2, vy = (h - 2 * W.half_y * s) / 2, Pm = (x, y) => [vx + (x + W.half_x) * s, vy + (W.half_y - y) * s];
     if (MC.photo?.tile) photoRect(g, MC.photo.tile, W.half_x, -W.half_x, W.half_x, -W.half_y, W.half_y, vx, vy, 2 * W.half_x * s, 2 * W.half_y * s); else if (MC.layerCanvas) g.drawImage(MC.layerCanvas, vx, vy, 2 * W.half_x * s, 2 * W.half_y * s);
-    g.fillStyle = 'rgba(2,4,10,.3)'; g.fillRect(vx, vy, 2 * W.half_x * s, 2 * W.half_y * s); g.strokeStyle = C.line || '#16233f'; g.strokeRect(vx, vy, 2 * W.half_x * s, 2 * W.half_y * s);
+    g.fillStyle = 'rgba(5,31,32,.3)'; g.fillRect(vx, vy, 2 * W.half_x * s, 2 * W.half_y * s); g.strokeStyle = C.line || '#163832'; g.strokeRect(vx, vy, 2 * W.half_x * s, 2 * W.half_y * s);
     for (const t of W.targets || []) { const [x, y] = Pm(t.x_m, t.y_m); g.strokeStyle = C.orange; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, 3, 0, 7); g.stroke(); }
     const c = MC.cols, cur = MC.cur; g.strokeStyle = C.blue; g.lineWidth = 2; g.beginPath(); let pen = false; for (let i = 0; i <= cur; i++) { if (!Number.isFinite(c.hd[i])) continue; const [x, y] = Pm(c.x[i], c.y[i]); pen ? g.lineTo(x, y) : g.moveTo(x, y); pen = true; } g.stroke();
-    const v = vehicles(); const L = v.lander || landerSite(); if (v.state !== 'In orbit') { const [x, y] = Pm(L.x, L.y); g.fillStyle = v.state === 'Descending' ? C.orange : C.blueL; g.fillRect(x - 3, y - 3, 6, 6); } if (v.rov) { const [x, y] = Pm(v.rov.x, v.rov.y); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); }
+    const v = vehicles(); const L = v.lander || landerSite(); if (v.state !== 'In orbit') { const [x, y] = Pm(L.x, L.y); g.fillStyle = v.state === 'Descending' ? C.orange : C.blueL; g.fillRect(x - 3, y - 3, 6, 6); } if (v.rov) { const [x, y] = Pm(v.rov.x, v.rov.y); g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); }
     const iv = MC.imgView; if (iv) { const [a, b] = Pm(iv.cx - iv.w / 2, iv.cy + iv.h / 2), [d, e] = Pm(iv.cx + iv.w / 2, iv.cy - iv.h / 2); g.strokeStyle = C.white; g.lineWidth = 1.5; g.setLineDash([4, 3]); g.strokeRect(Math.max(vx, a), Math.max(vy, b), Math.min(vx + 2 * W.half_x * s, d) - Math.max(vx, a), Math.min(vy + 2 * W.half_y * s, e) - Math.max(vy, b)); g.setLineDash([]); }
     MC.txt(g, 'dashed box = what the big image shows', 8, h - 6, C.text, 'left', 9);
   },
@@ -204,7 +204,7 @@ P.orbit = {
     if (!MC.has('lat')) return MC.empty(g, w, h, 'No orbit data in this feed.');
     seg(0, n - 1, C.blueD, 1.5); seg(0, cur, C.blue, 2.5);
     const W = MC.S.W; if (W?.site) { const x = X(W.site.lon_deg), y = Y(W.site.lat_deg); g.strokeStyle = C.orange; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 6, 0, 7); g.stroke(); MC.txt(g, 'landing site', x + 10, y - 5, C.orange, 'left', 10); }
-    const lat = MC.lastFinite('lat'), lon = MC.lastFinite('lon'); if (Number.isFinite(lat)) { g.fillStyle = '#fff'; g.beginPath(); g.arc(X(lon), Y(lat), 4, 0, 7); g.fill(); }
+    const lat = MC.lastFinite('lat'), lon = MC.lastFinite('lon'); if (Number.isFinite(lat)) { g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(X(lon), Y(lat), 4, 0, 7); g.fill(); }
     MC.txt(g, '+90° N', m.l + 2, m.t + 10, C.dim, 'left', 9, true); MC.txt(g, '−90° S', m.l + 2, h - m.b - 3, C.dim, 'left', 9, true); MC.txt(g, 'longitude −180° … +180°', w - m.r, h - 6, C.dim, 'right', 9);
   },
 };
@@ -318,11 +318,11 @@ P.dream = {
   html() {
     const D = MC.S.dream; if (!D) return '<div class="msg">Reading the Dream-RSI history…</div>';
     const pct = (v) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '–'), br = (v) => (typeof v === 'number' ? v.toFixed(4) : '–');
-    const spark = (rows, a, b, lowerBetter) => { // score before (dim) and of the candidate (blue: accepted, orange: rejected), per generation
+    const spark = (rows, a, b, lowerBetter) => { // score before (dim) and of the candidate (accent: accepted, highlight: rejected), per generation
       const R = rows.filter((r) => typeof r[a] === 'number' && typeof r[b] === 'number'); if (R.length < 2) return '';
       const vs = R.flatMap((r) => [r[a], r[b]]), lo = Math.min(...vs), hi = Math.max(...vs), W = 300, H = 46, X = (i) => 6 + i / (R.length - 1) * (W - 12), Y = (v) => { let t = hi > lo ? (v - lo) / (hi - lo) : 0.5; if (lowerBetter) t = 1 - t; return H - 6 - t * (H - 12); }; // up = better
       const line = R.map((r, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(r[a]).toFixed(1)}`).join('');
-      return `<svg width="${W}" height="${H}" style="display:block;margin:4px 0 2px"><path d="${line}" fill="none" stroke="#5d6b87" stroke-width="1.6"/>` + R.map((r, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(r[b]).toFixed(1)}" r="3.2" fill="${r.accepted ? '#8db9ff' : '#ffa566'}"/>`).join('') + '</svg>';
+      return `<svg width="${W}" height="${H}" style="display:block;margin:4px 0 2px"><path d="${line}" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.6"/>` + R.map((r, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(r[b]).toFixed(1)}" r="3.2" fill="${r.accepted ? '#DAF1DE' : '#DAF1DE'}"/>`).join('') + '</svg>';
     };
     const block = (kind, title, what, a, b, fmt, lowerBetter, practised) => {
       const K = D[kind] || {}, rows = K.rows || [], st = K.state;
@@ -355,7 +355,7 @@ P.gantt = {
   draw(g, w, h) {
     const c = MC.cols, n = MC.n(); if (n < 2) return MC.empty(g, w, h, 'Waiting for data…');
     const LM = 78, pw = w - LM - 8, t0 = c.t[0], t1 = c.t[n - 1], X = (t) => LM + (t - t0) / ((t1 - t0) || 1) * pw;
-    const rows = [['Phase', (i) => ['#14357a', '#1b4aa6', '#2f7dff', '#5c9bff', '#8db9ff'][c.ph[i]]], ['Sunlight', (i) => (c.lit[i] === 1 ? C.blueL : c.lit[i] === 0 ? C.blueDD : null)], ['Earth link', (i) => (c.earth[i] === 1 ? C.blue : c.earth[i] === 0 ? C.blueDD : null)], ['Dark crater', (i) => (c.psr[i] === 1 ? C.blue : c.psr[i] === 0 ? C.blueDD : null)], ['Activity', (i) => [C.blue, C.blueD, '#1b2a4a', C.blueL][c.mode[i]] || null]];
+    const rows = [['Phase', (i) => ['#235347', '#235347', '#8EB69B', '#8EB69B', '#DAF1DE'][c.ph[i]]], ['Sunlight', (i) => (c.lit[i] === 1 ? C.blueL : c.lit[i] === 0 ? C.blueDD : null)], ['Earth link', (i) => (c.earth[i] === 1 ? C.blue : c.earth[i] === 0 ? C.blueDD : null)], ['Dark crater', (i) => (c.psr[i] === 1 ? C.blue : c.psr[i] === 0 ? C.blueDD : null)], ['Activity', (i) => [C.blue, C.blueD, '#235347', C.blueL][c.mode[i]] || null]];
     const rh = (h - 22) / (rows.length + 1);
     rows.forEach(([lab, col], r) => { const y = 4 + r * rh; MC.txt(g, lab, 6, y + rh * 0.62, C.dim, 'left', 10); for (let i = 0; i < n; i++) { const cc = col(i); if (cc) SEG(g, X(c.t[i]), X(i + 1 < n ? c.t[i + 1] : c.t[i]) + 0.5, y + 2, rh - 5, cc); } });
     const ey = 4 + rows.length * rh; MC.txt(g, 'Events', 6, ey + rh * 0.62, C.dim, 'left', 10); for (const e of MC.events) { const bad = /fail|abort|dead|rejected/i.test(e.kind + e.msg); g.fillStyle = bad ? C.orange : C.blueL; g.fillRect(X(e.t_s) - 0.5, ey + 3, 1.5, rh - 6); }
@@ -377,10 +377,10 @@ P.runtl = {
       MC.txt(g, r[0], 6, ri * rh + rh * 0.62, C.dim, 'left', 10);
       for (let k = 0; k < NB; k++) {
         const s = ta + (tb - ta) * k / NB, e = ta + (tb - ta) * (k + 1) / NB; let sum = 0, cnt = 0; for (let i = a; i <= b; i++) if (c.t[i] >= s && (c.t[i] < e || (k === NB - 1 && c.t[i] <= e)) && Number.isFinite(r[1][i])) { sum += r[1][i]; cnt++; }
-        const x = LM + k * cw, y = ri * rh; if (!cnt) { g.fillStyle = '#080d18'; g.fillRect(x + 1, y + 1, cw - 2, rh - 2); continue; }
+        const x = LM + k * cw, y = ri * rh; if (!cnt) { g.fillStyle = '#051F20'; g.fillRect(x + 1, y + 1, cw - 2, rh - 2); continue; }
         const v = sum / cnt, bad = r[4]?.bad?.(v), f = MC.clamp((v - r[2]) / ((r[3] - r[2]) || 1), 0, 1);
         g.fillStyle = bad ? C.orangeD : MC.heat(0.1 + 0.8 * f); g.fillRect(x + 1, y + 1, cw - 2, rh - 2);
-        MC.txt(g, v.toFixed(r[4]?.d ?? 0), x + cw / 2, y + rh * 0.66, bad ? C.orange : f > 0.55 ? '#02040a' : C.text, 'center', 10, true);
+        MC.txt(g, v.toFixed(r[4]?.d ?? 0), x + cw / 2, y + rh * 0.66, bad ? C.orange : f > 0.55 ? '#051F20' : C.text, 'center', 10, true);
       }
     });
     if (MC.cur >= a && MC.cur <= b) { const k = Math.min(NB - 1, Math.floor((c.t[MC.cur] - ta) / ((tb - ta) || 1) * NB)); g.strokeStyle = C.white; g.lineWidth = 1.5; g.strokeRect(LM + k * cw + 0.5, 0.5, cw - 1, rows.length * rh - 1); }
@@ -395,12 +395,12 @@ P.vision = {
     const R = 20, cell = Math.min(w, h - 22) / (2 * R + 1), ox = (w - cell * (2 * R + 1)) / 2, oy = 4, hd = MC.at('hd') * Math.PI / 180, L = lim(); let nearest = Infinity;
     const c0 = Math.floor((x + W.half_x) / W.mpp), r0 = Math.floor((W.half_y - y) / W.mpp);
     for (let dr = -R; dr <= R; dr++) for (let dc = -R; dc <= R; dc++) {
-      const r = r0 + dr, c = c0 + dc, px = ox + (dc + R) * cell, py = oy + (dr + R) * cell; if (r < 0 || c < 0 || r >= W.rows || c >= W.cols) { g.fillStyle = '#04070d'; g.fillRect(px, py, cell, cell); continue; }
+      const r = r0 + dr, c = c0 + dc, px = ox + (dc + R) * cell, py = oy + (dr + R) * cell; if (r < 0 || c < 0 || r >= W.rows || c >= W.cols) { g.fillStyle = '#051F20'; g.fillRect(px, py, cell, cell); continue; }
       const i = r * W.cols + c, hz = W.hazard[i] / 255, sl = W.slope[i] / L.slope_limit_deg; g.fillStyle = hz > 0.5 || sl > 1 ? C.orangeD : MC.heat(0.15 + 0.6 * MC.clamp(sl, 0, 1)); g.fillRect(px, py, cell - 0.5, cell - 0.5);
       if (hz > 0.5 || sl > 1) nearest = Math.min(nearest, Math.hypot(dr, dc) * W.mpp);
     }
     const cx = ox + (R + 0.5) * cell, cy = oy + (R + 0.5) * cell; g.strokeStyle = C.blueL; g.lineWidth = 1; g.setLineDash([3, 3]); for (const m of [50, 100]) { g.beginPath(); g.arc(cx, cy, m / W.mpp * cell, 0, 7); g.stroke(); } g.setLineDash([]);
-    g.save(); g.translate(cx, cy); g.rotate(hd); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6, 7); g.lineTo(-6, 7); g.closePath(); g.fill(); g.restore();
+    g.save(); g.translate(cx, cy); g.rotate(hd); g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6, 7); g.lineTo(-6, 7); g.closePath(); g.fill(); g.restore();
     MC.txt(g, Number.isFinite(nearest) ? `nearest danger cell ${nearest.toFixed(0)} m` : 'no danger cells within 100 m', 8, h - 6, Number.isFinite(nearest) ? C.orange : C.dim, 'left', 10); MC.txt(g, 'rings: 50 m, 100 m · orange: over slope limit or hazard', w - 8, h - 6, C.dim, 'right', 9);
   },
 };
@@ -413,9 +413,9 @@ P.profile = {
     const LM = 44, pw = w - LM - 8, top = 14, ph = h - 34, zs = pts.map((q) => q.z), lo = Math.min(...zs) - 2, hi = Math.max(...zs) + 2, dmax = pts[pts.length - 1].d || 1, X = (v) => LM + v / dmax * pw, Y = (z) => top + (1 - (z - lo) / (hi - lo)) * ph;
     g.strokeStyle = C.grid; g.beginPath(); for (let k = 0; k <= 3; k++) { g.moveTo(LM, top + ph * k / 3); g.lineTo(LM + pw, top + ph * k / 3); } g.stroke();
     const draw = (to, alpha) => { g.globalAlpha = alpha; g.beginPath(); pts.forEach((q, k) => { if (q.i > to) return; k ? g.lineTo(X(q.d), Y(q.z)) : g.moveTo(X(q.d), Y(q.z)); }); g.strokeStyle = C.blue; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; };
-    draw(n, 0.25); const last = pts.filter((q) => q.i <= MC.cur).pop(); g.beginPath(); pts.forEach((q, k) => { if (q.i > MC.cur) return; k ? g.lineTo(X(q.d), Y(q.z)) : g.moveTo(X(q.d), Y(q.z)); }); g.lineTo(X(last?.d ?? 0), top + ph); g.lineTo(X(0), top + ph); g.fillStyle = 'rgba(47,125,255,.16)'; g.fill(); draw(MC.cur, 1);
+    draw(n, 0.25); const last = pts.filter((q) => q.i <= MC.cur).pop(); g.beginPath(); pts.forEach((q, k) => { if (q.i > MC.cur) return; k ? g.lineTo(X(q.d), Y(q.z)) : g.moveTo(X(q.d), Y(q.z)); }); g.lineTo(X(last?.d ?? 0), top + ph); g.lineTo(X(0), top + ph); g.fillStyle = 'rgba(142,182,155,.16)'; g.fill(); draw(MC.cur, 1);
     for (const q of pts) if (q.lit === 1 && q.i <= MC.cur) { g.fillStyle = C.orange; g.fillRect(X(q.d) - 1, top + ph + 4, 2, 5); }
-    if (last) { g.fillStyle = '#fff'; g.beginPath(); g.arc(X(last.d), Y(last.z), 4, 0, 7); g.fill(); }
+    if (last) { g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(X(last.d), Y(last.z), 4, 0, 7); g.fill(); }
     MC.txt(g, `${hi.toFixed(0)} m`, LM - 4, top + 8, C.dim, 'right', 9, true); MC.txt(g, `${lo.toFixed(0)} m`, LM - 4, top + ph, C.dim, 'right', 9, true); MC.txt(g, `0 – ${dmax.toFixed(0)} m driven · orange ticks = in sunlight`, LM, h - 4, C.dim, 'left', 9);
   },
 };
@@ -472,7 +472,7 @@ P.budget = {
 P.thermal = {
   title: 'Thermal channels', src: 'simulated', canvas: true,
   draw(g, w, h) {
-    const n = MC.n(); if (n < 2) return MC.empty(g, w, h, 'Waiting…'); const side = 128, cols = [C.blueL, C.blue, '#5c9bff', '#2a5bbf', C.white, C.orange];
+    const n = MC.n(); if (n < 2) return MC.empty(g, w, h, 'Waiting…'); const side = 128, cols = [C.blueL, C.blue, '#8EB69B', '#8EB69B', C.white, C.orange];
     const cw = w - side, t0 = MC.cols.t[0], t1 = MC.cols.t[n - 1];
     MC.lane(g, 0, 0, cw, h - 16, { title: 'Temperature', noValues: true, unit: '°C', series: MC.THERMAL.map((t, i) => ({ arr: MC.sim.temp[t.k], color: cols[i] })), t0, t1, fmt: (v) => v.toFixed(0) });
     MC.THERMAL.forEach((t, i) => { const v = MC.sim.temp[t.k][MC.cur], y = 22 + i * 26; g.fillStyle = cols[i]; g.fillRect(cw + 8, y - 8, 8, 8); MC.txt(g, t.name, cw + 22, y, C.dim, 'left', 10); MC.txt(g, `${f1(v, 0)} °C`, w - 6, y + 12, cols[i], 'right', 12, true); });

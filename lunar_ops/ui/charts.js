@@ -1,10 +1,10 @@
 // Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in index.html.
-// Chart primitives drawn on canvas. Palette: midnight black, electric blue, cantaloupe orange.
+// Chart primitives drawn on canvas. Palette (15 Nov): #051F20 #0B2B26 #163832 #235347, accent #8EB69B, highlight #DAF1DE, white text.
 (function () {
 'use strict';
 const MC = (window.MC = window.MC || {});
 
-MC.C = { bg: '#060a13', blue: '#2f7dff', blueL: '#8db9ff', blueD: '#14357a', blueDD: '#0b1a3a', orange: '#ffa566', orangeD: '#5e3a1f', dim: '#6f7f9c', text: '#cfd9ee', grid: '#101a2e', white: '#ffffff' };
+MC.C = { bg: '#051F20', blue: '#8EB69B', blueL: '#DAF1DE', blueD: '#235347', blueDD: '#163832', orange: '#DAF1DE', orangeD: '#235347', dim: 'rgba(255,255,255,.62)', text: '#FFFFFF', grid: '#163832', white: '#FFFFFF' };
 const C = MC.C, MONO = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace', SANS = '"Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
 // No sharp corners: every rectangle drawn on any chart canvas gets rounded ends (tiny rectangles become round-ended lines).
 (function () {
@@ -34,7 +34,7 @@ MC.txt = function (g, t, x, y, col = C.dim, align = 'left', size = 10) {
   let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x; parts.forEach(([s, n], i) => { g.font = fontOf(size, n); g.fillText(s, cx, y); cx += ws[i]; });
 };
 MC.empty = (g, w, h, msg) => MC.txt(g, msg, w / 2, h / 2, C.dim, 'center', 12);
-const HEAT = [[8, 14, 32], [18, 46, 108], [47, 125, 255], [141, 185, 255]];
+const HEAT = [[5, 31, 32], [35, 83, 71], [142, 182, 155], [218, 241, 222]]; // palette ramp
 MC.heatRGB = function (v) { v = MC.clamp(v, 0, 1) * 3; const i = Math.min(2, Math.floor(v)), f = v - i, a = HEAT[i], b = HEAT[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; };
 MC.heat = (v) => { const [r, g, b] = MC.heatRGB(v); return `rgb(${r | 0},${g | 0},${b | 0})`; };
 MC.fmtT = (t) => { t = Math.max(0, t); return `${Math.floor(t / 86400)}d ${String(Math.floor(t % 86400 / 3600)).padStart(2, '0')}:${String(Math.floor(t % 3600 / 60)).padStart(2, '0')}`; };
@@ -72,7 +72,7 @@ MC.stack = function (g, w, h, lanes, o = {}) {
   lanes.forEach((sp, i) => MC.lane(g, 0, i * lh, w, lh, { ...sp, t0, t1 }));
   if (!barH) return;
   const LM = 38, pw = w - LM - 6, y = h - barH + 2, X = (tt) => LM + (tt - t0) / ((t1 - t0) || 1) * pw;
-  for (let i = 0; i < n; i++) { const a = MC.cols.t[i], b = i + 1 < n ? MC.cols.t[i + 1] : a, ph = MC.cols.ph[i]; if (b < t0 || a > t1) continue; g.fillStyle = ['#14357a', '#1b4aa6', '#2f7dff', '#5c9bff', '#8db9ff'][ph]; g.fillRect(X(a), y, Math.max(1, X(b) - X(a) + 0.5), 5); }
+  for (let i = 0; i < n; i++) { const a = MC.cols.t[i], b = i + 1 < n ? MC.cols.t[i + 1] : a, ph = MC.cols.ph[i]; if (b < t0 || a > t1) continue; g.fillStyle = ['#235347', '#235347', '#8EB69B', '#8EB69B', '#DAF1DE'][ph]; g.fillRect(X(a), y, Math.max(1, X(b) - X(a) + 0.5), 5); }
   for (let k = 0; k <= 5; k++) { const tt = t0 + (t1 - t0) * k / 5; MC.txt(g, MC.fmtT(tt), X(tt), h - 2, C.dim, k === 0 ? 'left' : k === 5 ? 'right' : 'center', 9, true); }
 };
 // Round gauge: sweep 240 degrees. o: {label, unit, min, max, warnAbove, warnBelow, fmt}
