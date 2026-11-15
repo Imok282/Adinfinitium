@@ -18,7 +18,7 @@ const b64 = (s) => { const bin = atob(s), a = new Uint8Array(bin.length); for (l
 const bits = (u8, n) => { const o = new Uint8Array(n); for (let i = 0; i < n; i++) o[i] = (u8[i >> 3] >> (7 - (i & 7))) & 1; return o; };
 // The only colours on this screen (decided 15 Nov): main 1 #051F20, main 2 #163832 (steps #0B2B26, #235347), accent
 // #8EB69B, highlight #DAF1DE, white text. Data colour scales are ramps through these six.
-const PAL = { p0: '#051F20', p1: '#0B2B26', p2: '#163832', p3: '#235347', acc: '#8EB69B', hi: '#DAF1DE', text: '#FFFFFF' };
+const PAL = { p0: '#000000', p1: '#0B2B26', p2: '#163832', p3: '#235347', acc: '#8EB69B', hi: '#DAF1DE', text: '#FFFFFF' };
 const RAMP = [[5, 31, 32], [11, 43, 38], [22, 56, 50], [35, 83, 71], [142, 182, 155], [218, 241, 222]];
 const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 function ramp(t, from = 0) { t = clamp(t, 0, 1); const R = RAMP.slice(from), x = t * (R.length - 1), i = Math.min(Math.floor(x), R.length - 2), f = x - i; return R[i].map((v, k) => lerp(v, R[i + 1][k], f)); }
@@ -234,6 +234,7 @@ $('exag').oninput = (e) => { exag = Number(e.target.value); $('exv').textContent
 
 // ---------------------------------------------------------------------------------------------------- status lights (computed, never decorative)
 function lights() {
+  if (!$('lights')) return; // the shared company banner (/banner.js) shows the lights on every screen
   const f = lastFrame, out = [], add = (k, st, txt) => out.push(`<div class="lt ${st}" title="${txt}">${k}<b>${st === 'go' ? 'GO' : st === 'caution' ? 'CAUTION' : st === 'nogo' ? 'NO-GO' : '—'}</b></div>`);
   const pe = f?.attitude?.pointing_error_deg; add('GNC', pe == null ? '' : pe < 8 ? 'go' : pe < 20 ? 'caution' : 'nogo', `pointing error ${fmt(pe, 1)}°`);
   const fuel = f?.vehicle?.fuel_kg; add('PROP', fuel == null ? '' : fuel > 30 ? 'go' : fuel > 10 ? 'caution' : 'nogo', `${fmt(fuel, 1)} kg propellant`);
@@ -253,7 +254,7 @@ function trajectory() {
   for (const k of [5000, 1000, 100, 10, 1, 0]) s += `<text x="${xm(k)}" y="${Y0 + 18}" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.55)" font-family="JetBrains Mono">${k ? fmt(k) : 'site'}</text>`;
   const col = { ORBIT: PAL.p3, DEORBIT: PAL.acc, DESCENT: PAL.hi, LANDED: PAL.hi }; let prev = null;
   for (const p of live.hist) { if (prev) s += `<line x1="${xm(prev.r).toFixed(1)}" y1="${ym(prev.a).toFixed(1)}" x2="${xm(p.r).toFixed(1)}" y2="${ym(p.a).toFixed(1)}" stroke="${col[p.ph] || PAL.acc}" stroke-width="2.2" stroke-linecap="round"/>`; prev = p; }
-  if (prev) s += `<circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="5" fill="${PAL.hi}"/><circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="11" fill="${PAL.hi}" opacity=".2"/>`;
+  if (prev) s += `<circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="5" fill="${PAL.hi}"/><circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="8" fill="none" stroke="${PAL.hi}" stroke-width="1.5"><animate attributeName="r" values="6;18" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="1.6s" repeatCount="indefinite"/></circle>`;
   s += `<text x="${X1}" y="${Y1 - 14}" text-anchor="end" font-size="11" fill="rgba(255,255,255,.62)">orbit · deorbit · descent · landed</text>`; svg.innerHTML = s;
 }
 const ENG = [[0, 0], [0.8, 0], [0, 0.8], [-0.8, 0], [0, -0.8]], RCS = [[0.411, -0.974], [0.974, -0.411], [0.974, 0.411], [0.411, 0.974], [-0.411, 0.974], [-0.974, 0.411], [-0.974, -0.411], [-0.411, -0.974]], PADS = [[1.55, -1.55], [1.55, 1.55], [-1.55, 1.55], [-1.55, -1.55]];
@@ -268,24 +269,48 @@ function vehicle() {
   const fr = clamp(fuel / f0, 0, 1); s += `<rect x="420" y="40" width="34" height="180" rx="8" fill="${PAL.p0}" stroke="${PAL.p3}"/><rect x="424" y="${44 + 172 * (1 - fr)}" width="26" height="${172 * fr}" rx="5" fill="${fr > .05 ? PAL.acc : PAL.hi}"/>`;
   s += `<text x="437" y="236" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.62)">tank</text>`;
   const lines = [['Engines', `${f?.vehicle?.engines_ok ?? '—'} of 5`], ['Throttle', th.length ? `${Math.round(Math.max(...th) * 100)} % max` : '—'], ['Attitude thrusters', rc.length ? `${rc.filter(Boolean).length} firing` : '—'], ['Pointing error', `${fmt(f?.attitude?.pointing_error_deg, 1)}°`], ['Propellant', `${fmt(fuel, 1)} kg`]];
-  s += lines.map(([k, v], i) => `<text x="482" y="${70 + i * 34}" font-size="11" fill="rgba(255,255,255,.62)">${k}</text><text x="482" y="${86 + i * 34}" font-size="14" fill="#FFFFFF" ${/\d/.test(v) ? 'font-family="JetBrains Mono"' : ''}>${v}</text>`).join('');
+  s += lines.map(([k, v], i) => `<text x="482" y="${68 + i * 36}" font-size="13" fill="rgba(255,255,255,.62)">${k}</text><text x="482" y="${86 + i * 36}" font-size="17" fill="#FFFFFF" ${/\d/.test(v) ? 'font-family="JetBrains Mono"' : ''}>${v}</text>`).join('');
   $('vehsvg').innerHTML = s;
 }
+// ---------------------------------------------------------------------------------------------------- ISRO-style flight gauges
+const tween = new Map(); // id -> {from, to, t0, d}: numbers roll to their new value
+function roll(id, value, d = 0) { const el = $(id); if (!el) return; if (value == null || !isFinite(value)) { el.textContent = '—'; tween.delete(id); return; }
+  const cur = tween.get(id), now = performance.now(), from = cur ? cur.val : value; tween.set(id, { from, to: value, t0: now, d, val: from, el }); }
+function rollStep() { const now = performance.now(); for (const [id, t] of tween) { const u = Math.min((now - t.t0) / 500, 1), e = 1 - Math.pow(1 - u, 3); t.val = lerp(t.from, t.to, e); t.el.textContent = fmt(t.val, t.d); if (u >= 1) t.from = t.to; } requestAnimationFrame(rollStep); }
+requestAnimationFrame(rollStep);
+function dial(cx, cy, r, frac, label, unit, id) { // 240 deg dial: track, value arc, ticks and an eased needle
+  const a0 = 150, sweep = 240, ang = (f) => (a0 + sweep * clamp(f, 0, 1)) * Math.PI / 180, pt = (f, rr) => [cx + rr * Math.cos(ang(f)), cy + rr * Math.sin(ang(f))];
+  const arc = (f, rr) => { const [x0, y0] = pt(0, rr), [x1, y1] = pt(f, rr); return `M${x0},${y0} A${rr},${rr} 0 ${sweep * f > 180 ? 1 : 0} 1 ${x1},${y1}`; };
+  let s = `<path d="${arc(1, r)}" fill="none" stroke="${PAL.p2}" stroke-width="9" stroke-linecap="round"/><path d="${arc(Math.max(clamp(frac, 0, 1), 0.001), r)}" fill="none" stroke="${PAL.acc}" stroke-width="9" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgba(142,182,155,.55))"/>`;
+  for (let k = 0; k <= 10; k++) { const [x0, y0] = pt(k / 10, r - 14), [x1, y1] = pt(k / 10, r - (k % 5 ? 19 : 23)); s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${PAL.p3}" stroke-width="${k % 5 ? 1.2 : 2}"/>`; }
+  const deg = a0 + sweep * clamp(frac, 0, 1);
+  s += `<g class="dial-needle" style="transform-origin:${cx}px ${cy}px;transform:rotate(${deg}deg)"><line x1="${cx}" y1="${cy}" x2="${cx + r - 20}" y2="${cy}" stroke="${PAL.hi}" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="5" fill="${PAL.hi}"/>`;
+  s += `<text x="${cx}" y="${cy + r * 0.62}" text-anchor="middle" font-size="22" font-family="JetBrains Mono" id="${id}">—</text><text x="${cx}" y="${cy + r * 0.62 + 17}" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.62)" letter-spacing="1.5">${label} · ${unit}</text>`;
+  return s;
+}
+function leds(id, frac, warnBelow) { const el = $(id); if (!el) return; if (!el.children.length) el.innerHTML = '<b></b>'.repeat(20); const n = Math.round(clamp(frac, 0, 1) * 20);
+  [...el.children].forEach((b, k) => { b.className = k < n ? (warnBelow != null && frac < warnBelow ? 'warn' : 'on') : ''; }); }
 function gauges() {
-  const f = lastFrame; if (!f) return; const alt = f.lander ? f.lander.alt_m : f.orbit.alt_km * 1000; $('g-alt').textContent = alt > 20000 ? fmt(alt / 1000, 1) : fmt(alt); $('g-altu').textContent = alt > 20000 ? 'km' : 'm';
-  $('g-spd').textContent = fmt(f.lander ? Math.hypot(f.lander.vx_m_s, f.lander.vy_m_s, f.lander.vz_m_s) : f.orbit.speed_m_s, f.lander ? 1 : 0); $('g-fuel').textContent = fmt(f.vehicle.fuel_kg, 1); $('g-fuelb').style.width = `${clamp(f.vehicle.fuel_kg / f.vehicle.fuel_start_kg, 0, 1) * 100}%`;
-  $('g-thr').textContent = fmt(f.vehicle.thrust_n); $('g-thrb').style.width = `${clamp(f.vehicle.thrust_n / 4000, 0, 1) * 100}%`;
-  $('g-extra').textContent = `${fmt(f.orbit.ground_range_km, 1)} km to site` + (['ORBIT', 'DEORBIT'].includes(f.mission_phase) ? ` · periapsis ${fmt(f.orbit.periapsis_km, 1)} km` : '') + (f.vehicle.braking_tgo_s != null ? ` · ${fmt(f.vehicle.braking_tgo_s)} s to the 2 km gate` : '') + (f.lander ? ` · ${fmt(Math.hypot(f.lander.x_m - f.site.x_m, f.lander.y_m - f.site.y_m), 1)} m from target` : '');
+  const f = lastFrame; if (!f) return; const altM = f.lander ? f.lander.alt_m : f.orbit.alt_km * 1000, spd = f.lander ? Math.hypot(f.lander.vx_m_s, f.lander.vy_m_s, f.lander.vz_m_s) : f.orbit.speed_m_s;
+  const km = altM > 2000, altFrac = Math.log10(1 + Math.max(altM, 0)) / Math.log10(1 + 110e3); // log scale: 0 m .. 110 km
+  if (!gauges.built || gauges.km !== km) { $('dials').innerHTML = dial(78, 92, 62, altFrac, 'ALTITUDE', km ? 'km' : 'm', 'd-alt') + dial(226, 92, 62, spd / 1800, 'SPEED', 'm/s', 'd-spd'); gauges.built = true; gauges.km = km; tween.delete('d-alt'); tween.delete('d-spd'); }
+  const needles = $('dials').querySelectorAll('.dial-needle'), arcs = $('dials').querySelectorAll('path:nth-of-type(2n)');
+  const setDial = (k, frac) => { const deg = 150 + 240 * clamp(frac, 0, 1); needles[k].style.transform = `rotate(${deg}deg)`; const cx = k ? 226 : 78, cy = 92, r = 62, a = (v) => (150 + 240 * v) * Math.PI / 180, x0 = cx + r * Math.cos(a(0)), y0 = cy + r * Math.sin(a(0)), fr = Math.max(clamp(frac, 0, 1), 0.001), x1 = cx + r * Math.cos(a(fr)), y1 = cy + r * Math.sin(a(fr)); arcs[k].setAttribute('d', `M${x0},${y0} A${r},${r} 0 ${240 * fr > 180 ? 1 : 0} 1 ${x1},${y1}`); };
+  setDial(0, altFrac); setDial(1, spd / 1800);
+  roll('d-alt', km ? altM / 1000 : altM, km ? 1 : 0); roll('d-spd', spd, f.lander ? 1 : 0);
+  roll('g-fuel', f.vehicle.fuel_kg, 1); leds('led-fuel', f.vehicle.fuel_kg / f.vehicle.fuel_start_kg, 0.05);
+  roll('g-thr', f.vehicle.thrust_n, 0); leds('led-thr', f.vehicle.thrust_n / 4000);
+  roll('t-range', f.orbit.ground_range_km, 1); roll('t-gate', f.vehicle.braking_tgo_s, 0);
+  roll('t-miss', f.lander ? Math.hypot(f.lander.x_m - f.site.x_m, f.lander.y_m - f.site.y_m) : null, 1); roll('t-peri', ['ORBIT', 'DEORBIT'].includes(f.mission_phase) ? f.orbit.periapsis_km : null, 1);
 }
 function onFrame(m) {
   lastFrame = m; const h = Math.floor(m.t_s / 3600), mi = Math.floor(m.t_s % 3600 / 60), se = Math.floor(m.t_s % 60);
-  $('utc').textContent = (m.utc || '—').replace('T', ' ').replace('Z', ''); $('met').textContent = `T+ ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}:${String(se).padStart(2, '0')}`;
-  $('phase').textContent = { DOCKED: 'Orbit · docked', SEPARATED: 'Orbit · separated', DEORBIT: 'Deorbit burn', COAST: 'Coast to 15 km', BRAKING: 'Braking', TERMINAL: 'Terminal descent', LANDED: 'Landed', ENDED: 'Run ended' }[m.phase] || m.phase;
-  $('warp').textContent = m.sim ? `${m.sim.playing ? '' : 'PAUSED · '}${m.sim.warp}×` : '—'; $('site').textContent = m.site ? `${m.site.region} · target ${fmt(m.site.x_m)} m E, ${fmt(m.site.y_m)} m N` : '';
+  void h; void mi; void se; // clocks are in the banner
+  $('site').textContent = m.site ? `${m.site.region} · target ${fmt(m.site.x_m)} m E, ${fmt(m.site.y_m)} m N` : '';
   if (live.hist.length && m.t_s < live.hist[live.hist.length - 1].t) { live.hist = []; live.track = []; live.events = []; }
   live.hist.push({ t: m.t_s, r: m.orbit.ground_range_km, a: m.lander ? m.lander.alt_m / 1000 : m.orbit.alt_km, ph: m.mission_phase }); if (live.hist.length > 4000) live.hist.splice(0, 2);
-  for (const e of m.events || []) { live.events.unshift(e); if (live.events.length > 12) live.events.pop(); }
-  $('evlist').innerHTML = live.events.map((e) => `<div><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join('');
+  for (const e of m.events || []) { e._fresh = true; live.events.unshift(e); if (live.events.length > 12) live.events.pop(); }
+  if ((m.events || []).length) { $('evlist').innerHTML = live.events.map((e) => `<div class="${e._fresh ? 'fresh' : ''}"><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join(''); for (const e of live.events) e._fresh = false; }
   if (L && liveTime && m.utc) syncTime(m.utc);
   if (L && m.lander) { const p = toScene(m.lander.x_m, m.lander.y_m, heightAt(m.lander.x_m, m.lander.y_m) + m.lander.alt_m / exag * 1); p.y = (heightAt(m.lander.x_m, m.lander.y_m) - h0) * exag + m.lander.alt_m; live.track.push(p);
     if (!live.lander) { live.lander = new THREE.Mesh(new THREE.ConeGeometry(8, 22, 16), new THREE.MeshBasicMaterial({ color: PAL.hi })); live.lander.rotation.x = Math.PI; live.group.add(live.lander); }

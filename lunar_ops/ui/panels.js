@@ -377,7 +377,7 @@ P.runtl = {
       MC.txt(g, r[0], 6, ri * rh + rh * 0.62, C.dim, 'left', 10);
       for (let k = 0; k < NB; k++) {
         const s = ta + (tb - ta) * k / NB, e = ta + (tb - ta) * (k + 1) / NB; let sum = 0, cnt = 0; for (let i = a; i <= b; i++) if (c.t[i] >= s && (c.t[i] < e || (k === NB - 1 && c.t[i] <= e)) && Number.isFinite(r[1][i])) { sum += r[1][i]; cnt++; }
-        const x = LM + k * cw, y = ri * rh; if (!cnt) { g.fillStyle = '#051F20'; g.fillRect(x + 1, y + 1, cw - 2, rh - 2); continue; }
+        const x = LM + k * cw, y = ri * rh; if (!cnt) { g.fillStyle = '#000000'; g.fillRect(x + 1, y + 1, cw - 2, rh - 2); continue; }
         const v = sum / cnt, bad = r[4]?.bad?.(v), f = MC.clamp((v - r[2]) / ((r[3] - r[2]) || 1), 0, 1);
         g.fillStyle = bad ? C.orangeD : MC.heat(0.1 + 0.8 * f); g.fillRect(x + 1, y + 1, cw - 2, rh - 2);
         MC.txt(g, v.toFixed(r[4]?.d ?? 0), x + cw / 2, y + rh * 0.66, bad ? C.orange : f > 0.55 ? '#051F20' : C.text, 'center', 10, true);
@@ -395,7 +395,7 @@ P.vision = {
     const R = 20, cell = Math.min(w, h - 22) / (2 * R + 1), ox = (w - cell * (2 * R + 1)) / 2, oy = 4, hd = MC.at('hd') * Math.PI / 180, L = lim(); let nearest = Infinity;
     const c0 = Math.floor((x + W.half_x) / W.mpp), r0 = Math.floor((W.half_y - y) / W.mpp);
     for (let dr = -R; dr <= R; dr++) for (let dc = -R; dc <= R; dc++) {
-      const r = r0 + dr, c = c0 + dc, px = ox + (dc + R) * cell, py = oy + (dr + R) * cell; if (r < 0 || c < 0 || r >= W.rows || c >= W.cols) { g.fillStyle = '#051F20'; g.fillRect(px, py, cell, cell); continue; }
+      const r = r0 + dr, c = c0 + dc, px = ox + (dc + R) * cell, py = oy + (dr + R) * cell; if (r < 0 || c < 0 || r >= W.rows || c >= W.cols) { g.fillStyle = '#000000'; g.fillRect(px, py, cell, cell); continue; }
       const i = r * W.cols + c, hz = W.hazard[i] / 255, sl = W.slope[i] / L.slope_limit_deg; g.fillStyle = hz > 0.5 || sl > 1 ? C.orangeD : MC.heat(0.15 + 0.6 * MC.clamp(sl, 0, 1)); g.fillRect(px, py, cell - 0.5, cell - 0.5);
       if (hz > 0.5 || sl > 1) nearest = Math.min(nearest, Math.hypot(dr, dc) * W.mpp);
     }

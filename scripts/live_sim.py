@@ -96,6 +96,19 @@ class LiveSim:
         tile = self.ms.terrain.tile
         self.pilot = LivePilot.create(self.ms.cfg, terrain_from_tile(tile), self.ms.site.xy, self.checkpoint)
         self.ms.guid.command_fn = self.command if self.ai else None
+        self.site_layers = None
+        try:  # Sun / Earth visibility and safety at the target over the day (lunar_ops.layers; MODELLED, SPICE + LOLA horizon)
+            from lunar_ops.layers import build_layers
+
+            L = build_layers(setup.region, setup.epoch_utc)
+            h, w = L["height"].shape
+            mpp = float(L["mpp"])
+            c = int(round(self.ms.site.xy[0] / mpp + (w - 1) / 2))
+            r = int(round((h - 1) / 2 - self.ms.site.xy[1] / mpp))
+            self.site_layers = {"times": [str(t) for t in L["times"]], "sun": L["sun"][:, r, c].astype(bool), "earth": L["earth"][:, r, c].astype(bool),
+                                "safe": bool(L["safe"][r, c])}
+        except Exception as exc:  # noqa: BLE001 - lights then show "unknown"
+            print(f"[sim] site layers unavailable: {exc}", flush=True)
         self.last_pilot = None
         self.sent_ai_t = -1.0
         self.n_dec = 0
@@ -162,6 +175,16 @@ class LiveSim:
         f["sim"] = {"warp": self.warp, "playing": self.playing, "ai": self.ai, "pilot_trained": bool(self.pilot.info["trained"]),
                     "pilot_parameters": self.pilot.info["parameters"], "attitude": self.setup.attitude, "epoch_utc": self.setup.epoch_utc,
                     "done": ms.done, "report": ms.report}
+        if self.site_layers is not None:  # Sun, Earth link and terrain safety at the target, at the current UTC
+            from datetime import datetime
+
+            T = self.site_layers["times"]
+            t_now = datetime.fromisoformat(f["utc"].replace("Z", "+00:00"))
+            t0 = datetime.fromisoformat(T[0].replace("Z", "+00:00"))
+            step = (datetime.fromisoformat(T[1].replace("Z", "+00:00")) - t0).total_seconds()
+            i = int(min(max(round((t_now - t0).total_seconds() / step), 0), len(T) - 1))
+            f["site_light"] = {"sun": bool(self.site_layers["sun"][i]), "earth": bool(self.site_layers["earth"][i]), "safe": self.site_layers["safe"],
+                               "layer_time_utc": T[i], "provenance": "MODELLED (SPICE DE440 + LOLA horizon)"}
         out = [f]
         if self.last_pilot is not None and "lander" in f:
             tp, p = self.last_pilot

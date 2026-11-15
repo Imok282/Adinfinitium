@@ -16,14 +16,14 @@
 @font-face { font-family: "JetBrains Mono"; src: url("vendor/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; }
 :root { --line: rgba(142,182,155,.13); --text: #FFFFFF; --dim: rgba(255,255,255,.62); --dim2: rgba(255,255,255,.38); --blue: #8EB69B; --bl: #DAF1DE; --or: #DAF1DE; }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: #051F20; color: var(--text); font: 15px/1.4 "Instrument Sans", -apple-system, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; height: 100%; background: #000000; color: var(--text); font: 15px/1.4 "Instrument Sans", -apple-system, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
 .n { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-weight: 500; }
-#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; background: radial-gradient(1300px 760px at 50% 45%, #051F20 0%, #051F20 72%); }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; background: #000000; }
 .abs { position: absolute; }
-.panel { position: absolute; background: linear-gradient(180deg, rgba(5,31,32,.85), rgba(5,31,32,.85)); border: 1px solid var(--line); border-radius: 22px; }
+.panel { position: absolute; background: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.85)); border: 1px solid var(--line); border-radius: 22px; }
 .h { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--bl); } .h b { color: var(--dim2); font-weight: 500; margin-right: 10px; }
 .sub { color: var(--dim); font-size: 14px; }
-header { position: absolute; left: 40px; right: 40px; top: 28px; height: 70px; display: flex; align-items: center; justify-content: space-between; }
+header { position: absolute; left: 40px; right: 40px; top: 86px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
 header .t { font-size: 30px; font-weight: 600; letter-spacing: -.01em; } header .t span { display: block; font-size: 14.5px; font-weight: 400; color: var(--dim); margin-top: 2px; }
 .stats { display: flex; gap: 38px; align-items: flex-end; } .stat { text-align: right; } .stat .k { font-size: 12px; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; } .stat .v { font-size: 24px; } .stat .v small { font-size: 13px; color: var(--dim); margin-left: 4px; }
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px var(--blue); margin-right: 8px; vertical-align: 2px; } .dot.o { background: var(--or); box-shadow: 0 0 10px var(--or); }
@@ -39,9 +39,11 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
 #wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 18px; pointer-events: none; transition: opacity .6s; }
 .mini { font-size: 11.5px; color: var(--dim); text-align: center; margin-top: 4px; }
 </style>
+<link rel="stylesheet" href="banner.css">
 </head>
 <body>
 <div id="stage">
+  <div id="adb" data-screen="Pilot brain" style="position:absolute;left:0;right:0;top:0;z-index:5"></div>
   <header>
     <div class="t">Pilot brain<span>What the AI sees, thinks and does, live from Basilisk every control step</span></div>
     <div class="stats">
@@ -53,7 +55,7 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
     </div>
   </header>
 
-  <div class="panel" style="left:40px;top:122px;width:396px;height:900px">
+  <div class="panel" style="left:40px;top:160px;width:396px;height:862px">
     <div class="h abs" style="left:26px;top:24px"><b class="n">1</b>What it sees</div>
     <canvas id="cam" class="px abs" width="250" height="250" style="left:26px;top:62px;width:250px;height:250px"></canvas>
     <div class="abs" style="left:290px;top:62px;width:84px">
@@ -64,14 +66,14 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
     <div id="sens" class="abs" style="left:26px;top:350px;width:344px"></div>
   </div>
 
-  <div class="panel" style="left:456px;top:122px;width:1060px;height:900px">
+  <div class="panel" style="left:456px;top:160px;width:1060px;height:862px">
     <div class="h abs" style="left:28px;top:24px"><b class="n">2</b>What it thinks</div>
     <div class="sub abs" style="left:28px;top:50px" id="netsub">Transformer pilot</div>
     <canvas id="net" class="abs" style="left:0;top:80px;width:1060px;height:760px"></canvas>
     <div class="legend abs" style="left:28px;bottom:20px"><span><i style="background:#DAF1DE"></i>strongest chain to the thrust output</span><span><i style="background:rgba(142,182,155,.35)"></i>each token's top attention links</span><span>dot size = activity</span></div>
   </div>
 
-  <div class="panel" style="left:1536px;top:122px;width:344px;height:900px">
+  <div class="panel" style="left:1536px;top:160px;width:344px;height:862px">
     <div class="h abs" style="left:26px;top:24px"><b class="n">3</b>What it does</div>
     <div class="abs" style="left:26px;top:60px"><div class="big n"><span id="thr">–</span><span style="font-size:26px;color:var(--dim)"> %</span></div><div class="sub" style="margin-top:8px">throttle · classic alone: <span class="n" style="color:var(--text)" id="thrc">–</span></div></div>
     <div class="abs" style="left:26px;top:150px;width:292px;font-size:12.5px;color:var(--dim)">AI correction added to the classic command<div class="n" style="color:var(--text);font-size:14px;margin-top:4px" id="res">–</div></div>
@@ -86,6 +88,7 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
   <footer><span id="prov">Waiting for a live run</span><span>Simulated mission (MODELLED) · terrain NASA LRO LOLA (observed)</span></footer>
   <div id="wait">Waiting for a live run: start <span class="n">&nbsp;python -m scripts.live_mission&nbsp;</span></div>
 </div>
+<script src="banner.js"></script>
 <script src="ai.js"></script>
 </body>
 </html>

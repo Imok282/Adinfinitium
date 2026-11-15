@@ -4,7 +4,7 @@
 'use strict';
 const MC = (window.MC = window.MC || {});
 
-MC.C = { bg: '#051F20', blue: '#8EB69B', blueL: '#DAF1DE', blueD: '#235347', blueDD: '#163832', orange: '#DAF1DE', orangeD: '#235347', dim: 'rgba(255,255,255,.62)', text: '#FFFFFF', grid: '#163832', white: '#FFFFFF' };
+MC.C = { bg: '#000000', blue: '#8EB69B', blueL: '#DAF1DE', blueD: '#235347', blueDD: '#163832', orange: '#DAF1DE', orangeD: '#235347', dim: 'rgba(255,255,255,.62)', text: '#FFFFFF', grid: '#163832', white: '#FFFFFF' };
 const C = MC.C, MONO = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace', SANS = '"Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
 // No sharp corners: every rectangle drawn on any chart canvas gets rounded ends (tiny rectangles become round-ended lines).
 (function () {

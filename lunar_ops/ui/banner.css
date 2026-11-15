@@ -1,0 +1,28 @@
+/* Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in index.html. */
+/* Company banner shown across the top of every screen. Palette only: #051F20 #0B2B26 #163832 #235347, accent #8EB69B,
+   highlight #DAF1DE, white text; Instrument Sans for text, JetBrains Mono for numbers. */
+.adb { position: relative; display: flex; align-items: center; gap: 26px; height: 74px; padding: 0 22px; box-sizing: border-box; overflow: hidden; color: #FFFFFF;
+  font-family: "Instrument Sans", -apple-system, sans-serif; background: #000000; border-bottom: 1px solid #235347; }
+.adb::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, transparent, #8EB69B 30%, #DAF1DE 50%, #8EB69B 70%, transparent);
+  background-size: 50% 100%; background-repeat: no-repeat; animation: adb-sweep 7s linear infinite; opacity: .9; } /* light running along the banner's edge */
+.adb::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(218,241,222,.035) 0 1px, transparent 1px 4px); } /* faint scan lines */
+@keyframes adb-sweep { from { background-position: -60% 0; } to { background-position: 160% 0; } }
+.adb .n { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-weight: 500; }
+.adb .mark { display: flex; align-items: center; gap: 12px; min-width: 300px; }
+.adb .mark svg, .adb .mark img { width: 42px; height: 42px; flex: none; }
+.adb .word b { display: block; font-size: 19px; font-weight: 650; letter-spacing: .16em; }
+.adb .word small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #8EB69B; margin-top: 3px; }
+.adb .sep { width: 1px; align-self: stretch; margin: 14px 0; background: #235347; }
+.adb .clk { display: flex; flex-direction: column; } .adb .clk .k { font-size: 10.5px; color: rgba(255,255,255,.62); letter-spacing: .14em; text-transform: uppercase; }
+.adb .clk .v { font-size: 22px; line-height: 1.15; } .adb .clk .v.txt { font-family: inherit; font-weight: 600; color: #8EB69B; }
+.adb .lights { margin-left: auto; display: flex; gap: 7px; }
+.adb .lt { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 84px; height: 44px; border-radius: 11px; background: #000000; border: 1px solid #235347;
+  font-size: 10px; letter-spacing: .12em; color: rgba(255,255,255,.62); transition: background .4s, border-color .4s, color .4s; }
+.adb .lt b { font-size: 12px; letter-spacing: .06em; color: rgba(255,255,255,.38); margin-top: 2px; transition: color .4s; }
+.adb .lt.go { border-color: #8EB69B; box-shadow: inset 0 0 12px rgba(142,182,155,.18); } .adb .lt.go b { color: #8EB69B; }
+.adb .lt.caution { border: 1.5px dashed #DAF1DE; } .adb .lt.caution b { color: #DAF1DE; }
+.adb .lt.nogo { background: #DAF1DE; border-color: #DAF1DE; color: #051F20; animation: adb-pulse 1.6s ease-in-out infinite; } .adb .lt.nogo b { color: #051F20; font-weight: 700; }
+@keyframes adb-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(218,241,222,.55); } 50% { box-shadow: 0 0 0 7px rgba(218,241,222,0); } }
+.adb .live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #235347; margin-right: 7px; vertical-align: 2px; }
+.adb .live.on { background: #8EB69B; box-shadow: 0 0 10px #8EB69B; animation: adb-blink 2s ease-in-out infinite; }
+@keyframes adb-blink { 50% { opacity: .35; } }

@@ -74,7 +74,7 @@
       // MLP neurons of the output token: the 32 strongest of the hidden width, as ticks under the column
       const sx = COLX(l) - 30, sy = 728; g.fillStyle = 'rgba(142,182,155,.08)'; g.fillRect(sx, sy, 60, 8);
       const tn = tr.top_neurons[l - 1], mv = Math.max(...tn.map((p) => Math.abs(p[1])), 1e-9); for (const [i, v] of tn) { g.fillStyle = v >= 0 ? `rgba(218,241,222,${0.4 + 0.6 * Math.abs(v) / mv})` : `rgba(218,241,222,${0.4 + 0.6 * Math.abs(v) / mv})`; g.fillRect(sx + i / tr.mlp_width * 60, sy, 1.4, 8); } }
-    for (const [t, c] of [[0, '#DAF1DE'], [1, '#DAF1DE']]) { const [x, y] = pos(0, t); g.fillStyle = '#051F20'; g.strokeStyle = c; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.stroke(); }
+    for (const [t, c] of [[0, '#DAF1DE'], [1, '#DAF1DE']]) { const [x, y] = pos(0, t); g.fillStyle = '#000000'; g.strokeStyle = c; g.lineWidth = 1.6; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.stroke(); }
     g.font = '12px "Instrument Sans"'; g.fillStyle = 'rgba(255,255,255,.62)'; g.textAlign = 'left'; g.fillText('output token', pos(0, 0)[0] + 14, pos(0, 0)[1] + 4); g.fillText('sensors + classic', pos(0, 1)[0] + 14, pos(0, 1)[1] + 4); g.fillText('64 camera patches', GRID.x0, GRID.y0 - 10);
     g.textAlign = 'center'; for (let l = 1; l <= tr.layers; l++) g.fillText(`Layer ${l}`, COLX(l), 752);
     g.textAlign = 'right'; g.fillText('top neurons', COLX(1) - 38, 736);
@@ -91,7 +91,7 @@
     const a = pos(TR.layers, 0); ng.strokeStyle = 'rgba(142,182,155,.8)'; ng.lineWidth = 2; ng.beginPath(); ng.moveTo(a[0], a[1]); ng.lineTo(OUT.x - 18, OUT.y); ng.stroke();
     ng.globalCompositeOperation = 'source-over';
     const gr = ng.createRadialGradient(OUT.x, OUT.y, 0, OUT.x, OUT.y, 40); gr.addColorStop(0, 'rgba(142,182,155,.45)'); gr.addColorStop(1, 'rgba(142,182,155,0)'); ng.fillStyle = gr; ng.beginPath(); ng.arc(OUT.x, OUT.y, 40, 0, 7); ng.fill();
-    ng.fillStyle = '#051F20'; ng.strokeStyle = '#DAF1DE'; ng.lineWidth = 2; ng.beginPath(); ng.arc(OUT.x, OUT.y, 16, 0, 7); ng.fill(); ng.stroke();
+    ng.fillStyle = '#000000'; ng.strokeStyle = '#DAF1DE'; ng.lineWidth = 2; ng.beginPath(); ng.arc(OUT.x, OUT.y, 16, 0, 7); ng.fill(); ng.stroke();
     ng.font = '12px "Instrument Sans"'; ng.fillStyle = 'rgba(255,255,255,.62)'; ng.textAlign = 'center'; ng.fillText('Thrust', OUT.x, OUT.y + 34);
   }
 
