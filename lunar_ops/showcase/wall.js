@@ -40,7 +40,7 @@ const camera = new THREE.PerspectiveCamera(38, W / H, 0.5, 1e8);
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 40; controls.maxDistance = 9e6;
 const sun = new THREE.DirectionalLight(0xffffff, 2.6); scene.add(sun, sun.target); scene.add(new THREE.HemisphereLight(0xffffff, PAL.p0, 0.75)); // neutral light: colour comes from the data and the palette
 
-let L = null, world = null, terrainMesh = null, ctxMesh = null, h0 = 0, exag = 1.5, layer = new URLSearchParams(location.search).get('layer') || 'hazard', tIdx = 0, liveTime = true, lastFrame = null;
+let L = null, world = null, terrainMesh = null, ctxMesh = null, h0 = 0, exag = 1.5, layer = new URLSearchParams(location.search).get('layer') || 'imagery', tIdx = 0, liveTime = true, lastFrame = null;
 const tex = { canvas: document.createElement('canvas'), photo: null }; tex.canvas.width = tex.canvas.height = 1536; const ctex = new THREE.CanvasTexture(tex.canvas); ctex.colorSpace = THREE.SRGBColorSpace; ctex.anisotropy = 8;
 const live = { group: new THREE.Group(), track: [], trackLine: null, lander: null, target: null, hist: [], events: [] }; scene.add(live.group);
 
@@ -55,28 +55,30 @@ const LAYERS = {
   psr: { name: 'Dark craters', title: 'Permanently shadowed regions', a: '', z: '', bar: 'linear-gradient(90deg,#9085e9,#9085e9)', prov: 'MODELLED · horizon test over the lunar year' },
   ice: { name: 'Ice evidence', title: 'Ice EVIDENCE score (not confirmed ice)', a: '0', z: '1', bar: blueCss, prov: 'MODELLED · PSR + cold-trap + neutron evidence' },
 };
-const lw = $('layers'); for (const [k, v] of Object.entries(LAYERS)) { const b = document.createElement('button'); b.className = 'lb' + (k === layer ? ' on' : ''); b.textContent = v.name; b.onclick = () => { layer = k; for (const x of lw.children) x.classList.toggle('on', x === b); paint(); }; lw.appendChild(b); }
+const lw = $('layers'); for (const [k, v] of Object.entries(LAYERS)) { const b = document.createElement('button'); b.className = 'lb' + (k === layer ? ' on' : ''); b.textContent = v.name; b.onclick = () => chooseLayer(k); lw.appendChild(b); }
 
 function paint() { // compose photo + the active layer into the terrain texture
   if (!L) return; const g = tex.canvas.getContext('2d'), N = tex.canvas.width; g.globalAlpha = 1; g.fillStyle = PAL.p2; g.fillRect(0, 0, N, N);
   if (tex.photo) { g.filter = tex.photoFilter || 'none'; g.drawImage(tex.photo, 0, 0, N, N); g.filter = 'none'; }
   const { rows, cols } = L, im = new ImageData(cols, rows), d = im.data, lay = layer;
   const hmin = L.hmin, hmax = L.hmax, sunT = L.sun ? L.sun.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null, earthT = L.earth ? L.earth.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null;
+  let cov = 0; // cells the layer marks, for the legend's coverage line
   for (let i = 0; i < rows * cols; i++) { let c = null, a = 0;
     if (lay === 'elevation') { c = blueRamp((L.height[i] - hmin) / (hmax - hmin)); a = 0.85; }
     else if (lay === 'slope') { c = blueRamp(L.slope[i] / 4 / 30); a = 0.82; }
-    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = [217, 89, 38]; a = p * 0.62; }
-    else if (lay === 'safe') { if (L.safe[i]) { c = [57, 135, 229]; a = 0.6; } }
-    else if (lay === 'sun') { c = sunT[i] ? [201, 133, 0] : [0, 0, 0]; a = sunT[i] ? 0.4 : 0.72; }
-    else if (lay === 'earth') { c = earthT[i] ? [57, 135, 229] : [0, 0, 0]; a = earthT[i] ? 0.6 : 0.65; }
-    else if (lay === 'psr') { if (L.psr[i]) { c = [144, 133, 233]; a = 0.75; } }
-    else if (lay === 'ice') { const sc = L.ice[i] / 255; if (sc > 0.12) { c = blueRamp(sc); a = 0.35 + 0.55 * sc; } }
+    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = [217, 89, 38]; a = p * 0.62; cov += p > 0.5; }
+    else if (lay === 'safe') { if (L.safe[i]) { c = [57, 135, 229]; a = 0.75; cov++; } }
+    else if (lay === 'sun') { c = sunT[i] ? [201, 133, 0] : [0, 0, 0]; a = sunT[i] ? 0.45 : 0.42; cov += sunT[i]; } // shadow only dims, so the ground stays readable
+    else if (lay === 'earth') { c = earthT[i] ? [57, 135, 229] : [0, 0, 0]; a = earthT[i] ? 0.6 : 0.38; cov += earthT[i]; }
+    else if (lay === 'psr') { if (L.psr[i]) { c = [144, 133, 233]; a = 0.85; cov++; } }
+    else if (lay === 'ice') { const sc = L.ice[i] / 255; if (sc > 0.12) { c = blueRamp(0.4 + 0.6 * sc); a = 0.55 + 0.4 * sc; cov++; } }
     if (c) { d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = a * 255; } }
   const tmp = document.createElement('canvas'); tmp.width = cols; tmp.height = rows; tmp.getContext('2d').putImageData(im, 0, 0); g.imageSmoothingEnabled = lay !== 'safe' && lay !== 'psr'; g.drawImage(tmp, 0, 0, N, N);
-  ctex.needsUpdate = true; legend();
+  ctex.needsUpdate = true; legend(cov / (rows * cols));
 }
-function legend() {
-  const v = LAYERS[layer]; $('lg-t').textContent = v.title; $('lg-b').style.background = v.bar;
+const COVER = { hazard: 'Unsafe (above 0.5)', safe: 'Safe cells', sun: 'Sunlit', earth: 'Earth in view', psr: 'Permanently shadowed', ice: 'Ice evidence above 0.12' };
+function legend(frac = null) {
+  const v = LAYERS[layer], cv = $('lg-c'); if (cv) cv.innerHTML = frac == null || !COVER[layer] ? '' : frac === 0 ? `${COVER[layer]}: none on this tile${layer === 'sun' || layer === 'earth' ? ' at this time' : ''}` : `${COVER[layer]}: <span class="n">${(frac * 100).toFixed(frac < 0.01 ? 2 : 1)} %</span> of the tile`; $('lg-t').textContent = v.title; $('lg-b').style.background = v.bar;
   $('lg-a').textContent = layer === 'elevation' ? `${fmt(L.hmin - h0)} m` : v.a; $('lg-z').textContent = layer === 'elevation' ? `+${fmt(L.hmax - h0)} m` : v.z;
   $('lg-p').textContent = layer === 'hazard' ? `MODELLED · ${L.hazard_source}${/backup/.test(L.hazard_source) ? ' (the hazard U-Net replaces it when its checkpoint is loaded)' : ''}` : v.prov;
 }
@@ -351,4 +353,6 @@ async function boot() {
 }
 function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); }
 loop(); boot().catch((e) => { $('wait').textContent = 'Could not load the layers: ' + (e.message || e); console.error(e); });
-window.__wall = { get L() { return L; }, setTime, paint, setLayer: (k) => { layer = k; for (const x of lw.children) x.classList.toggle('on', x.textContent === LAYERS[k].name); paint(); } };
+// Data layers exist only on the landing tile (a few km), which is a dot from the pole or Moon views: picking one flies to the site.
+function chooseLayer(k) { layer = k; for (const x of lw.children) x.classList.toggle('on', x.textContent === LAYERS[k].name); paint(); if (k !== 'imagery' && globe.mode !== 'site') fly('site'); }
+window.__wall = { get L() { return L; }, setTime, paint, setLayer: chooseLayer };

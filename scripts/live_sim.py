@@ -1,7 +1,8 @@
 """Live simulator: the full Basilisk mission (basilisk_mods.mission) run in real time with time warp, driven from the operator
 console, streamed to Mission Control, the 3D view and (optionally) Vizard.
 
-    python -m lunar_ops.server --port 8600          # terminal 1: Mission Control, 3D view, AI view
+    python -m scripts.mission_control --warp 25     # one command: server + simulator, every screen on one localhost
+    python -m lunar_ops.server --port 8600          # or by hand, terminal 1: Mission Control, 3D view, AI view
     python -m scripts.live_sim                      # terminal 2: the simulator (connects to /ws/ingest)
     python -m scripts.live_sim --live-viz           # also stream to Vizard (start Vizard with -directComm tcp://localhost:5556)
 

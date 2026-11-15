@@ -26,3 +26,14 @@
 .adb .live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #235347; margin-right: 7px; vertical-align: 2px; }
 .adb .live.on { background: #8EB69B; box-shadow: 0 0 10px #8EB69B; animation: adb-blink 2s ease-in-out infinite; }
 @keyframes adb-blink { 50% { opacity: .35; } }
+/* Screens menu: one server, every screen one click away. Plain text rows, no pills. */
+.adb .nav { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid #235347; background: #000000;
+  color: #FFFFFF; font: 600 13px "Instrument Sans", -apple-system, sans-serif; letter-spacing: .04em; cursor: pointer; transition: border-color .25s, background .25s; }
+.adb .nav:hover, .adb .nav[aria-expanded="true"] { border-color: #8EB69B; background: #0B2B26; }
+.adb .nav i { width: 7px; height: 7px; border-right: 1.5px solid #8EB69B; border-bottom: 1.5px solid #8EB69B; transform: rotate(45deg) translateY(-2px); }
+.adb-menu { position: fixed; z-index: 1000; width: 320px; padding: 6px; border-radius: 14px; background: #000000; border: 1px solid #235347; box-shadow: 0 18px 50px rgba(0,0,0,.7);
+  font-family: "Instrument Sans", -apple-system, sans-serif; animation: adb-drop .18s ease-out; }
+@keyframes adb-drop { from { opacity: 0; transform: translateY(-4px); } }
+.adb-menu a { display: block; padding: 9px 12px; border-radius: 9px; color: #FFFFFF; text-decoration: none; }
+.adb-menu a b { display: block; font-size: 14px; font-weight: 600; } .adb-menu a span { display: block; font-size: 12px; color: rgba(255,255,255,.62); margin-top: 1px; }
+.adb-menu a:hover { background: #0B2B26; } .adb-menu a.on { box-shadow: inset 3px 0 0 #8EB69B; } .adb-menu a.on b { color: #8EB69B; }

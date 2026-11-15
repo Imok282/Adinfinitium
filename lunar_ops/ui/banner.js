@@ -13,11 +13,22 @@
     + '<ellipse cx="24" cy="24" rx="22" ry="8" fill="none" stroke="#DAF1DE" stroke-width="1.2" transform="rotate(-24 24 24)" stroke-dasharray="2 3"/>'
     + '<circle cx="43" cy="16" r="2.6" fill="#DAF1DE"><animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="18s" repeatCount="indefinite"/></circle></svg>';
   host.innerHTML = `<div class="mark"><span id="adb-logo">${MARK}</span><div class="word"><b>ADINFINITIUM</b><small>Lunar south pole · ${screen}</small></div></div>
+    <button class="nav" id="adb-nav" aria-haspopup="true" aria-expanded="false">Screens<i></i></button>
     <div class="sep"></div><div class="clk"><span class="k">UTC</span><span class="v n" id="adb-utc">—</span></div>
     <div class="clk"><span class="k">Mission time</span><span class="v n" id="adb-met">—</span></div><div class="sep"></div>
     <div class="clk"><span class="k"><span class="live" id="adb-live"></span>Phase</span><span class="v txt" id="adb-phase">Waiting for the simulator</span></div>
     <div class="clk"><span class="k">Time warp</span><span class="v n" id="adb-warp">—</span></div>
     <div class="lights" id="adb-lights"></div>`;
+  // Every screen is served by the one Mission Control server; this menu switches between them (same tab) or opens one in a new window.
+  const SCREENS = [['Mission control', '/', 'Telemetry, maps, charts, logs'], ['Mission wall', '/showcase/wall.html', 'Terrain, AI layers, flight data'],
+    ['3D + Vizard', '/showcase/duo.html', 'Our render next to Basilisk Vizard'], ['3D view', '/showcase/?live=1', 'Our 3D render on its own'],
+    ['Pilot brain', '/ai.html', 'What the AI sees, thinks and does'], ['Vehicles', '/showcase/vehicles.html', 'Lander, rover and propulsion module'], ['All screens', '/hub.html', 'Hub: open the wall, 3D and console screens']];
+  const here = location.pathname.replace(/index\.html$/, ''), menu = document.createElement('div'); menu.className = 'adb-menu'; menu.hidden = true;
+  menu.innerHTML = SCREENS.map(([n, u, d]) => `<a href="${u}" class="${u.split('?')[0] === here ? 'on' : ''}"><b>${n}</b><span>${d}</span></a>`).join('');
+  document.body.appendChild(menu);
+  const nav = document.getElementById('adb-nav'), toggle = (open) => { menu.hidden = !open; nav.setAttribute('aria-expanded', String(open));
+    if (open) { const r = nav.getBoundingClientRect(); menu.style.left = `${r.left}px`; menu.style.top = `${r.bottom + 8}px`; } };
+  nav.onclick = (e) => { e.stopPropagation(); toggle(menu.hidden); }; addEventListener('click', (e) => { if (!menu.contains(e.target)) toggle(false); }); addEventListener('keydown', (e) => { if (e.key === 'Escape') toggle(false); });
   fetch('/assets/brand/logo.svg', { method: 'HEAD' }).then((r) => { if (r.ok) document.getElementById('adb-logo').innerHTML = '<img src="/assets/brand/logo.svg" alt="">'; }).catch(() => {});
   const $ = (id) => document.getElementById(id);
   const PH = { DOCKED: 'Orbit · docked', SEPARATED: 'Orbit · separated', DEORBIT: 'Deorbit burn', COAST: 'Coast to 15 km', BRAKING: 'Braking', TERMINAL: 'Terminal descent', LANDED: 'Landed', ENDED: 'Run ended' };

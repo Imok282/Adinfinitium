@@ -89,6 +89,7 @@ button.sm { font-size: 12px; padding: 4px 11px; }
 #evlist div.fresh { animation: slidein .6s cubic-bezier(.16,1,.3,1) both; } @keyframes slidein { from { opacity: 0; transform: translateX(-18px); background: rgba(142,182,155,.15); } to { opacity: 1; transform: none; } }
 svg text { font-family: "Instrument Sans", sans-serif; }
 #wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 16px; pointer-events: none; z-index: 4; }
+#legend .cov { margin-top: 6px; font-size: 12.5px; color: #FFFFFF; } #legend .cov .n { color: #FFFFFF; }
 </style>
 <link rel="stylesheet" href="/banner.css">
 <link rel="stylesheet" href="/vendor/openui/openui-styles.css">
@@ -102,7 +103,7 @@ svg text { font-family: "Instrument Sans", sans-serif; }
   <div class="panel" id="terrain">
     <div class="ph">Landing site · terrain and AI layers <span id="site">—</span></div>
     <div id="layers"></div>
-    <div id="legend"><b id="lg-t">—</b><div class="bar" id="lg-b"></div><div class="ends"><span id="lg-a"></span><span id="lg-z"></span></div><div class="prov" id="lg-p"></div></div>
+    <div id="legend"><b id="lg-t">—</b><div class="bar" id="lg-b"></div><div class="ends"><span id="lg-a"></span><span id="lg-z"></span></div><div class="cov" id="lg-c"></div><div class="prov" id="lg-p"></div></div>
     <div id="timebar"><button class="sm" id="tplay">▶</button><span class="k">Light over the landing day</span><input type="range" id="tslider" min="0" max="0" value="0"><span class="n" id="ttime">—</span>
       <span class="k">Sun</span><span class="n" id="tsun">—</span><span class="k">Earth</span><span class="n" id="tearth">—</span><button class="sm" id="tlive">Live</button></div>
     <div id="readout"><span>LAT<b class="n" id="r-lat">—</b></span><span>LON<b class="n" id="r-lon">—</b></span><span>HEIGHT<b class="n" id="r-h">—</b></span><span>SLOPE<b class="n" id="r-s">—</b></span><span>HAZARD<b class="n" id="r-z">—</b></span><span>LIGHT<b id="r-l">—</b></span></div>

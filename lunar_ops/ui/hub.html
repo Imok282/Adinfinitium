@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026, Adinfinitium team
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Adinfinitium · All screens</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@font-face { font-family: "Instrument Sans"; src: url("vendor/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 400 700; }
+@font-face { font-family: "JetBrains Mono"; src: url("vendor/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #000000; color: #FFFFFF; font: 15px/1.45 "Instrument Sans", -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+.n { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+main { max-width: 1240px; margin: 0 auto; padding: 34px 32px 60px; }
+h1 { font-size: 30px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.lead { color: rgba(255,255,255,.62); margin: 6px 0 26px; }
+.status { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid #235347; border-radius: 16px; margin-bottom: 26px; }
+.status .dot { width: 10px; height: 10px; border-radius: 50%; background: #235347; flex: none; } .status.on .dot { background: #8EB69B; box-shadow: 0 0 10px #8EB69B; }
+.status code { font-family: "JetBrains Mono", monospace; color: #8EB69B; }
+h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #8EB69B; font-weight: 600; margin: 30px 0 12px; }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { display: block; padding: 20px 22px; border: 1px solid #235347; border-radius: 18px; color: #FFFFFF; text-decoration: none; background: #000000; transition: border-color .25s, background .25s, transform .25s; }
+.card:hover { border-color: #8EB69B; background: #051F20; transform: translateY(-2px); }
+.card .k { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.62); }
+.card b { display: block; font-size: 19px; font-weight: 600; margin: 6px 0 4px; }
+.card p { margin: 0; color: rgba(255,255,255,.62); font-size: 14px; }
+.card .u { margin-top: 12px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: #8EB69B; }
+.row { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+button { font: 600 14px "Instrument Sans", sans-serif; color: #000000; background: #8EB69B; border: 0; border-radius: 12px; padding: 11px 18px; cursor: pointer; }
+button:hover { background: #DAF1DE; }
+.note { color: rgba(255,255,255,.62); font-size: 13px; }
+</style>
+<link rel="stylesheet" href="banner.css">
+</head>
+<body>
+<div id="adb" data-screen="All screens"></div>
+<main>
+  <h1>All screens</h1>
+  <div class="lead">Every screen runs from this one server, and all of them follow the same live Basilisk simulation.</div>
+  <div class="status" id="status"><span class="dot"></span><span id="stxt">Checking for a running simulation…</span></div>
+
+  <h2>Three-screen layout</h2>
+  <div class="three">
+    <a class="card" href="/showcase/wall.html" target="adf-left"><div class="k">Left screen</div><b>Mission wall</b><p>Landing site terrain with the AI and light layers, flight data, vehicle and events.</p><div class="u">/showcase/wall.html</div></a>
+    <a class="card" href="/showcase/duo.html" target="adf-centre"><div class="k">Centre screen</div><b>3D + Vizard</b><p>Our three-dimensional render next to Basilisk Vizard, live.</p><div class="u">/showcase/duo.html</div></a>
+    <a class="card" href="/" target="adf-right"><div class="k">Right screen</div><b>Mission control</b><p>Telemetry, maps, charts, ghosts and the log, with the run controls.</p><div class="u">/</div></a>
+  </div>
+  <div class="row"><button id="openall">Open all three in new windows</button><span class="note" id="popnote">Drag each window to its screen and press F11 (Ctrl+Cmd+F on a Mac) for full screen.</span></div>
+
+  <h2>More screens</h2>
+  <div class="grid">
+    <a class="card" href="/ai.html"><div class="k">AI</div><b>Pilot brain</b><p>What the AI pilot sees, how its eight layers attend, and what it commands.</p><div class="u">/ai.html</div></a>
+    <a class="card" href="/showcase/?live=1"><div class="k">3D</div><b>3D view</b><p>Our render on its own: orbit, separation, descent and the surface.</p><div class="u">/showcase/?live=1</div></a>
+    <a class="card" href="/showcase/vehicles.html"><div class="k">Models</div><b>Vehicles</b><p>The team's lander, rover and propulsion module in a studio view.</p><div class="u">/showcase/vehicles.html</div></a>
+  </div>
+</main>
+<script src="banner.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  // the three layout windows open from one click; a browser may allow only the first unless pop-ups are allowed for this site
+  $('openall').onclick = () => {
+    const w = [['/showcase/wall.html', 'adf-left'], ['/showcase/duo.html', 'adf-centre'], ['/', 'adf-right']].map(([u, n], i) => window.open(u, n, `popup,width=1280,height=760,left=${40 + i * 60},top=${40 + i * 40}`));
+    if (w.some((x) => !x)) $('popnote').textContent = 'The browser blocked some windows: allow pop-ups for this site, or open each card above.';
+  };
+  let last = 0; const show = () => { const live = Date.now() - last < 3000; $('status').classList.toggle('on', live);
+    $('stxt').innerHTML = live ? 'Simulation running: every screen is live.' : 'No simulation running. Start everything with <code>python -m scripts.mission_control</code>, or only the simulator with <code>python -m scripts.live_sim</code>.'; };
+  (function connect() { const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/ui`);
+    ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'frame' && m.utc) last = Date.now(); }; ws.onclose = () => setTimeout(connect, 1500); })();
+  show(); setInterval(show, 1000);
+})();
+</script>
+</body>
+</html>
