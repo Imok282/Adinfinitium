@@ -23,6 +23,7 @@ import argparse
 import asyncio
 import importlib
 import json
+import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -301,6 +302,30 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
                 except json.JSONDecodeError:
                     continue  # a partially written last line is expected while training runs
         return {"path": "runs/rover/train_log.jsonl", "rows": rows}
+
+    @app.get("/api/dream")
+    def dream() -> dict[str, Any]:
+        """Dream-RSI history of the pilot and the planner (``<ADI_DATA>/{pilot,planner}_dream/``), read as written; empty if absent."""
+        root = Path(os.environ.get("ADI_DATA", Path(__file__).resolve().parents[1] / "data")).expanduser()
+        out: dict[str, Any] = {}
+        for kind in ("pilot", "planner"):
+            d = root / f"{kind}_dream"
+            rows: list[dict[str, Any]] = []
+            hist = d / "history.jsonl"
+            if hist.is_file():
+                for line in hist.read_text(encoding="utf-8").splitlines()[-200:]:
+                    try:
+                        rows.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue  # a partially written last line is expected while a dream runs
+            state = None
+            if (d / "state.json").is_file():
+                try:
+                    state = json.loads((d / "state.json").read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    state = None
+            out[kind] = {"path": f"{kind}_dream/history.jsonl", "state": state, "rows": rows}
+        return out
 
     @app.get("/api/ghosts")
     def ghost_list() -> list[dict[str, Any]]:

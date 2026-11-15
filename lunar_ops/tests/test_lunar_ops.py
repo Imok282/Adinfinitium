@@ -215,6 +215,22 @@ def test_training_endpoint_returns_rows_list() -> None:
     assert isinstance(body["rows"], list) and body["path"].endswith("train_log.jsonl")
 
 
+def test_dream_endpoint_reads_history_as_written(tmp_path, monkeypatch) -> None:
+    """/api/dream returns the pilot and planner Dream-RSI history unchanged, skips a half-written line, and is empty without data."""
+    import json
+
+    d = tmp_path / "pilot_dream"
+    d.mkdir()
+    row = {"generation": 1, "exam_success_before": 0.91, "exam_success_candidate": 0.93, "accepted": True}
+    (d / "history.jsonl").write_text(json.dumps(row) + "\n" + '{"generation": 2, "exam_succ', encoding="utf-8")
+    (d / "state.json").write_text(json.dumps({"generation": 1, "accepted": 1, "rejected": 0}), encoding="utf-8")
+    monkeypatch.setenv("ADI_DATA", str(tmp_path))
+    with TestClient(create_app(seed=1, record=False)) as client:
+        body = client.get("/api/dream").json()
+    assert body["pilot"]["rows"] == [row] and body["pilot"]["state"]["accepted"] == 1
+    assert body["planner"]["rows"] == [] and body["planner"]["state"] is None
+
+
 def test_ui_is_two_dimensional_only() -> None:
     """The served mission-control page loads no 3D engine (3D is left to Basilisk / Vizard); only 2D chart libraries are vendored."""
     from pathlib import Path

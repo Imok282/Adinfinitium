@@ -34,6 +34,7 @@ from contracts.tiles import load_tile
 from worldmodel.lander.live import LivePilot, PilotState, camera_png_array
 from worldmodel.lander.terrain import safe_target_cells, terrain_from_tile
 
+VIZ_MODEL = Path(__file__).resolve().parents[1] / "lunar_ops" / "vizard" / "assets" / "lander_B.obj"  # colours via PNG textures
 N_ENGINES_NOTE = "engine index 0 = centre, 1..4 = outer (+x, +y, -x, -y body); lander_B nodes engine_centre, engine_outer0..3"
 
 
@@ -184,7 +185,7 @@ def main() -> None:
         report = scenario_descent.run(a.id, a.alt, a.offset_east, a.offset_north, a.v_down, engine_out_at=a.engine_out_at,
                                       viz=False, live_viz=a.live_viz, command_fn=None if pilot is None else command,
                                       ground_height_fn=ground_height,
-                                      on_step=on_step, rtf=a.rtf or None)
+                                      on_step=on_step, rtf=a.rtf or None, viz_model=VIZ_MODEL if VIZ_MODEL.exists() else None)
         msg = f"Touchdown {report['outcome']}" if "vertical_speed_m_s" in report else f"Run ended: {report['outcome']}"
         if "vertical_speed_m_s" in report:
             msg += f": vertical {report['vertical_speed_m_s']:.2f} m/s, horizontal {report['horizontal_speed_m_s']:.2f} m/s, " \

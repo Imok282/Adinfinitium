@@ -313,10 +313,31 @@ P.env = {
       + row('Local gravity', `${MC.GRAVITY_MOON} m/s²`, 'constant') + row('Earth–Moon distance', `${MC.EARTH_MOON_KM.toLocaleString()} km`, 'mean') + row('One-way light time', `${MC.LIGHT_TIME_S} s`, 'constant');
   },
 };
-P.ai = {
-  title: 'AI stack', src: 'feed', dom: true,
+P.dream = {
+  title: 'Dream-RSI · self-improvement', src: 'training log', dom: true,
   html() {
-    const M = MC.S.models || []; return '<table class="tbl"><tr><th>Model</th><th>Type</th><th>Job</th><th>Owner</th><th>Status</th></tr>' + M.map((m) => `<tr><td><b>${esc(m.name)}</b></td><td>${esc(m.kind)}${m.params ? ' · ' + (m.params >= 1e6 ? (m.params / 1e6).toFixed(1) + 'M' : Math.round(m.params / 1e3) + 'k') : ''}</td><td>${esc(m.role)}</td><td>${esc(m.owner || '—')}</td><td class="st-${m.status === 'attached' ? 'sampled' : m.status === 'fallback' ? 'drilling' : 'open'}">${esc(m.status)}${m.fallback && m.status === 'fallback' ? ' → ' + esc(m.fallback) : ''}</td></tr>`).join('') + '</table>';
+    const D = MC.S.dream; if (!D) return '<div class="msg">Reading the Dream-RSI history…</div>';
+    const pct = (v) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '–'), br = (v) => (typeof v === 'number' ? v.toFixed(4) : '–');
+    const spark = (rows, a, b, lowerBetter) => { // score before (dim) and of the candidate (blue: accepted, orange: rejected), per generation
+      const R = rows.filter((r) => typeof r[a] === 'number' && typeof r[b] === 'number'); if (R.length < 2) return '';
+      const vs = R.flatMap((r) => [r[a], r[b]]), lo = Math.min(...vs), hi = Math.max(...vs), W = 300, H = 46, X = (i) => 6 + i / (R.length - 1) * (W - 12), Y = (v) => { let t = hi > lo ? (v - lo) / (hi - lo) : 0.5; if (lowerBetter) t = 1 - t; return H - 6 - t * (H - 12); }; // up = better
+      const line = R.map((r, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(r[a]).toFixed(1)}`).join('');
+      return `<svg width="${W}" height="${H}" style="display:block;margin:4px 0 2px"><path d="${line}" fill="none" stroke="#5d6b87" stroke-width="1.6"/>` + R.map((r, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(r[b]).toFixed(1)}" r="3.2" fill="${r.accepted ? '#8db9ff' : '#ffa566'}"/>`).join('') + '</svg>';
+    };
+    const block = (kind, title, what, a, b, fmt, lowerBetter, practised) => {
+      const K = D[kind] || {}, rows = K.rows || [], st = K.state;
+      if (!rows.length) return `<div class="srow"><span><b>${title}</b> · ${what}</span><em>no dreams yet</em></div><div class="note">No history on this machine (data/${esc(K.path || kind + '_dream/history.jsonl')}). It appears here as soon as a dream runs or the file is copied in.</div>`;
+      const acc = st ? st.accepted : rows.filter((r) => r.accepted).length, rej = st ? st.rejected : rows.filter((r) => 'accepted' in r && !r.accepted).length, gen = st ? st.generation : rows.length;
+      return `<div class="srow"><span><b>${title}</b> · ${what}</span><b class="num">${gen}</b><em>generations</em><b class="num" style="color:var(--blue-l)">${acc}</b><em>accepted</em><b class="num" style="color:var(--orange)">${rej}</b><em>rejected</em></div>`
+        + spark(rows, a, b, lowerBetter)
+        + '<table class="tbl"><tr><th>Gen</th><th>Practised</th><th>Before</th><th>Candidate</th><th>Result</th></tr>' + rows.slice(-4).reverse().map((r) => r.error
+          ? `<tr class="bad"><td class="num">${r.generation}</td><td colspan="3">dream failed, production model untouched</td><td>error</td></tr>`
+          : `<tr><td class="num">${r.generation}</td><td>${esc(practised(r))}</td><td class="num">${fmt(r[a])}</td><td class="num">${fmt(r[b])}</td><td class="${r.accepted ? 'ok' : 'bad'}">${r.accepted ? 'accepted' : 'rejected, kept old'}</td></tr>`).join('') + '</table>';
+    };
+    return '<div class="note" style="margin:0 0 6px">Offline recursive self-improvement: find where the model fails, practise exactly that in the physics twin, and keep the new version only if it beats the old one on a frozen exam it never trains on. It cannot get worse.</div>'
+      + block('pilot', 'Lander pilot', 'exam success, higher is better', 'exam_success_before', 'exam_success_candidate', pct, false, (r) => `failures ×${r.fail_boost ?? '?'}, ${r.dream_minutes ?? '?'} min`)
+      + '<div style="height:8px"></div>'
+      + block('planner', 'Mission planner', 'validation Brier score, lower is better', 'val_brier_before', 'val_brier_after', br, true, (r) => `${r.world || '?'} · ${r.missions_simulated ?? '?'} missions`);
   },
 };
 P.prov = {

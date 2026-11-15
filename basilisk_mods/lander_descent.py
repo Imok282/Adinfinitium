@@ -91,14 +91,8 @@ class DescentGuidance(sysModel.SysModel):
         self.attRefOutMsg.write(messaging.AttRefMsgPayload())
         self.thrOnTimeOutMsg.write(messaging.THRArrayOnTimeCmdMsgPayload())
 
-    def UpdateState(self, CurrentSimNanos):
-        t_s = CurrentSimNanos * macros.NANO2SEC
-        st = self.scStateInMsg()
-        r = np.array(st.r_BN_N)
-        v = np.array(st.v_BN_N)
-        sigma_BN = np.array(st.sigma_BN)
-        mass = self.mass_fn()
-
+    def apply_failures(self, t_s: float) -> None:
+        """Engine-out injection (also used by the full-mission guidance in every phase)."""
         if self.engine_out_at_s is not None and t_s >= self.engine_out_at_s and self.engines_ok.all():
             i = self.engine_out_index
             self.engines_ok[i] = False
@@ -107,6 +101,16 @@ class DescentGuidance(sysModel.SysModel):
                 self.engines_ok[OPPOSITE[i]] = False
                 self.decisions.append((t_s, (f"shut down opposite engine {OPPOSITE[i]} for balance -> "
                                             f"{self.engines_ok.sum()} engines")))
+
+    def UpdateState(self, CurrentSimNanos):
+        t_s = CurrentSimNanos * macros.NANO2SEC
+        st = self.scStateInMsg()
+        r = np.array(st.r_BN_N)
+        v = np.array(st.v_BN_N)
+        sigma_BN = np.array(st.sigma_BN)
+        mass = self.mass_fn()
+
+        self.apply_failures(t_s)
 
         rho = r - self.target_N
         h_above_target = float(np.dot(rho, self.up))
@@ -185,7 +189,7 @@ class DescentGuidance(sysModel.SysModel):
 
 
 def build_lander(sim, cfg: MissionConfig, r0_N, v0_N, target_N, dyn_task="dynTask", fsw_task="fswTask",
-                 control_period_s=0.2, propellant_kg: float | None = None):
+                 control_period_s=0.2, propellant_kg: float | None = None, viz_earth: bool = False):
     """Create the lander + all modules and wire the messages. Returns a dict of handles."""
     sc = spacecraft.Spacecraft()
     sc.ModelTag = "lander"
@@ -196,7 +200,7 @@ def build_lander(sim, cfg: MissionConfig, r0_N, v0_N, target_N, dyn_task="dynTas
     up = np.asarray(r0_N) / np.linalg.norm(r0_N)
     sc.hub.sigma_BNInit = mrp_with_z_along(up).tolist()
     sim.AddModelToTask(dyn_task, sc)
-    _, mu = add_moon_gravity(sc)
+    _, mu = add_moon_gravity(sc, viz_earth=viz_earth)
 
     # engines
     thr_eff = thrusterDynamicEffector.ThrusterDynamicEffector()

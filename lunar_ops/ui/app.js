@@ -24,7 +24,7 @@ const LAYOUTS = {
   power: ['Power · Thermal', [['flow', 1, 4, 1, 6], ['budget', 5, 8, 1, 6], ['thermal', 9, 12, 1, 6], ['runtl', 1, 8, 7, 12], ['wheels', 9, 12, 7, 9], ['env', 9, 12, 10, 12]]],
   comms: ['Comms · Sky', [['link', 1, 4, 1, 6], ['sky', 5, 8, 1, 6], ['skytr', 9, 12, 1, 6], ['gantt', 1, 12, 7, 9], ['env', 1, 6, 10, 12], ['stats', 7, 12, 10, 12]]],
   terrain: ['Terrain · Ice', [['map', 1, 6, 1, 9], ['targets', 7, 12, 1, 6], ['hist', 7, 12, 7, 9], ['profile', 1, 6, 10, 12], ['scatter', 7, 12, 10, 12]]],
-  ai: ['AI · Systems', [['ai', 1, 6, 1, 5], ['policy', 7, 12, 1, 5], ['train', 1, 6, 6, 9], ['status', 7, 12, 6, 9], ['prov', 1, 6, 10, 12], ['log', 7, 12, 10, 12]]],
+  ai: ['AI · Systems', [['dream', 1, 6, 1, 5], ['policy', 7, 12, 1, 5], ['train', 1, 6, 6, 9], ['status', 7, 12, 6, 9], ['prov', 1, 6, 10, 12], ['log', 7, 12, 10, 12]]],
   ghosts: ['Ghosts', [['ghostmap', 1, 7, 1, 8], ['ghostctl', 1, 7, 9, 10], ['ghostz', 1, 7, 11, 12], ['ghostruns', 8, 12, 1, 6], ['ghostdrop', 8, 12, 7, 12]]],
   log: ['Log', [['log', 1, 12, 1, 12]]],
 };
@@ -158,6 +158,7 @@ function connectLive(url) {
   });
 }
 function send(o) { if (S.ws && S.ws.readyState === 1) S.ws.send(JSON.stringify(o)); }
+async function loadDream() { try { const r = await fetch('/api/dream'); S.dream = r.ok ? await r.json() : { pilot: {}, planner: {} }; S.dirty = true; } catch (e) { S.dream = { pilot: {}, planner: {} }; S.dirty = true; } }
 async function loadTraining() { try { const r = await fetch('/api/training'); if (r.ok) { S.training = await r.json(); S.dirty = true; } } catch (e) { /* static hosting: no endpoint */ } }
 
 // ---------------------------------------------------------------- animated clocks (NumberFlow) and colour mode
@@ -194,7 +195,7 @@ function frameLoop(now) {
 }
 addEventListener('resize', () => { S.dirty = true; });
 if (document.fonts) { document.fonts.load('13px "Instrument Sans"'); document.fonts.load('500 12px "JetBrains Mono"'); document.fonts.ready.then(() => { S.dirty = true; S.domDirty = true; }); }
-MC.showTab(Q.get('tab') || location.hash.slice(1) || 'wall'); requestAnimationFrame(frameLoop); loadTraining(); MC.ghostLoadSaved(true);
+MC.showTab(Q.get('tab') || location.hash.slice(1) || 'wall'); requestAnimationFrame(frameLoop); loadTraining(); loadDream(); setInterval(loadDream, 30000); MC.ghostLoadSaved(true);
 (async () => {
   const explicit = Q.get('ws'), auto = location.protocol.startsWith('http') ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/ui` : null, url = explicit || (Q.get('replay') ? null : auto);
   if (url && await connectLive(url)) return; await tryReplay();

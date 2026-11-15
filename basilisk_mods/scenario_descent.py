@@ -38,7 +38,7 @@ def target_point_N(lat_deg=TARGET_LAT_DEG, lon_deg=TARGET_LON_DEG, height_m=0.0)
 
 def run(run_id="demo", alt=2000.0, offset_east=300.0, offset_north=-200.0, v_down=45.0, v_east=10.0,
         engine_out_at=None, viz=True, max_time=300.0, command_fn=None, ground_height_fn=None, on_step=None,
-        rtf=None, live_viz=False) -> dict:
+        rtf=None, live_viz=False, viz_model=None) -> dict:
     """Fly one descent. Optional live hooks (all default off, so the plain run is unchanged):
 
     command_fn        outside pilot, see ``DescentGuidance.command_fn`` (classic backup on any error)
@@ -46,6 +46,7 @@ def run(run_id="demo", alt=2000.0, offset_east=300.0, offset_north=-200.0, v_dow
     on_step           f(t_s, handles, guidance, state_msg_payload, target_N, (E, N, U)) called every control period
     rtf               real-time factor: 1.0 = wall clock, None = as fast as possible
     live_viz          stream to a running Vizard (liveStream) instead of only writing the playback file
+    viz_model         OBJ file drawn for the lander in Vizard (body frame: z up, +x front); default Vizard spacecraft
     """
     import time
 
@@ -57,15 +58,23 @@ def run(run_id="demo", alt=2000.0, offset_east=300.0, offset_north=-200.0, v_dow
     E, N, U = local_frame(tgt)
     r0 = tgt + alt * U + offset_east * E + offset_north * N
     v0 = -v_down * U + v_east * E
-    h = build_lander(sim, cfg, r0, v0, tgt, control_period_s=ctrl_dt)
+    h = build_lander(sim, cfg, r0, v0, tgt, control_period_s=ctrl_dt, viz_earth=bool(viz or live_viz))
     guid = h["guidance"]
     guid.engine_out_at_s = engine_out_at
     guid.command_fn = command_fn
     if ground_height_fn is not None:
         guid.ground_height_fn = ground_height_fn
     if viz or live_viz:
-        vizSupport.enableUnityVisualization(sim, "dynTask", h["sc"], saveFile=str(out_dir() / f"descent_{run_id}"),
-                                            thrEffectorList=[h["engines"]], liveStream=bool(live_viz))
+        viz = vizSupport.enableUnityVisualization(sim, "dynTask", h["sc"], saveFile=str(out_dir() / f"descent_{run_id}"),
+                                                  thrEffectorList=[h["engines"]], liveStream=bool(live_viz))
+        if viz_model:
+            vizSupport.createCustomModel(viz, modelPath=str(viz_model), simBodiesToModify=[h["sc"].ModelTag])
+        viz.settings.mainCameraTarget = h["sc"].ModelTag
+        viz.settings.forceStartAtSpacecraftLocalView = 1
+        viz.settings.showSpacecraftLabels = 1
+        viz.settings.showMissionTime = 1
+        viz.settings.ambient = 0.3  # [-] fill light: no Sun ephemeris in this starter
+        viz.settings.spacecraftShadowBrightness = 0.35  # [-]
     sim.InitializeSimulation()
 
     rows, t, report = [], 0.0, None

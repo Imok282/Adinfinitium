@@ -39,11 +39,32 @@ def new_sim(tasks: dict[str, float]):
     return sim
 
 
-def add_moon_gravity(spacecraft_obj):
-    """Point-mass Moon gravity at the origin. Returns (gravFactory, mu)."""
+EARTH_MEAN_DISTANCE_M = 384400.0e3  # [m] mean Earth-Moon distance
+_VIZ_KEEP = []  # message payloads must outlive the simulation
+
+
+def add_moon_gravity(spacecraft_obj, viz_earth: bool = False):
+    """Point-mass Moon gravity at the origin. Returns (gravFactory, mu).
+
+    ``viz_earth`` adds the Earth for DRAWING ONLY: Vizard 2.4 cannot draw a scene whose only planet is the Moon (it errors in
+    GetAbsolutePlanetPositionUnityCS). Its gravity is switched off (mu = 0) because this starter keeps the Moon fixed, so a real
+    Earth pull would be an uncompensated force on the lander. Fixed position at the mean distance along +x of the frame.
+    """
     grav = simIncludeGravBody.gravBodyFactory()
     moon = grav.createMoon()
     moon.isCentralBody = True
+    if viz_earth:
+        from Basilisk.architecture import messaging
+
+        earth = grav.createEarth()
+        earth.mu = 0.0  # [m^3/s^2] drawn, not pulling
+        st = messaging.SpicePlanetStateMsgPayload()
+        st.PlanetName = "earth"
+        st.PositionVector = [EARTH_MEAN_DISTANCE_M, 0.0, 0.0]  # [m]
+        st.J20002Pfix = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+        msg = messaging.SpicePlanetStateMsg().write(st)
+        earth.planetBodyInMsg.subscribeTo(msg)
+        _VIZ_KEEP.extend([st, msg])
     grav.addBodiesTo(spacecraft_obj)
     return grav, moon.mu
 
