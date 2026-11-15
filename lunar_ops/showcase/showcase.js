@@ -405,13 +405,17 @@ function hud(c) {
 // ------------------------------------------------------------------------------------------------ live mode (?live=1): follow the Basilisk run
 // Frames arrive from Mission Control's /ws/ui (relayed from scripts/live_mission.py, 5 per second). The view is drawn 0.3 s behind
 // the newest frame and interpolated, so motion stays smooth. Position, attitude and each engine's throttle come from Basilisk.
-const LIVE = { on: Q.get('live') === '1', buf: [], seen: 0, landed: null, phase: '' };
+const LIVE = { on: Q.get('live') === '1', buf: [], orb: [], kind: 'surface', seen: 0, landed: null, phase: '', last: null };
 const C_SCENE_ENU = new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1); // (east, north, up) -> scene (x, y up, -z north)
 const M_BODY_GLTF = new THREE.Matrix4().set(0, 0, -1, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1); // model (Y up, front -Z) -> body (Z up, front +X)
 function liveConnect() {
   const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/ui`);
-  ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type !== 'frame') return;
-    if (m.lander && m.lander.q_enu) { if (LIVE.buf.length && m.t_s < LIVE.buf[LIVE.buf.length - 1].t_s) LIVE.buf = []; LIVE.buf.push({ t_s: m.t_s, l: m.lander, at: performance.now() / 1000 }); if (LIVE.buf.length > 60) LIVE.buf.shift(); LIVE.seen = performance.now() / 1000; LIVE.landed = null; }
+  ws.onerror = () => { LIVE.err = 'ws error'; };
+  ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type !== 'frame') return; LIVE.last = m;
+    if (m.orbit && (m.mission_phase === 'ORBIT' || m.mission_phase === 'DEORBIT')) { // the whole mission flown by Basilisk
+      if (LIVE.orb.length && m.t_s < LIVE.orb[LIVE.orb.length - 1].t_s) LIVE.orb = [];
+      LIVE.orb.push({ t_s: m.t_s, f: m, at: performance.now() / 1000 }); if (LIVE.orb.length > 40) LIVE.orb.shift(); LIVE.kind = 'orbit'; LIVE.seen = performance.now() / 1000; LIVE.buf = []; LIVE.landed = null; return; }
+    if (m.lander && m.lander.q_enu) { LIVE.kind = 'surface'; if (LIVE.buf.length && m.t_s < LIVE.buf[LIVE.buf.length - 1].t_s) LIVE.buf = []; LIVE.buf.push({ t_s: m.t_s, l: m.lander, at: performance.now() / 1000 }); if (LIVE.buf.length > 60) LIVE.buf.shift(); LIVE.seen = performance.now() / 1000; LIVE.landed = null; }
     if (m.phase === 'TOUCHDOWN') { LIVE.landed = LIVE.buf[LIVE.buf.length - 1] || null; LIVE.seen = performance.now() / 1000; }
     LIVE.phase = m.phase || LIVE.phase; };
   ws.onclose = () => setTimeout(liveConnect, 1500);
@@ -423,6 +427,37 @@ function liveSample() { // interpolated lander state 0.3 s behind the newest fra
   for (const k in b.l) o[k] = typeof a.l[k] === 'number' ? lerp(a.l[k], b.l[k], u) : b.l[k];
   const qa = new THREE.Quaternion(a.l.q_enu[1], a.l.q_enu[2], a.l.q_enu[3], a.l.q_enu[0]), qb = new THREE.Quaternion(b.l.q_enu[1], b.l.q_enu[2], b.l.q_enu[3], b.l.q_enu[0]);
   o.q = qa.slerp(qb, u); o.engine_throttle = b.l.engine_throttle; return o;
+}
+const RCS_EXHAUST_BODY = [[0.707, 0, -0.707], [0, -0.707, -0.707], [0, 0.707, -0.707], [0.707, 0, -0.707], [-0.707, 0, -0.707], [0, 0.707, -0.707], [0, -0.707, -0.707], [-0.707, 0, -0.707]]; // 3-axis layout (basilisk_mods/lander_geometry.py)
+const pmLive = { q: null };
+function updateLiveOrbit(dt, wall) {
+  // interpolate the two newest orbit frames (drawn 0.3 s behind) and put the lander at the origin, the Moon around it
+  const B = LIVE.orb, n = B.length; if (!n) return; const lastF = B[n - 1], nowSim = lastF.t_s + Math.min(performance.now() / 1000 - lastF.at, 0.5) * (lastF.f.sim?.warp || 1) - 0.3 * (lastF.f.sim?.warp || 1);
+  let i = n - 2; while (i > 0 && B[i].t_s > nowSim) i--; const a = B[Math.max(i, 0)].f, b = B[Math.min(i + 1, n - 1)].f, u = n > 1 ? clamp((nowSim - a.t_s) / ((b.t_s - a.t_s) || 1), 0, 1) : 1;
+  const lat = lerp(a.orbit.lat_deg, b.orbit.lat_deg, u), lonA = a.orbit.lon_deg, lonB = lonA + (((b.orbit.lon_deg - lonA + 540) % 360) - 180), lon = lerp(lonA, lonB, u), alt = lerp(a.orbit.alt_km, b.orbit.alt_km, u);
+  const P = llr(lat, lon, R_MOON + alt * 1000), up = P.clone().normalize(), east = new THREE.Vector3().crossVectors(Y, up).normalize(), north = new THREE.Vector3().crossVectors(up, east);
+  cam.wantUp.copy(up); moonGroup.position.copy(P).negate(); orbitEarth.position.copy(orbitEarth.userData.dir).multiplyScalar(EARTH_D).sub(P);
+  const toScene = (v) => new THREE.Vector3(v[0], v[2], -v[1]); if (b.sun_dir_P) orbitSun.dir.copy(toScene(b.sun_dir_P)).normalize(); if (b.earth_dir_P) orbitEarth.userData.dir.copy(toScene(b.earth_dir_P)).normalize();
+  orbitSun.place(new THREE.Vector3(), 200, 30);
+  const qa = new THREE.Quaternion(a.attitude.q_local[1], a.attitude.q_local[2], a.attitude.q_local[3], a.attitude.q_local[0]), qb = new THREE.Quaternion(b.attitude.q_local[1], b.attitude.q_local[2], b.attitude.q_local[3], b.attitude.q_local[0]), q = qa.slerp(qb, u);
+  const ENU = new THREE.Matrix4().makeBasis(east, north, up), R = new THREE.Matrix4().multiplyMatrices(ENU, new THREE.Matrix4().makeRotationFromQuaternion(q)).multiply(M_BODY_GLTF);
+  const docked = b.propulsion_module.docked; stack.visible = docked; landerOrbit.visible = !docked; pmHolder.visible = !docked;
+  if (docked) { stack.quaternion.setFromRotationMatrix(R); stack.position.set(0, 0, 0); models.stackLander.position.y = DOCK_Y; models.stackPM.position.y = 0; models.stackPM.rotation.z = 0; pmLive.q = stack.quaternion.clone(); }
+  else { landerOrbit.position.set(0, 0, 0); landerOrbit.quaternion.setFromRotationMatrix(R); const r = b.propulsion_module.rel_local_m; pmHolder.position.copy(east).multiplyScalar(r[0]).addScaledVector(north, r[1]).addScaledVector(up, r[2]).add(new THREE.Vector3().copy(up).multiplyScalar(0)); if (pmLive.q) pmHolder.quaternion.copy(pmLive.q); }
+  const th = b.attitude.engine_throttle || []; for (let k = 0; k < fx.orbitEngines.length; k++) fx.orbitEngines[k].set(docked ? 0 : (th[k] || 0), wall + k, dt); fx.pmEngine.set(0, wall, dt);
+  const host = docked ? models.stackLander : landerOrbit; host.updateMatrixWorld(true);
+  (b.attitude.rcs_on || []).forEach((on, k) => { if (!on || !models.rcsNoz?.[k]) return; const p = host.localToWorld(models.rcsNoz[k].clone()), d = new THREE.Vector3(...RCS_EXHAUST_BODY[k]).applyMatrix4(new THREE.Matrix4().copy(M_BODY_GLTF).transpose()).transformDirection(host.matrixWorld); fx.rcs.emit(p, d.multiplyScalar(2.6), 0.35, 0.7); });
+  fx.rcs.step(dt, 0.6);
+  // chase camera: behind and above the direction of flight, a little to the side; wide when docked
+  const v = new THREE.Vector3().subVectors(llr(b.orbit.lat_deg, b.orbit.lon_deg, R_MOON + b.orbit.alt_km * 1000), llr(a.orbit.lat_deg, a.orbit.lon_deg, R_MOON + a.orbit.alt_km * 1000)); const fwd = v.lengthSq() > 1e-6 ? v.projectOnPlane(up).normalize() : north;
+  const side = new THREE.Vector3().crossVectors(up, fwd), zf = S.zoom, d = (docked ? 26 : 18) * zf;
+  aim(fwd.clone().multiplyScalar(-d * 0.8).addScaledVector(side, d * 0.55).addScaledVector(up, d * 0.32), new THREE.Vector3(0, 0, 0), 0.05, dt); controls.target.set(0, 0, 0);
+  const tgo = b.vehicle.braking_tgo_s, ph = { DOCKED: 'Lunar orbit', SEPARATED: 'Separated', DEORBIT: 'Deorbit burn', COAST: 'Coast to 15 km', BRAKING: 'Braking' }[b.phase] || b.phase;
+  $('title-i').textContent = 'LIVE'; $('title-h').textContent = ph; $('title-p').textContent = 'Basilisk · SPICE ' + (b.utc || '');
+  const tin = b.t_s - (LIVE.phaseT0 ?? b.t_s); if (LIVE.phaseName !== b.phase) { LIVE.phaseName = b.phase; LIVE.phaseT0 = b.t_s; LIVE.phaseWall = performance.now() / 1000; }
+  const show = smooth(clamp((6 - (performance.now() / 1000 - LIVE.phaseWall)) / 1.5, 0, 1)); $('title').style.opacity = String(show); $('title').style.transform = 'none';
+  $('note').innerHTML = `<span class="num">LIVE</span> · ${ph} · <span class="num">${alt.toFixed(alt < 20 ? 2 : 1)} km</span> · <span class="num">${Math.round(b.orbit.speed_m_s).toLocaleString('en-US')} m/s</span> · <span class="num">${Math.round(b.orbit.ground_range_km).toLocaleString('en-US')} km</span> to site${tgo != null ? ` · <span class="num">${Math.round(tgo)} s</span> to gate` : ''} · warp <span class="num">${b.sim?.warp ?? 1}×</span>`;
+  document.body.classList.add('live'); void tin;
 }
 function updateLive(dt, wall) {
   cam.wantUp.set(0, 1, 0); const f = liveSample(); if (!f) return; const q = f.q || new THREE.Quaternion(f.q_enu[1], f.q_enu[2], f.q_enu[3], f.q_enu[0]);
@@ -457,8 +492,10 @@ function stepFade(dt) {
 }
 function tick(now) {
   requestAnimationFrame(tick); const dt = Math.min((now - last) / 1000, 0.05); last = now; wall += dt;
-  if (S.ready && LIVE.on && LIVE.buf.length && performance.now() / 1000 - LIVE.seen < 20) { // a live run is streaming (or just landed)
-    fadeTo(surf); stepFade(dt); updateLive(dt, wall); applyCamera(); if (S.cam === 'free') controls.update(); drawLabels(active);
+  if (S.ready && LIVE.on && (LIVE.buf.length || LIVE.orb.length) && performance.now() / 1000 - LIVE.seen < 20) { // a live run is streaming
+    const orbital = LIVE.kind === 'orbit'; fadeTo(orbital ? orbit : surf); stepFade(dt);
+    if (active === orbit && LIVE.orb.length) updateLiveOrbit(dt, wall); else if (active === surf && LIVE.buf.length) updateLive(dt, wall);
+    applyCamera(); if (S.cam === 'free') controls.update(); drawLabels(active);
     if (Q.get('debug')) document.title = JSON.stringify({ live: LIVE.buf.length, surf: active === surf, fade: +fade.a.toFixed(2), P: landerSurf.position.toArray().map((v) => +v.toFixed(1)), cam: camera.position.toArray().map((v) => +v.toFixed(1)) });
   } else if (S.ready) {
     if (S.playing) { S.T += dt; if (S.T >= S.total) S.T = 0; }
@@ -469,7 +506,7 @@ function tick(now) {
     if (active === orbit) updateOrbit(shown, shown === c ? u : 1, shown === c ? sim : CH[2].b, dt, wall);
     else if (shown.id === 'descent') updateDescent(shown, u, sim, dt, wall); else if (shown.id === 'surface') updateSurface(shown, u, sim, dt, wall); else if (shown.id === 'ghosts') updateGhosts(shown, u, sim, dt, wall); else updateDescent(CH[3], 0, CH[3].a, dt, wall);
     stepFade(dt); applyCamera(); if (S.cam === 'free') controls.update(); hud(c); drawLabels(active);
-    if (Q.get('debug')) document.title = JSON.stringify({ ch: c.id, u: +u.toFixed(3), cam: camera.position.toArray().map((v) => +v.toFixed(1)), fade: +fade.a.toFixed(2) });
+    if (Q.get('debug')) document.title = JSON.stringify({ live: [LIVE.on, LIVE.orb.length, LIVE.buf.length, LIVE.kind, +(performance.now() / 1000 - LIVE.seen).toFixed(1), LIVE.err || ''], ch: c.id, u: +u.toFixed(3), cam: camera.position.toArray().map((v) => +v.toFixed(1)), fade: +fade.a.toFixed(2) });
   }
   grade.uniforms.uTime.value = wall; if (renderPass.scene) composer.render(); else renderer.clear();
 }
@@ -528,7 +565,7 @@ async function boot() {
     const q = RV.curve.getPointAt(s0), d = new THREE.Vector3(q.x - L0.x, 0, q.z - L0.z).normalize(); landerYaw.setFromAxisAngle(Y, Math.atan2(d.z, -d.x)); RV.s0 = s0; }
   label(stack, 'Lander on the propulsion module', '', -3.4, { minD: 400 }); label(models.stackLander, 'Lander', '', 2.4, { maxD: 400 }); label(models.stackPM, 'Propulsion module', '', -1.4, { maxD: 400 });
   label(landerOrbit, 'Lander', '', 2.4); label(pmHolder, 'Propulsion module', '', 2.2); label(landerSurf, 'Lander', '', 2.6, { maxD: 1500 }); models.roverLabel = label(roverG, 'Rover', '', 1.0, { maxD: 600 });
-  const bells = nozzles(lander, /^engine_.*_bell$/), innerO = bellsOf(lOrbit), innerS = bellsOf(lSurf); models.landerRcsDown = nozzles(lander, /^rcs\d_nozzle$/).map((n) => n.p);
+  const bells = nozzles(lander, /^engine_.*_bell$/), innerO = bellsOf(lOrbit), innerS = bellsOf(lSurf); models.landerRcsDown = nozzles(lander, /^rcs\d_nozzle$/).map((n) => n.p); models.rcsNoz = nozzles(lander, /^rcs\d_nozzle$/).map((n) => n.p);
   bells.forEach((b, i) => { const e = makeEngine(innerO[i]); e.position.copy(b.p); landerOrbit.add(e); fx.orbitEngines.push(e); const d = makeEngine(innerS[i]); d.position.copy(b.p); landerSurf.add(d); fx.descent.push(d); });
   const pmB = nozzles(pm, /^pm_main_engine_bell$/)[0]; fx.pmEngine = makeEngine(); if (pmB) fx.pmEngine.position.copy(pmB.p); pmHolder.add(fx.pmEngine);
   fx.rcs = makePuffs(orbit, 160, PUFF, 0.35); fx.dust = makePuffs(surf, 1600, DUST, 2.0); fx.dust.mat.blending = THREE.NormalBlending; fx.dust.mat.opacity = 0.2;

@@ -653,6 +653,70 @@ class MissionSim:
     def utc(self) -> str:
         return (self.epoch + timedelta(seconds=self.t)).isoformat(timespec="seconds") + "Z"
 
+    MISSION_PHASE = {"DOCKED": "ORBIT", "SEPARATED": "ORBIT", "DEORBIT": "DEORBIT", "COAST": "DEORBIT", "BRAKING": "DEORBIT",
+                     "TERMINAL": "DESCENT", "LANDED": "LANDED", "ENDED": "DESCENT"}
+
+    def frame(self) -> dict:
+        """One telemetry frame (lunar_ops PROTOCOL 1b + live extensions). Positions Moon-fixed (MOON_PA) unless stated."""
+        st = self.lander.scStateOutMsg.read()
+        r, v = np.array(st.r_BN_N), np.array(st.v_BN_N)
+        PN = self.PN()
+        r_P = PN @ r
+        rn = float(np.linalg.norm(r))
+        up = r_P / rn
+        east = _unit(np.cross([0.0, 0.0, 1.0], up))
+        north = np.cross(up, east)
+        BN = np.array(rbk.MRP2C(np.array(st.sigma_BN)))
+        R_local = np.stack([east, north, up]) @ PN @ BN.T  # body -> local east/north/up at the lander
+        g = self.guid
+        mode = g.mode
+        rcs_on = [float(x) > 0.0 for x in self.firing.onTimeOutMsg.read().OnTimeRequest[:8]] if hasattr(self, "firing") else []
+        pm = self.pm.scStateOutMsg.read()
+        pm_rel = PN @ (np.array(pm.r_BN_N) - r)
+        sp = [np.array(self.spice.planetStateOutMsgs[i].read().PositionVector) for i in (0, 1)]
+        f = {"type": "frame", "t_s": round(self.t, 2), "utc": self.utc(), "mission_phase": self.MISSION_PHASE.get(mode, "ORBIT"),
+             "phase": mode, "control": "autonomy", "reason": "",
+             "orbit": {"lat_deg": float(np.degrees(np.arcsin(up[2]))), "lon_deg": float(np.degrees(np.arctan2(up[1], up[0]))),
+                       "alt_km": (rn - R_MOON_M) / 1e3, "speed_m_s": float(np.linalg.norm(v)), "orbit_no": int(self.t // (2 * np.pi / self.n_c)) + 1,
+                       "ground_range_km": self.ground_range(r) / 1e3, "periapsis_km": (periapsis_radius(r, v, self.mu) - R_MOON_M) / 1e3},
+             "attitude": {"q_local": _quat(R_local), "pointing_error_deg": g.last.get("pointing_error_deg"),
+                          "rcs_on": rcs_on, "engine_throttle": [round(float(x), 3) for x in self.actuation.throttles]},
+             "propulsion_module": {"rel_local_m": [float(pm_rel @ east), float(pm_rel @ north), float(pm_rel @ up)],
+                                   "distance_m": float(np.linalg.norm(pm_rel)), "docked": mode == "DOCKED"},
+             "vehicle": {"mass_kg": self.mass(), "fuel_kg": self.fuel(), "fuel_start_kg": float(self.cfg.lander.wet_mass_at_release_kg -
+                                                                                                 self.cfg.lander.dry_mass_kg),
+                         "thrust_n": float(g.last.get("thrust_n", 0.0)), "engines_ok": int(g.engines_ok.sum()),
+                         "braking_tgo_s": g.braking.get("tgo_s") if mode == "BRAKING" else None},
+             "sun_dir_P": _unit(PN @ sp[0]).tolist(), "earth_dir_P": _unit(PN @ sp[1]).tolist(),
+             "site": {"region": self.setup.region, "x_m": self.site.xy[0], "y_m": self.site.xy[1]}, "events": []}
+        if mode in ("TERMINAL", "LANDED", "ENDED"):
+            ex, ey, upt = self.tile_basis_N()
+            x, y, alt = self.site.tile_xy_alt(r_P)
+            R_tile = np.stack([ex, ey, upt]) @ BN.T  # body -> tile east/north/up
+            f["lander"] = {"x_m": x, "y_m": y, "alt_m": max(alt - 1.45, 0.0) if mode != "TERMINAL" else alt - 1.45,
+                           "vx_m_s": float(v @ ex), "vy_m_s": float(v @ ey), "vz_m_s": float(v @ upt), "mass_kg": self.mass(),
+                           "fuel_kg": self.fuel(), "thrust_n": float(g.last.get("thrust_n", 0.0)), "engines_ok": int(g.engines_ok.sum()),
+                           "q_enu": _quat(R_tile), "engine_throttle": [round(float(t), 3) for t in self.actuation.throttles],
+                           "source": g.last.get("source", "classic")}
+        return f
+
+
+def _quat(R) -> list[float]:
+    """Rotation matrix -> quaternion [w, x, y, z]."""
+    R = np.asarray(R, float)
+    w = np.sqrt(max(0.0, 1.0 + R[0, 0] + R[1, 1] + R[2, 2])) / 2.0
+    if w > 1e-6:
+        return [w, (R[2, 1] - R[1, 2]) / (4 * w), (R[0, 2] - R[2, 0]) / (4 * w), (R[1, 0] - R[0, 1]) / (4 * w)]
+    i = int(np.argmax(np.diag(R)))
+    j, k = (i + 1) % 3, (i + 2) % 3
+    sq = np.sqrt(max(0.0, 1.0 + R[i, i] - R[j, j] - R[k, k])) * 2.0
+    q = [0.0, 0.0, 0.0, 0.0]
+    q[0] = (R[k, j] - R[j, k]) / sq
+    q[1 + i] = sq / 4.0
+    q[1 + j] = (R[j, i] + R[i, j]) / sq
+    q[1 + k] = (R[k, i] + R[i, k]) / sq
+    return q
+
 
 def _rot(v, axis, ang):
     """Rotate v about the unit axis by ang [rad] (Rodrigues)."""

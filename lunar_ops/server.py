@@ -265,6 +265,12 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
                 if m.get("type") != "cmd":
                     continue
                 c = m.get("cmd")
+                if sess.ingest is not None:  # a live simulator is connected: it owns the commands (time warp, failures, ...)
+                    try:
+                        await sess.ingest.send_text(json.dumps(m))
+                    except Exception:  # noqa: BLE001 - producer gone; the ingest handler cleans up
+                        pass
+                    continue
                 if c == "play":
                     sess.playing = True
                 elif c == "pause":
@@ -379,7 +385,7 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
                 elif kind == "models":
                     sess.update_models(list(msg.get("models", [])))
                     await sess.broadcast(sess.models_message())
-                elif kind == "ai":  # pilot trace for the AI view (relayed as is)
+                elif kind in ("ai", "state", "sim"):  # pilot trace, play/pause state, simulator status: relayed as is
                     await sess.broadcast(msg)
         except WebSocketDisconnect:
             pass
