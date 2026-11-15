@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
 <link rel="stylesheet" href="css/research.css">
 <link rel="stylesheet" href="css/fig3d.css">
 <script type="importmap">
@@ -145,6 +146,10 @@
       <figcaption>Rover 0 on DM1: 3,261 m over 300 hours, reached its shadow-edge target (dark and cold, not confirmed ice) at hour 64 and ended 7.6 m from the lander with 89.8 Wh. Terrain: observed NASA LOLA 5 m, the rover's 2.56 km world, heights 2.5× exaggerated. Route and battery: simulated. Source: e2e test arrays via tools/export_fig3d_dm1.py.</figcaption>
     </figure>
 
+    <h3>Hour by hour: one v3.1 rover on DM1</h3>
+    <p>The recorded state of one rover, hour by hour: distance driven, battery, how much Sun it had and where it was. It shows what happened, not why the brain chose it.</p>
+    <div class="ex wide" id="ex-rover">Loading the route trace…</div>
+
     <h2>Why it still loses more than half</h2>
     <p>A diagnosis of v3's strict losses, made on development and validation sites before v3.1 was tested, found that the lander is dark for more than 50 hours in a row in 78% of the 300-hour windows, and 98% of the strict losses are such starts. With a 100 Wh battery, 2 W idle draw and a random landing hour, most of these losses probably cannot be planned away in this simulator. How many is a range, not one number: 8% of the losses are proven unavoidable (a loose bound), an energy-only estimate puts the unavoidable share near two thirds, and the upper limit is about 80%. Thermal limits on lit ground are not modelled.</p>
 
@@ -176,6 +181,7 @@
     <h2>Method &amp; data</h2>
     <p>All results are simulation on NASA LOLA 5 m terrain with physics illumination; "target" means a shadow-edge target, not confirmed ice. v3 and v3.1 were evaluated once, under rules written before their test numbers; every v3.1 number was re-derived by an independent checker.</p>
     <p class="src">Sources (hand-off records): records/SUBMISSION_SUMMARY.md sections 3, 3.1, 5, 6, 8; records/RESULTS_FOR_TEAM.md section 3.4 (rover v1 and the planners); records/ADDENDUM_AFTER_FREEZE.md sections 2.3 to 2.6 (rover v2 and its self-learning loop); records/rover_v3/ROVER_V3_REPORT.md and records/weak_flags/REPORT_rover.md (v3, both rules); records/rover_v31/ROVER_V31_REPORT.md, tables.md, eval.json (v3.1, section A and self-learning); records/rover_v31/COMPLETION_EARLY_LIGHT.md (8-hours-early completion run); records/rover_v31/diagnosis.md (unavoidable share); records/benchmarks/params_rover.png and params.json (parameter counts). Earlier development run: runs/ghosts_web/rover_lola5m_site23_2027-03-01.json, runs/ghosts/rover_lola5m_site23_2027-09-01.json, runs/ghosts/rover_lola5m_site06_2027-03-01.json, exported by website/tools/export_rover_stats.py to assets/data/rover_stats.json.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#rover">Methodology &amp; data →</a></p>
   </div>
 </article>
 </main>
@@ -258,5 +264,6 @@
 <script type="module" src="js/nav.js"></script>
 <script type="module" src="js/fig3d.js"></script>
 <script type="module">import { mountRoverStats } from './js/roverstats.js'; mountRoverStats(document.getElementById('rv-stats'), { full: false });</script>
+<script type="module">import { mountRover } from './js/examples.js'; mountRover(document.getElementById('ex-rover'));</script>
 </body>
 </html>

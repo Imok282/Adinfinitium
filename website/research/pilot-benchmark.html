@@ -105,14 +105,14 @@
     </div>
     <p class="src">Source: runs/lander/benchmark.md (768 missions per map per condition, 2,304 pooled). Differences in percentage points.</p>
 
-    <h3>See the paired missions on Site 42</h3>
-    <p>Every mission below was flown twice, by the same lander from the same start with the same injected failures: once by classic guidance (dashed) and once with the learned pilot (solid). Most pairs end the same way. The thick lines are the pairs where only one of them landed.</p>
-    <figure class="wide f3d" id="f3d-pairs" data-f3d="pilot:pairs">
-      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site 42 terrain in 3D with paired lander descents: classic guidance dashed, learned pilot solid; green landed, red crashed.">
-        <img class="f3d-still" src="assets/fig3d/pilot/still_pairs.jpg" width="1280" height="720" loading="lazy" alt="Site 42 terrain in 3D with dozens of descent paths converging on landing cells; a few red crash paths stand out.">
+    <h3>See recorded descents on Site 06</h3>
+    <p>These are recorded descents of the lander twin on Site 06 with failures injected at raised rates: no guidance, classic guidance and the learned pilot on top of it, 320 runs each from the same starts and failure draws. Use the toggle to compare them; green landed, red crashed.</p>
+    <figure class="wide f3d" id="f3d-pairs" data-f3d="training:ghosts">
+      <div class="f3d-stage" tabindex="0" role="img" aria-label="Site 06 terrain in 3D with recorded lander descents by no guidance, classic guidance and the learned pilot; green landed, red crashed.">
+        <img class="f3d-still" src="assets/fig3d/training/still_ghosts.jpg" width="1280" height="720" loading="lazy" alt="Site 06 terrain in 3D with hundreds of recorded descent paths converging on the landing target.">
       </div>
       <div class="f3d-ctl"></div>
-      <figcaption data-f3d-cap>Illustrative subset, not the benchmark: 48 paired missions per condition on Site 42 (LOLA 5 m, true vertical scale), drawn by the benchmark's own mission generator (seed 50000) and flown with its flight loop and pilot checkpoint d53a162df9. Modelled. Source: assets/fig3d/pilot/ (tools/export_fig3d_pilot.py).</figcaption>
+      <figcaption data-f3d-cap>Recorded descents on Site 06 · no guidance, classic and pilot from the same starts · simulated, failure rates raised for the visual.</figcaption>
     </figure>
 
     <h3>Replicated on a second run</h3>
@@ -183,6 +183,7 @@
 
     <h2>What this means</h2>
     <p>The learned pilot is a correction on top of physics, not a replacement for it. On three unseen maps pooled it lands more missions than classic guidance at normal failure rates, and the gain comes from the hardest map. On the final exam it ties. It never removes the classic controller underneath, and on every map measured it is about as safe as classic guidance or safer.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#pilot">Methodology &amp; data →</a></p>
   </article>
 
   <footer class="post-foot">

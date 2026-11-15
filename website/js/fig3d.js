@@ -250,6 +250,12 @@ export function mountFig3D(root = document) {
   const phone = matchMedia('(max-width: 720px), (pointer: coarse) and (max-width: 1024px)').matches;
   const live = !!SHOT || (!reduce && !phone && webglOK());
   figs.forEach(f => f.classList.add(live ? 'f3d-live' : 'f3d-static'));
+  // never show a broken-image '?': if a still is missing, replace it with a short text
+  figs.forEach(f => {
+    const img = f.querySelector('.f3d-still');
+    const miss = () => { const d = document.createElement('p'); d.className = 'f3d-none'; d.textContent = '3D view unavailable here. See the caption.'; img.replaceWith(d); };
+    if (img) { if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) miss(); else img.addEventListener('error', miss, { once: true }); }
+  });
   if (!live) return;
 
   if (SHOT) {

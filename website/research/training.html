@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
 <link rel="stylesheet" href="css/research.css">
 <link rel="stylesheet" href="css/fig3d.css">
 <script type="importmap">
@@ -101,7 +102,7 @@
     <p class="src">Source: assets/data/training_curves.json, exported from the training logs by website/tools/export_training_curves.py.</p>
 
     <h2>What more training might buy</h2>
-    <p>We fitted a saturating curve to these validation logs and extrapolated it to two and five times the training we actually did. For the hazard, light and terrain networks it projects small gains; these are projections, not measurements, and when the light network really was trained on further, its measured error came out at the weak end of the range projected for twice the training. The <a href="research/benchmarks.html#projected">projected benchmarks and our roadmap</a> show each one next to the measured value, and the <a href="research/benchmarks.html#training">training record</a> lists every run of the two days.</p>
+    <p>We fitted a saturating curve to these validation logs and extrapolated it to two and five times the training we actually did. For the hazard, light and terrain networks it projects small gains; these are projections, not measurements, and when the light network really was trained on further, its measured error came out at the weak end of the range projected for twice the training. The <a href="research/methodology.html#projected">projected benchmarks and our roadmap</a> show each one next to the measured value, and the <a href="research/methodology.html#training">training record</a> lists every run of the two days.</p>
     <p class="src">Source: assets/data/projections.json (copy of data/handoff_macmini_1115/projections.json).</p>
 
     <h2>The raw log panels</h2>
@@ -124,6 +125,10 @@
     </figure>
     <p>During training the hazard, light and terrain networks improved their validation scores and the rover network did not. On unseen sites the hazard and light networks beat their physics backups, the terrain network lost to a classical kriging fill at predicting hidden laser heights, and the rover network failed. The details are in the <a href="research/hazard-model.html">hazard model</a>, <a href="research/terrain.html">terrain</a>, <a href="research/rover.html">rover</a> and <a href="research/benchmarks.html">benchmarks</a> posts.</p>
 
+    <h2>What the light model sees and says</h2>
+    <p>The light model predicts the skyline around a cell: how high the terrain rises in every direction. Where the Sun path is above that skyline, the cell is lit. Four cells on held-out Site 23 (an open rim, a typical cell, an enclosed one and the model's worst 5 %), each against an exact ray-cast of the 5 m map and the coarse 20 m ray-cast the model falls back to.</p>
+    <div class="ex wide" id="ex-light">Loading the light examples…</div>
+
     <h2>Limits</h2>
     <ul>
       <li>One validation site, Site 11, picked the best hazard, light and terrain checkpoints.</li>
@@ -132,6 +137,7 @@
       <li>Everything here is training on real NASA LOLA terrain and evaluation in simulation.</li>
     </ul>
     <p class="src">Sources: records/RESULTS_FOR_TEAM.md sections 1, 2, 4, 7 and 8; runs/FROZEN.json; runs/overnight/macmini_night/curve_*.png; records/SUBMISSION_SUMMARY.md section 9.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html">Methodology &amp; data →</a></p>
   </div>
 </article>
 </main>
@@ -215,5 +221,6 @@
 <script type="module" src="js/fig3d.js"></script>
 <script type="module">import { mountCurves } from './js/curves.js'; mountCurves(document.getElementById('tr-curves'));</script>
 <script type="module">import { loadGhostHead, fillCounts } from './js/ghostdata.js'; const f = document.getElementById('f3d-ghosts'); loadGhostHead('lander', 'site06').then(h => fillCounts(f.querySelector('figcaption'), h)).catch(e => console.warn('ghost counts', e));</script>
+<script type="module">import { mountLight } from './js/examples.js'; mountLight(document.getElementById('ex-light'));</script>
 </body>
 </html>

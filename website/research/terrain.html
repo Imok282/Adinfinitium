@@ -134,6 +134,11 @@
       <figcaption><b>GENERATED — NOT OBSERVED.</b> The diffusion network on held-out Site 23, three patches in the order the evaluation draws them: real height, pixels shown, one generated version, mean of six, error, and the raw band. These three patches have lower error than the window's average (1.32 m). The right-hand column is the uncalibrated band that failed coverage (22–30% here); it is shown as a failure, not as an uncertainty. Source: records/terrain_calibration/terrain_diffusion_samples_site23.png.</figcaption>
     </figure>
 
+    <figure class="wide">
+      <img src="assets/img/results/params_terrain.webp" width="1400" height="577" loading="lazy" alt="Bar chart of parameter counts on a log scale: Stable Diffusion U-Nets 865 M and 860 M, our terrain diffusion network 49,943,681, EDSR 43 M, Repasky et al. 2026 autoencoder 21 M.">
+      <figcaption>Model size only, ours vs published (scores are not comparable): our diffusion network has 49.9 M parameters; interpolation has none. Source: frozen overnight run records (sources.md for the published counts).</figcaption>
+    </figure>
+
     <h2>Why this test favours interpolation</h2>
     <p>The hidden pixels lie on the same laser tracks as the shown ones, usually a few pixels away. That is ideal for interpolation. Filling wide gaps with no measurement nearby was never tested, for the network or for kriging, and that is where a generative model might still help.</p>
     <p>The network also produces several plausible, textured versions of the terrain, while kriging gives one smooth surface. We did not score that property, so it is not evidence of accuracy.</p>
@@ -156,6 +161,7 @@
 
     <h2>Method &amp; data</h2>
     <p class="src">Sources (team records of 15 Nov 2026): records/weak_flags/REPORT_terrain.md, terrain.json and terrain_fresh.json (classical methods, kriging, the combination weight 0.0064, the kriging band and the six fresh sites; addendum 4, plan in records/weak_flags/PLAN.md); records/terrain_calibration/TERRAIN_CALIBRATION_REPORT.md and calibration.json (scale 8.232, calibrated coverage and width; addendum 2); records/RESULTS_FOR_TEAM.md section 3.3 (frozen run <code>macmini_night</code>, runs/terrain/eval.json: network vs backup RMSE, raw band coverage); records/benchmarks/BENCHMARKS.md and params.json (parameter count); records/SUBMISSION_SUMMARY.md sections 2, 3 and 8 (wiring; what we present). Terrain observed (NASA LOLA 5 m); network output generated, not observed.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#terrain">Methodology &amp; data →</a></p>
   </div>
 </article>
 </main>

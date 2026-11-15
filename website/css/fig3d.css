@@ -50,3 +50,5 @@ html.f3d-shot-mode body * { visibility: hidden !important; }
 .f3d-shot .f3d-stage, .f3d-shot .f3d-stage * { visibility: visible !important; }
 .f3d-shot .f3d-reset, .f3d-shot .f3d-hint, .f3d-shot .f3d-load { display: none !important; }
 @media (max-width: 720px) { .f3d-stage { border-radius: 14px; } }
+.f3d-none { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font: 500 13px/1.4 var(--mono); color: var(--fg-3); }
+.f3d-ready .f3d-none { display: none; }

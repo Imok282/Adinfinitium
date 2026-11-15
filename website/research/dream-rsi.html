@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/research.css">
 <link rel="stylesheet" href="css/company.css">
+<link rel="stylesheet" href="css/dreamrsi.css">
 </head>
 <body class="page-research">
 <a class="skip" href="#main">Skip to content</a>
@@ -101,6 +102,10 @@
       <img src="assets/img/results/selflearn_site42_blocked.webp" loading="lazy" width="1300" height="494" alt="Two line charts over 15 self-learning rounds on Site 42 with a synthetic blocked route. Mean episode return jumps from about -84.5 to -66.2 at round 2, then settles near -67.2. Share of rovers reaching ice stays between 1.6 and 2.7 percent, ending below the starting driver.">
       <figcaption>Site 42, 2027-06-01, with a synthetic blocked route (simulation). Mean return per round (left) and share of rovers reaching ice (right); green dots are accepted rounds, grey rejected. These are online scores on the site the rover practised on, not held-out scores. Source: records/dream_rsi/selflearn_v2 (curve for Site 42, blocked route).</figcaption>
     </figure>
+    <figure class="wide">
+      <img src="assets/img/results/selflearn_site23_none.webp" loading="lazy" width="1300" height="494" alt="Two line charts over 23 self-learning rounds on Site 23 with no change to the world. Mean return rises from about -48.6 to -40.4 at round 1 and ends near -40; share of rovers reaching ice goes from 0 to 0.8 percent at round 1 and 1.6 percent at round 21.">
+      <figcaption>Site 23, 2027-06-01, no change to the world (simulation, experimental): 2 of 23 rounds accepted; ice reached by 1.6 % of rovers at best. Online scores on the practice site, not held-out. Source: records/dream_rsi/selflearn_v2 (curve for Site 23, no change).</figcaption>
+    </figure>
     <ul>
       <li>Accepted: 2 of 23 rounds on Site 23 and 3 of 15 on Site 42; the other 33 rounds were rejected.</li>
       <li>Mean return rose by 8.6 (se 0.8) and 17.4 (se 3.0). On Site 42 the share of rovers lost fell from 90.2 % to 81.6 %.</li>
@@ -130,6 +135,16 @@
     </div>
     <p class="src">Source: records/SUBMISSION_SUMMARY.md section 5; records/rover_v3/ROVER_V3_REPORT.md; records/rover_v31/ROVER_V31_REPORT.md and COMPLETION_EARLY_LIGHT.md. The 8-hour-early row is the completion run with the registered 45-minute cap.</p>
     <p>What works is narrow: a map correction for a blocked route, and a time shift of the light forecast when it is 12 hours late. Every change it can make has a hand-written proposal type; a change without one was never tested. Each situation got one useful change, almost always in the first round, and then the layer stopped. It spends real episodes and loses rovers while it learns.</p>
+
+    <h2 id="with-dream-rsi">With Dream-RSI: every round, measured</h2>
+    <p>Each loop's gate log, round by round. The terracotta line is the version that kept flying; green candidates were accepted, grey ones rolled back. Everything in this section is measured.</p>
+    <div class="rsi-wide" id="rsi-measured"></div>
+    <p class="src">Source: assets/data/dream_rsi.json, built from the gate logs named in each panel (logs only: no training, evaluation or flight).</p>
+
+    <h2 id="projections">If it kept running: 5 and 20 more generations</h2>
+    <p>What each benchmark might read after more Dream-RSI generations. <b>None of these bars is a result.</b> Hatched bars are projected from the model's own Dream-RSI log; dotted outlines are scenarios for models Dream-RSI has never run on, borrowed from the other loops' acceptance rates. The solid bar in each card is the measured value today.</p>
+    <div class="rsi-wide" id="rsi-proj"></div>
+    <p class="src">Source: assets/data/dream_rsi.json (projections, stressed_world_projections_rover_v31, not_projected, targets). Each card's full method is under "Full method and source".</p>
 
     <h2>Limits</h2>
     <ul>
@@ -219,5 +234,6 @@
 </footer>
 <!-- END:SHELL-footer -->
 <script type="module" src="js/nav.js"></script>
+<script type="module" src="js/dreamrsi.js"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
 <link rel="stylesheet" href="css/research.css">
 <link rel="stylesheet" href="css/company.css">
 <link rel="stylesheet" href="css/fig3d.css">
@@ -105,6 +106,14 @@
     </figure>
     <p>Our model has been scored on one held-out window. It has not been tested on Site 42 or on the fresh sites below.</p>
 
+    <h3>What the model sees and says</h3>
+    <p>Four 1.28 km windows, chosen automatically by how much of the ground is truly unsafe (not by model score): three on held-out Site 23 and one hard case on Site 42. Each row is what the U-Net was given, what it answered, what the slope rule answered and where each was wrong. The scores are for that window only.</p>
+    <div class="ex wide" id="ex-hazard">Loading the hazard examples…</div>
+    <figure class="wide">
+      <img src="assets/img/results/hazard_compare_site11.webp" width="1600" height="432" loading="lazy" alt="Site 11 validation window, four panels: height with laser pixels, the official slope label, the slope-rule backup and the model's map. Red is unsafe, green is safe.">
+      <figcaption>Site 11, the validation map that picked the checkpoint (not a test): same four panels. Source: runs/hazard/compare_lola5m_site11.png (frozen overnight run).</figcaption>
+    </figure>
+
     <h2>A 60 M variant from the overnight run</h2>
     <p>The numbers in this section are for a different, much larger network, not for our model above.</p>
     <p><code>hazard_unet_big</code> is a residual U-Net with multi-head self-attention, 60,361,561 parameters (counted from the checkpoint). It has the same five input channels, four levels with 72 to 576 channels, and 8-head self-attention at the two deepest levels and in the bottleneck. It was trained in one unattended overnight run on 60 tiles from Sites 01, 04, 06, 07, 20, Haworth, Shoemaker and DM2, for 37 of 40 planned epochs. Site 11 picked the checkpoint; Sites 23 and 42 were held out. The run was then frozen with checksums.</p>
@@ -183,6 +192,7 @@
 
     <h2>Method &amp; data</h2>
     <p class="src">Our model: runs/hazard/eval.json (checkpoint b0ac044446; Site 23 centre window as test, Site 11 as validation) and data/models/hazard_unet.pt; figure runs/hazard/compare_lola5m_site23.png. 60 M variant (team records of 15 Nov 2026): records/RESULTS_FOR_TEAM.md sections 3.1, 7 and 8 (frozen run <code>macmini_night</code>: held-out F1, missed rates, centre windows, per-window results, Site 11, laser-pixel shares, Haworth share); records/weak_flags/REPORT_hazard.md and hazard.json (six fresh sites, threshold sweep, test-time augmentation, rover map check); records/benchmarks/BENCHMARKS.md section 2 and params.json (parameter count, architecture, size chart); records/SUBMISSION_SUMMARY.md sections 2 and 8 (wiring to the rover and the lander). Architectures as in worldmodel/hazard/model.py (UNet base 16, depth 4; AttnUNet base 72, depth 4, 2 blocks, 8 heads, 2 attention levels). Label: NASA LOLA 5 m slope ≥ 12°. Provenance: terrain observed (NASA LOLA); hazard maps modelled.</p>
+    <p>How every benchmark was measured, with the full tables and source files: <a href="research/methodology.html#hazard">Methodology &amp; data →</a></p>
   </div>
 </article>
 </main>
@@ -263,5 +273,6 @@
 <!-- END:SHELL-footer -->
 <script type="module" src="js/nav.js"></script>
 <script type="module" src="js/fig3d.js"></script>
+<script type="module">import { mountHazard } from './js/examples.js'; mountHazard(document.getElementById('ex-hazard'));</script>
 </body>
 </html>

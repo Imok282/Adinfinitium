@@ -64,12 +64,11 @@ const VIS_CH = 72;   // typing time per line is capped: long lines run off the p
 
 // ---------- cast ----------
 const CURSORS = [
-  // generic names (the user's choice); the real per-person counts live in the ticker
-  { id: 'imok', name: 'Bob', c: '#d97757' },
-  { id: 'nimansh', name: 'Maya', c: '#b7cdbe' },
-  { id: 'lander', name: 'Harry', c: '#c8c3e0' },
-  { id: 'models', name: 'Leo', c: '#e8b9a0' },
-  { id: 'web', name: 'Ada', c: '#9fc3d6' },
+  // the team (first names only)
+  { id: 'imok', name: 'Ojas', c: '#d97757' },
+  { id: 'nimansh', name: 'Nimansh', c: '#b7cdbe' },
+  { id: 'lander', name: 'Arnav', c: '#c8c3e0' },
+  { id: 'models', name: 'Tanush', c: '#e8b9a0' },
 ];
 // Pieces: owner drags it from `from` (centre, normalised main-area coords) between t0 and t1.
 const PIECES = [

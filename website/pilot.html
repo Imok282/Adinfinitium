@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
 <link rel="stylesheet" href="css/modelcards.css">
 <link rel="stylesheet" href="css/pilotpage.css">
 <link rel="stylesheet" href="css/barcharts.css">
@@ -92,12 +93,12 @@
     <div class="pp-res-grid">
       <div class="res-card pp-res" data-spot><b data-mj="pilot.metrics.0.value">98.39 %</b><span>landings on 3 maps it never saw, vs <span data-mj="pilot.metrics.0.base">97.66 %</span> for classic guidance (2,304 paired missions, exact McNemar p = <span data-mj="pilot.metrics.0.p">0.019</span>)</span><p class="src">runs/lander/benchmark.md</p></div>
       <div class="res-card pp-res" data-spot><b data-mj="pilot.metrics.3.value">≈4 m</b><span>mean miss on touchdown at normal failure rates</span><p class="src">runs/lander/benchmark.json · miss_m</p></div>
-      <div class="res-card pp-res" data-spot><b>F1 <span data-mj="hazard.metrics.0.value">0.950</span></b><span>hazard map on held-out Site 23, vs <span data-mj="hazard.metrics.0.base">0.814</span> for the slope-rule backup</span><p class="src">runs/hazard/eval.json</p></div>
+      <div class="res-card pp-res" data-spot><b>F1 <span data-mj="hazard.metrics.0.value">0.950</span></b><span>hazard map on held-out Site 23, vs <span data-mj="hazard.metrics.0.base">0.814</span> for the slope-rule backup</span><div id="pp-hz-teaser"></div><p class="src">runs/hazard/eval.json · assets/examples/hazard</p></div>
       <div class="res-card pp-res" data-spot><b data-mj="light.metrics.0.value">0.62°</b><span>skyline error on held-out Site 23, vs <span data-mj="light.metrics.0.base">0.65°</span> for the ray-cast backup</span><p class="src">runs/light/eval.json</p></div>
     </div>
     <p class="pp-note">All results are simulation on real NASA LOLA terrain. On the Site 23 final exam, flown once, the pilot tied classic guidance (97.95 % both, 1,024 paired missions); the unseen-map gain comes from one map, Site 42. A self-improvement job on 15 November accepted none of its 7 candidates, so the pilot is unchanged.</p>
     <div class="pp-charts" id="pp-charts" aria-label="Pilot benchmark charts"></div>
-    <p class="pp-note pp-charts-note">Paired simulated missions, same missions for both controllers. On the Site 23 final exam the pilot tied classic guidance (97.95 % each), and on missions with an engine failure it lands less often (95.9 % vs 98.4 %). <a href="research/benchmarks.html#limits">Limits</a> · <a href="research/benchmarks.html#pilot">full benchmark table and sources</a>.</p>
+    <p class="pp-note pp-charts-note">Paired simulated missions, same missions for both controllers. On the Site 23 final exam the pilot tied classic guidance (97.95 % each), and on missions with an engine failure it lands less often (95.9 % vs 98.4 %). The self-improvement gate accepted none of 7 candidates, so no regression was shipped. <a href="research/methodology.html#limits">Limits</a> · <a href="research/methodology.html#pilot">how we measured</a>.</p>
   </section>
 
   <!-- BEGIN:B-replay (recorded Site 11 descents; js/replay.js + css/replay.css) -->
@@ -242,8 +243,9 @@ import('./js/modelcards.js').then(async m => {
   if (p && el) el.innerHTML = `<section class="mc-diagram"><div class="mc-dwrap" tabindex="0" aria-label="Diagram; scroll sideways on small screens">${m.diagramSVG(p.diagram)}</div><p class="mc-pan" aria-hidden="true">Swipe the diagram sideways to see all of it.</p></section>`;
 }).catch(e => console.warn('pilot page', e));
 </script>
-<script type="module">import { mountBarCharts, loadCtx } from './js/barcharts.js'; import { HEADLINE, FAMILY_SPECS } from './js/benchspecs.js';
-  loadCtx().then(ctx => mountBarCharts(document.getElementById('pp-charts'), 'pilot', [HEADLINE[3].spec, FAMILY_SPECS.pilot.charts[3]], { min: 300, ctx }));</script>
+<script type="module">import { loadCtx } from './js/barcharts.js'; import { mountClean } from './js/benchclean.js';
+  loadCtx().then(ctx => mountClean(document.getElementById('pp-charts'), ctx, [['pilot', 'pilot'], ['pilot', 'fuel'], ['gate', 'pp-gate']], { min: 300 })).catch(e => console.warn('pilot charts', e));</script>
 <script type="module" src="js/nav.js"></script>
+<script type="module">import { mountHazardTeaser } from './js/examples.js'; mountHazardTeaser(document.getElementById('pp-hz-teaser'));</script>
 </body>
 </html>

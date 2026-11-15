@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/examples.css">
 <link rel="stylesheet" href="css/models.css">
 <link rel="stylesheet" href="css/curves.css">
 <link rel="stylesheet" href="css/navigatorpage.css">
@@ -57,7 +58,8 @@
 
   <section class="nv-sec nv-proof" aria-label="Benchmark results">
     <div class="nv-charts" id="nv-hero-charts"></div>
-    <p class="nv-src">Simulation and model evaluation on NASA LOLA terrain · <a href="research/benchmarks.html#headline">all benchmarks</a> · <a href="research/benchmarks.html#limits">limits</a></p>
+    <p class="nv-src">The Navigator picked the landing cell on Site 23 for 17 March 2027; flown 512 times each in simulation, the pilot landed 99.6 % and classic guidance 99.0 % there (difference not significant; a rehearsal of one planned cell, not an exam).</p>
+    <p class="nv-src">Simulation and model evaluation on NASA LOLA terrain · <a href="research/benchmarks.html">all benchmarks</a> · <a href="research/methodology.html#limits">limits</a></p>
   </section>
 
   <section class="nv-sec" aria-labelledby="nv-plan">
@@ -121,7 +123,10 @@
       <div class="tz lavender"><b>0.51 vs 0.36</b><span>rank correlation with simulated truth: ranking vs planner</span></div>
     </div>
     <div class="nv-charts" id="nv-charts" aria-label="Planner benchmark charts"></div>
-    <p class="nv-src">Source: results_pc/extracted/runs/planner/eval.json, test split (Site 23, 7 dates, 672 candidates) · modelled · <a href="research/benchmarks.html#planner">full benchmark table</a></p>
+    <p class="nv-src">Source: results_pc/extracted/runs/planner/eval.json, test split (Site 23, 7 dates, 672 candidates) · modelled · <a href="research/methodology.html#planner">full benchmark table</a></p>
+    <h3 class="ex-h">What each ranking puts first: one Site 23 world</h3>
+    <div class="ex" id="ex-planner">Loading the planner examples…</div>
+    <p class="nv-src">Source: assets/examples/planner/planner_examples.json (checkpoints 72b76466c7, 62b6dba29b; read-only) · modelled</p>
   </section>
 
   <section class="nv-sec" aria-labelledby="nv-sw">
@@ -208,15 +213,14 @@
 </footer>
 <!-- END:SHELL-footer -->
 
-<script type="module">import { mountBarCharts, loadCtx } from './js/barcharts.js'; import { HEADLINE } from './js/benchspecs.js';
-  loadCtx().then(ctx => { const el = document.getElementById('nv-hero-charts'); return Promise.all(HEADLINE.slice(0, 3).map(h => mountBarCharts(el, h.family, [h.spec], { min: 320, ctx }))); });
-  mountBarCharts(document.getElementById('nv-charts'), 'planner', [
-    { metrics: ['chosen_p'], title: 'Chosen-site mission success · Site23' },
-    { metrics: ['regret'], title: 'Regret vs best candidate' }], { min: 340 });</script>
+<script type="module">import { loadCtx } from './js/barcharts.js'; import { mountClean } from './js/benchclean.js';
+  loadCtx().then(ctx => mountClean(document.getElementById('nv-hero-charts'), ctx, [['rehearsal', 'rehearsal'], ['hazard', 'hazard'], ['light', 'light'], ['rover', 'rover']], { min: 420 })
+    .then(() => mountClean(document.getElementById('nv-charts'), ctx, [['planner', 'planner']], { min: 420 }))).catch(e => console.warn('navigator charts', e));</script>
 <script type="module" src="js/nav.js"></script>
 <script type="module">
   import('./js/curves.js').then(m => m.mountCurves(document.getElementById('nv-curves'), { compact: true })).catch(e => console.warn('curves', e));
   import('./js/ghosts.js').then(m => m.mount(document.getElementById('landing'), { reducedMotion: true })).catch(e => console.warn('ghosts', e));
 </script>
+<script type="module">import { mountPlanner } from './js/examples.js'; mountPlanner(document.getElementById('ex-planner'));</script>
 </body>
 </html>
