@@ -81,6 +81,7 @@ function legend(frac = null) {
   const v = LAYERS[layer], cv = $('lg-c'); if (cv) cv.innerHTML = frac == null || !COVER[layer] ? '' : frac === 0 ? `${COVER[layer]}: none on this tile${layer === 'sun' || layer === 'earth' ? ' at this time' : ''}` : `${COVER[layer]}: <span class="n">${(frac * 100).toFixed(frac < 0.01 ? 2 : 1)} %</span> of the tile`; $('lg-t').textContent = v.title; $('lg-b').style.background = v.bar;
   $('lg-a').textContent = layer === 'elevation' ? `${fmt(L.hmin - h0)} m` : v.a; $('lg-z').textContent = layer === 'elevation' ? `+${fmt(L.hmax - h0)} m` : v.z;
   $('lg-p').textContent = layer === 'hazard' ? `MODELLED · ${L.hazard_source}${/backup/.test(L.hazard_source) ? ' (the hazard U-Net replaces it when its checkpoint is loaded)' : ''}` : v.prov;
+  const lg = $('legend'); $('views').style.top = `${lg.offsetTop + lg.offsetHeight + 8}px`; // the view buttons sit below the legend, whatever its height
 }
 
 function buildTerrain() {
