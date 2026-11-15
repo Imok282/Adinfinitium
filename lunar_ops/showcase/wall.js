@@ -81,8 +81,8 @@ function buildTerrain() {
     for (let r = 0; r < n - 1; r++) for (let c = 0; c < m - 1; c++) { const xa = x0 + (c + .5) * X.mpp, ya = y0 - (r + .5) * X.mpp; if (inside(xa, ya)) continue; const a = r * m + c; idx.push(a, a + m, a + 1, a + 1, a + m, a + m + 1); }
     const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cg.setIndex(idx); cg.userData.H = Hc;
     const cv = document.createElement('canvas'); cv.width = cv.height = 2560; const ct = new THREE.CanvasTexture(cv); ct.colorSpace = THREE.SRGBColorSpace; ct.anisotropy = 8;
-    const img = new Image(); img.onload = () => { const g = cv.getContext('2d'); g.filter = photoFilter(img); g.drawImage(img, 0, 0, cv.width, cv.height); ct.needsUpdate = true; }; img.src = '../ui/assets/site01/photo_ctx_2m.jpg'; // same processing as the tile photo
-    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, roughness: 1 })); scene.add(ctxMesh); setHeights(); }
+    const img = new Image(); img.onload = () => { const g = cv.getContext('2d'); g.filter = photoFilter(img); g.drawImage(img, 0, 0, cv.width, cv.height); ct.needsUpdate = true; }; img.src = '/' + (world?.photo?.context || 'assets/site01/photo_ctx_2m.jpg'); // same processing as the tile photo
+    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, roughness: 1, color: new URLSearchParams(location.search).get('debug') === 'levels' ? 0xffff60 : 0xffffff })); scene.add(ctxMesh); setHeights(); }
   buildGlobe(); buildPolar().catch((e) => console.warn('polar terrain', e));
 }
 // ---------------------------------------------------------------------------------------------------- the whole Moon
@@ -136,17 +136,23 @@ async function buildPolar() {
   const r = await fetch(`/api/polar?lat=${L.center_lat_deg}&lon=${L.center_lon_deg}`); if (!r.ok) return; const J = await r.json(); globe.polar = J;
   const [cx, cy] = ps(L.center_lat_deg, L.center_lon_deg), wac = new THREE.TextureLoader().load('assets/moon/polar_south_wac.jpg'); wac.colorSpace = THREE.SRGBColorSpace; wac.anisotropy = 8;
   const half = 612744.8896254691, box = (lv) => [lv.x0_m - lv.step_m / 2, lv.x0_m + (lv.cols - 0.5) * lv.step_m, lv.y0_m - (lv.rows - 0.5) * lv.step_m, lv.y0_m + lv.step_m / 2];
-  const lv = J.levels; const tileHalf = world?.context ? (world.context.cols - 1) / 2 * world.context.mpp - 30 : L.cols * L.mpp / 2 - 10;
+  const lv = J.levels, hasLocal = lv.some((q) => q.name === 'local'), tileHalf = hasLocal ? (L.cols - 1) * L.mpp / 2 - 2 : (world?.context ? (world.context.cols - 1) / 2 * world.context.mpp - 30 : L.cols * L.mpp / 2 - 10);
+  if (hasLocal && ctxMesh) { scene.remove(ctxMesh); ctxMesh = null; } // the old 20 m ring is off-centre (+1.28 km E, +1.28 km N); the 16 km DEM replaces it
+  const ctxPhoto = await new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = '/' + (world?.photo?.context || 'assets/site01/photo_ctx_2m.jpg'); });
+  let ctxTex = null, ctxGain = 1; if (ctxPhoto) { ctxTex = new THREE.Texture(ctxPhoto); ctxTex.colorSpace = THREE.SRGBColorSpace; ctxTex.anisotropy = 8; ctxTex.needsUpdate = true; const f = photoFilter(ctxPhoto).match(/brightness\(([\d.]+)\)/); ctxGain = f ? Number(f[1]) : 1; }
   lv.forEach((v, k) => { // hole = the next finer level's box (the finest one: the 5 m tile and its 20 m ring)
     const inner = k + 1 < lv.length ? box(lv[k + 1]) : [cx - tileHalf, cx + tileHalf, cy - tileHalf, cy + tileHalf];
     const h = new Int16Array(b64(v.height_i16).buffer), n = v.rows * v.cols, xy = new Float32Array(n * 2), uv = new Float32Array(n * 2);
     for (let r2 = 0; r2 < v.rows; r2++) for (let c = 0; c < v.cols; c++) { const i = r2 * v.cols + c, X = v.x0_m + c * v.step_m, Y = v.y0_m - r2 * v.step_m; xy[2 * i] = X; xy[2 * i + 1] = Y; uv[2 * i] = 0.5 + X / (2 * half); uv[2 * i + 1] = 0.5 + Y / (2 * half); }
     const idx = []; for (let r2 = 0; r2 < v.rows - 1; r2++) for (let c = 0; c < v.cols - 1; c++) { const a = r2 * v.cols + c; idx.push(a, a + v.cols, a + 1, a + 1, a + v.cols, a + v.cols + 1); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('psxy', new THREE.Float32BufferAttribute(xy, 2)); g.setIndex(idx);
-    const mat = new THREE.MeshStandardMaterial({ map: wac, roughness: 1, metalness: 0, color: v.name === 'local' ? 0xd8d8d8 : 0xffffff });
-    mat.onBeforeCompile = (sh) => { sh.uniforms.hole = { value: new THREE.Vector4(...inner) };
+    const DBG = new URLSearchParams(location.search).get('debug') === 'levels', mat = new THREE.MeshStandardMaterial({ map: wac, roughness: 1, metalness: 0, color: DBG ? { cap: 0xff6060, region: 0x60ff60, local: 0x6090ff }[v.name] : v.name === 'local' ? 0xd8d8d8 : 0xffffff });
+    const useCtx = v.name === 'local' && ctxTex;
+    mat.onBeforeCompile = (sh) => { sh.uniforms.hole = { value: new THREE.Vector4(...inner) }; sh.uniforms.ctxMap = { value: ctxTex }; sh.uniforms.ctxC = { value: new THREE.Vector2(cx, cy) }; sh.uniforms.ctxGain = { value: ctxGain };
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 psxy; varying vec2 vXY;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvXY = psxy;');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vXY; uniform vec4 hole;').replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (vXY.x > hole.x && vXY.x < hole.y && vXY.y > hole.z && vXY.y < hole.w) discard;'); };
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vXY; uniform vec4 hole; uniform sampler2D ctxMap; uniform vec2 ctxC; uniform float ctxGain;').replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (vXY.x > hole.x && vXY.x < hole.y && vXY.y > hole.z && vXY.y < hole.w) discard;')
+        .replace('#include <map_fragment>', useCtx ? '#include <map_fragment>\nvec2 dq = vXY - ctxC; float wc = 1.0 - smoothstep(2200.0, 2540.0, max(abs(dq.x), abs(dq.y))); if (wc > 0.0) { vec3 cc = texture2D(ctxMap, vec2(0.5 + dq.x / 5120.0, 0.5 + dq.y / 5120.0)).rgb * ctxGain; diffuseColor.rgb = mix(diffuseColor.rgb, cc, wc); }' : '#include <map_fragment>'); };
+    mat.customProgramCacheKey = () => `level-${v.name}-${useCtx ? 'ctx' : 'wac'}`; // each level compiles its own shader (three caches by hook source)
     const mesh = new THREE.Mesh(g, mat); const L2 = { v, h, mesh, n }; scene.add(mesh); globe.levels.push(L2); placeLevel(L2);
     if (v.name === 'cap') globe.capBox.value.set(...box(v).map((q, i2) => q + (i2 % 2 ? -2 * v.step_m : 2 * v.step_m)));
   });
@@ -293,11 +299,12 @@ async function boot() {
   for (let t = 0; t < T; t++) { L.sun.set(bits(sb.subarray(t * rowBytes, (t + 1) * rowBytes), n), t * n); L.earth.set(bits(eb.subarray(t * rowBytes, (t + 1) * rowBytes), n), t * n); }
   let mn = Infinity, mx = -Infinity; for (const v of L.height) { if (v < mn) mn = v; if (v > mx) mx = v; } L.hmin = mn; L.hmax = mx;
   const s = lastFrame?.site || { x_m: 0, y_m: 0 }; h0 = heightAt(s.x_m, s.y_m); $('tslider').max = String(T - 1);
-  const photo = new Image(); photo.onload = () => { tex.photo = photo; tex.photoFilter = photoFilter(photo); paint(); }; photo.src = '../ui/assets/site01/photo_1m.jpg';
+  const photo = new Image(); photo.onload = () => { tex.photo = photo; tex.photoFilter = photoFilter(photo); paint(); }; photo.src = '/' + (world?.photo?.tile || 'assets/site01/photo_1m.jpg');
   buildTerrain(); paint(); setTime(0, false); camera.position.set(-1500, 1400, 1900); controls.target.set(0, 0, 0); controls.update(); $('wait').style.display = 'none';
   ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'frame' && m.orbit) onFrame(m); };
   if (lastFrame) onFrame(lastFrame); else { lights(); vehicle(); trajectory(); }
   const v0 = new URLSearchParams(location.search).get('view'); if (v0 === 'moon') { globe.mode = 'moon'; controls.target.copy(globe.center); camera.position.copy(globe.center).add(new THREE.Vector3(-0.9, 1.6, 2.1).normalize().multiplyScalar(R_MOON * 3.4)); controls.minDistance = R_MOON * 1.08; }
+  else if (v0 === 'near') { const d = Number(new URLSearchParams(location.search).get('cam') || 12000); controls.target.set(0, 0, 0); camera.position.copy(new THREE.Vector3(-0.45, 0.55, 0.7).normalize().multiplyScalar(d)); }
   else if (v0 !== 'site') { globe.mode = 'pole'; controls.target.set(0, -3000, 0); camera.position.copy(new THREE.Vector3(-0.35, 0.62, 0.7).normalize().multiplyScalar(160e3)); } // opens on the south-pole region
   if (new URLSearchParams(location.search).get('sun') === 'true') { globe.trueSun = true; aimSun(); }
   // scale bar: metres per 120 screen px at the target distance
