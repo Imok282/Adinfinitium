@@ -233,6 +233,14 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
         task.cancel()
 
     app = FastAPI(title="Adinfinitium lunar_ops", lifespan=lifespan)
+
+    @app.middleware("http")
+    async def no_stale_pages(request, call_next):
+        """Pages and scripts are always revalidated, so a reload shows the current version (local live tool)."""
+        resp = await call_next(request)
+        if request.url.path.endswith((".html", ".js", ".css", "/")):
+            resp.headers["Cache-Control"] = "no-cache"
+        return resp
     app.state.session = sess
 
     @app.get("/api/state")
@@ -324,6 +332,13 @@ def create_app(policy_spec: str | None = None, seed: int = 0, record: bool = Tru
         from lunar_ops.layers import layers_message
 
         return _layers_cached(region or sess.env.world.region, epoch, layers_message)
+
+    @app.get("/api/polar")
+    def polar(lat: float, lon: float, site: str = "Site01") -> dict[str, Any]:
+        """Nested real LOLA terrain of the south pole (cap 75S-pole, +-50 km region, 16 km site DEM); see lunar_ops/polar.py."""
+        from lunar_ops.polar import polar_message
+
+        return polar_message(round(lat, 6), round(lon, 6), site)
 
     @app.get("/api/dream")
     def dream() -> dict[str, Any]:

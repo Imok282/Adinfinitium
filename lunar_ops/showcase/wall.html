@@ -52,6 +52,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 #scale { position: absolute; right: 16px; bottom: 14px; z-index: 3; padding: 7px 14px; border-radius: 12px; background: rgba(6,10,20,.8); border: 1px solid var(--line); font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 10px; }
 #scale i { display: inline-block; height: 6px; border: 2px solid var(--text); border-top: 0; }
 #exag { width: 90px; }
+#views { position: absolute; right: 16px; top: 140px; z-index: 3; display: flex; gap: 6px; } #views .on { background: var(--blue); border-color: var(--blue); }
 button.sm { font: inherit; font-size: 12px; color: var(--text); background: rgba(20,30,52,.7); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
 /* right column */
 #traj { left: 1292px; top: 86px; width: 612px; height: 250px; }
@@ -86,6 +87,7 @@ button.sm { font: inherit; font-size: 12px; color: var(--text); background: rgba
     <div id="timebar"><button class="sm" id="tplay">▶</button><span class="k">Light over the landing day</span><input type="range" id="tslider" min="0" max="0" value="0"><span class="n" id="ttime">—</span>
       <span class="k">Sun</span><span class="n" id="tsun">—</span><span class="k">Earth</span><span class="n" id="tearth">—</span><button class="sm" id="tlive">Live</button></div>
     <div id="readout"><span>LAT<b class="n" id="r-lat">—</b></span><span>LON<b class="n" id="r-lon">—</b></span><span>HEIGHT<b class="n" id="r-h">—</b></span><span>SLOPE<b class="n" id="r-s">—</b></span><span>HAZARD<b class="n" id="r-z">—</b></span><span>LIGHT<b id="r-l">—</b></span></div>
+    <div id="views"><button class="sm" id="tomoon">Whole Moon</button><button class="sm on" id="topole">South pole</button><button class="sm" id="tosite">Landing site</button><button class="sm" id="sunmode">Readable light</button></div>
     <div id="scale"><span>Exaggeration</span><input type="range" id="exag" min="1" max="4" step="0.5" value="1.5"><span class="n" id="exv">1.5×</span><span class="sep" style="margin:0 4px"></span><i id="sbar"></i><span class="n" id="stext">—</span></div>
     <div id="wait">Loading terrain layers…</div>
   </div>

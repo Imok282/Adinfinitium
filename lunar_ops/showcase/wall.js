@@ -8,6 +8,11 @@ import { OrbitControls } from 'three/addons/OrbitControls.js';
 const $ = (id) => document.getElementById(id), clamp = (v, a, b) => Math.min(b, Math.max(a, v)), lerp = (a, b, t) => a + (b - a) * t;
 const fmt = (x, d = 0) => (x == null || !isFinite(x) ? '—' : x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
 const R_MOON = 1737.4e3; // [m]
+const PHOTO_MEAN = 0.46; // both LROC photos (tile 1 m, context 2 m) are scaled to this mean brightness so they match
+function photoFilter(img) { // brightness gain from the image's own mean (measured on a 64 px copy)
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.drawImage(img, 0, 0, 64, 64); const d = g.getImageData(0, 0, 64, 64).data;
+  let s = 0; for (let i = 0; i < d.length; i += 4) s += (d[i] + d[i + 1] + d[i + 2]) / 765; const mean = s / (d.length / 4);
+  return `brightness(${Math.min(4, PHOTO_MEAN / Math.max(mean, 0.02)).toFixed(3)}) contrast(1.12)`; }
 const stage = $('stage'); const fit = () => { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(${-960 * s}px, ${-540 * s}px) scale(${s})`; }; addEventListener('resize', fit); fit();
 const b64 = (s) => { const bin = atob(s), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; };
 const bits = (u8, n) => { const o = new Uint8Array(n); for (let i = 0; i < n; i++) o[i] = (u8[i >> 3] >> (7 - (i & 7))) & 1; return o; };
@@ -17,11 +22,11 @@ const latlon = (x, y) => [(2 * Math.atan(Math.hypot(x, y) / (2 * R_MOON)) - Math
 
 // ---------------------------------------------------------------------------------------------------- 3D scene
 const host = $('terrain'), W = 1260, H = 900;
-const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(W, H); host.prepend(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(W, H); host.prepend(renderer.domElement);
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
-const scene = new THREE.Scene(); scene.background = new THREE.Color(0x02040a); scene.fog = new THREE.Fog(0x02040a, 9000, 60000);
-const camera = new THREE.PerspectiveCamera(38, W / H, 5, 400000);
-const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.48;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x02040a);
+const camera = new THREE.PerspectiveCamera(38, W / H, 0.5, 1e8);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 40; controls.maxDistance = 9e6;
 const sun = new THREE.DirectionalLight(0xfff1dc, 2.6); scene.add(sun, sun.target); scene.add(new THREE.HemisphereLight(0xa9c2ff, 0x2b241d, 0.75));
 
 let L = null, world = null, terrainMesh = null, ctxMesh = null, h0 = 0, exag = 1.5, layer = new URLSearchParams(location.search).get('layer') || 'hazard', tIdx = 0, liveTime = true, lastFrame = null;
@@ -43,7 +48,7 @@ const lw = $('layers'); for (const [k, v] of Object.entries(LAYERS)) { const b =
 
 function paint() { // compose photo + the active layer into the terrain texture
   if (!L) return; const g = tex.canvas.getContext('2d'), N = tex.canvas.width; g.globalAlpha = 1; g.fillStyle = '#4a4844'; g.fillRect(0, 0, N, N);
-  if (tex.photo) { g.filter = 'brightness(1.7) contrast(1.1)'; g.drawImage(tex.photo, 0, 0, N, N); g.filter = 'none'; }
+  if (tex.photo) { g.filter = tex.photoFilter || 'none'; g.drawImage(tex.photo, 0, 0, N, N); g.filter = 'none'; }
   const { rows, cols } = L, im = new ImageData(cols, rows), d = im.data, lay = layer;
   const hmin = L.hmin, hmax = L.hmax, sunT = L.sun ? L.sun.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null, earthT = L.earth ? L.earth.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null;
   for (let i = 0; i < rows * cols; i++) { let c = null, a = 0;
@@ -75,20 +80,112 @@ function buildTerrain() {
     for (let r = 0; r < n; r++) for (let c = 0; c < m; c++) { pos.push(x0 + c * X.mpp, 0, -(y0 - r * X.mpp)); uv.push(c / (m - 1), 1 - r / (n - 1)); }
     for (let r = 0; r < n - 1; r++) for (let c = 0; c < m - 1; c++) { const xa = x0 + (c + .5) * X.mpp, ya = y0 - (r + .5) * X.mpp; if (inside(xa, ya)) continue; const a = r * m + c; idx.push(a, a + m, a + 1, a + 1, a + m, a + m + 1); }
     const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cg.setIndex(idx); cg.userData.H = Hc;
-    const ct = new THREE.TextureLoader().load('../ui/assets/site01/photo_ctx_2m.jpg'); ct.colorSpace = THREE.SRGBColorSpace;
-    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, color: new THREE.Color(1.15, 1.15, 1.2), roughness: 1 })); scene.add(ctxMesh); setHeights(); }
-  // wide context 2: LROC WAC south-pole mosaic out to +-60 km, as a flat underlay
-  fetch('assets/moon/polar_south.json').then((r) => r.json()).then((pj) => { const img = new Image(); img.onload = () => {
-    const half = pj.half_m, span = 60e3, [cx, cy] = ps(L.center_lat_deg, L.center_lon_deg), px = img.width / (2 * half), sz = Math.round(2 * span * px);
-    const cv = document.createElement('canvas'); cv.width = cv.height = 1024; const g = cv.getContext('2d');
-    g.drawImage(img, (0.5 + (cx - span) / (2 * half)) * img.width, (0.5 - (cy + span) / (2 * half)) * img.height, sz, sz, 0, 0, 1024, 1024);
-    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const pl = new THREE.Mesh(new THREE.PlaneGeometry(2 * span, 2 * span), new THREE.MeshBasicMaterial({ map: t, color: 0x8c8c8c }));
-    pl.rotation.x = -Math.PI / 2; pl.position.y = (L.hmin - h0) * exag - 40; scene.add(pl); live.wac = pl; }; img.src = 'assets/moon/' + pj.image; }).catch(() => {});
+    const cv = document.createElement('canvas'); cv.width = cv.height = 2560; const ct = new THREE.CanvasTexture(cv); ct.colorSpace = THREE.SRGBColorSpace; ct.anisotropy = 8;
+    const img = new Image(); img.onload = () => { const g = cv.getContext('2d'); g.filter = photoFilter(img); g.drawImage(img, 0, 0, cv.width, cv.height); ct.needsUpdate = true; }; img.src = '../ui/assets/site01/photo_ctx_2m.jpg'; // same processing as the tile photo
+    ctxMesh = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ct, roughness: 1 })); scene.add(ctxMesh); setHeights(); }
+  buildGlobe(); buildPolar().catch((e) => console.warn('polar terrain', e));
 }
+// ---------------------------------------------------------------------------------------------------- the whole Moon
+// A globe in the Moon-fixed frame (MOON_PA: z = north pole), carrying the LROC global map and, south of 70 deg S, the sharp
+// LROC WAC polar mosaic. Placed so that the tile's centre, its east (+x) and north (+y) axes line up with the 5 m terrain:
+// the globe surface under the site sits at the mean height of the tile's edge, so the tile blends into it.
+const globe = { capBox: { value: new THREE.Vector4(1, -1, 1, -1) }, levels: [], mesh: null, M: new THREE.Matrix4(), center: new THREE.Vector3(), track: [], trackLine: null, dot: null, ring: null, trueSun: false };
+function pP(lat, lon, r = R_MOON) { const la = lat * Math.PI / 180, lo = lon * Math.PI / 180; return new THREE.Vector3(r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)); }
+function tileAxes() { // Moon-fixed unit vectors of the tile's east (+x), up and north (+y) at its centre (finite differences of the projection)
+  const [cx, cy] = ps(L.center_lat_deg, L.center_lon_deg), at = (dx, dy) => { const [la, lo] = latlon(cx + dx, cy + dy); return pP(la, lo); };
+  const up = pP(L.center_lat_deg, L.center_lon_deg).normalize(), ex = at(50, 0).sub(at(-50, 0)), ey = at(0, 50).sub(at(0, -50));
+  ex.addScaledVector(up, -ex.dot(up)).normalize(); ey.addScaledVector(up, -ey.dot(up)).addScaledVector(ex, -ey.dot(ex)).normalize(); return { ex, up, ey };
+}
+function buildGlobe() {
+  const A = tileAxes(); globe.A = A;
+  globe.M.set(A.ex.x, A.ex.y, A.ex.z, 0, A.up.x, A.up.y, A.up.z, 0, -A.ey.x, -A.ey.y, -A.ey.z, 0, 0, 0, 0, 1); // Moon-fixed -> scene (x east, y up, z south)
+  const TL = new THREE.TextureLoader(), mapE = TL.load('assets/moon/moon_color_4k.jpg'), mapP = TL.load('assets/moon/polar_south_wac.jpg'); for (const t of [mapE, mapP]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; }
+  const geo = new THREE.SphereGeometry(R_MOON, 720, 360); geo.rotateX(Math.PI / 2); // tessellation poles on the Moon's spin axis
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.capBox = globe.capBox; sh.uniforms.siteP = { value: A.up.clone() }; sh.uniforms.holeCos = { value: Math.cos(2300 / R_MOON) }; sh.uniforms.mapE = { value: mapE }; sh.uniforms.mapP = { value: mapP }; sh.uniforms.polarHalf = { value: 612744.8896254691 }; sh.uniforms.moonR = { value: R_MOON };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vMoonP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvMoonP = position;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vMoonP; uniform vec4 capBox; uniform vec3 siteP; uniform float holeCos; uniform sampler2D mapE; uniform sampler2D mapP; uniform float polarHalf; uniform float moonR;')
+      .replace('#include <map_fragment>', `vec3 nP = normalize(vMoonP); if (dot(nP, siteP) > holeCos) discard; // the real 5 m / 20 m terrain is shown here
+        { float la = asin(clamp(nP.z, -1.0, 1.0)); if (la < -1.1) { float rr = 2.0 * moonR * tan(0.78539816 + la * 0.5), lo = atan(nP.y, nP.x), X = rr * sin(lo), Y = rr * cos(lo);
+          if (X > capBox.x && X < capBox.y && Y > capBox.z && Y < capBox.w) discard; } } // the real LOLA polar cap is drawn here
+        float lat = asin(clamp(nP.z, -1.0, 1.0)); float lon = atan(nP.y, nP.x);
+        vec2 uvE = vec2(lon / 6.2831853 + 0.5, lat / 3.1415927 + 0.5); vec2 gx = dFdx(uvE), gy = dFdy(uvE);
+        if (abs(gx.x) > 0.5) gx.x -= sign(gx.x); if (abs(gy.x) > 0.5) gy.x -= sign(gy.x);
+        vec3 cE = textureGrad(mapE, uvE, gx, gy).rgb;
+        float rho = 2.0 * moonR * tan(0.78539816 + lat * 0.5); vec2 uvP = vec2(0.5 + rho * sin(lon) / (2.0 * polarHalf), 0.5 + rho * cos(lon) / (2.0 * polarHalf));
+        vec3 cP = texture2D(mapP, uvP).rgb; cP *= dot(cE, vec3(0.333)) / max(dot(textureGrad(mapP, uvP, dFdx(uvP) * 24.0, dFdy(uvP) * 24.0).rgb, vec3(0.333)), 0.02); // match the global map's local brightness
+        float wP = smoothstep(-1.2217, -1.3439, lat); // blend 70 -> 77 deg S
+        diffuseColor.rgb *= mix(cE, cP, wP);`);
+  };
+  globe.mesh = new THREE.Mesh(geo, mat); globe.mesh.matrixAutoUpdate = false; scene.add(globe.mesh);
+  // site marker seen from far away
+  globe.ring = new THREE.Mesh(new THREE.RingGeometry(9000, 13000, 64), new THREE.MeshBasicMaterial({ color: 0xffa566, side: THREE.DoubleSide, transparent: true, opacity: 0.9, depthTest: false }));
+  globe.ring.rotation.x = -Math.PI / 2; globe.ring.renderOrder = 5; scene.add(globe.ring);
+  globe.dot = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false })); globe.dot.renderOrder = 6; globe.dot.visible = false; scene.add(globe.dot);
+  placeGlobe();
+}
+function placeGlobe() { // Moon-fixed -> scene: rotation M, then the site (at its LOLA height h0) to the origin
+  if (!globe.mesh) return; globe.center.copy(globe.A.up).multiplyScalar(-(R_MOON + h0)).applyMatrix4(globe.M);
+  globe.mesh.matrix.makeTranslation(globe.center.x, globe.center.y, globe.center.z).multiply(globe.M); globe.mesh.matrixWorldNeedsUpdate = true; globe.ring.position.set(0, 25, 0);
+  for (const lv of globe.levels) placeLevel(lv);
+}
+// ---------------------------------------------------------------------------------------------------- nested real LOLA terrain (cap, region, local)
+function latlonPS(x, y) { const rho = Math.hypot(x, y); return [2 * Math.atan(rho / (2 * R_MOON)) - Math.PI / 2, Math.atan2(x, y)]; }
+async function buildPolar() {
+  const r = await fetch(`/api/polar?lat=${L.center_lat_deg}&lon=${L.center_lon_deg}`); if (!r.ok) return; const J = await r.json(); globe.polar = J;
+  const [cx, cy] = ps(L.center_lat_deg, L.center_lon_deg), wac = new THREE.TextureLoader().load('assets/moon/polar_south_wac.jpg'); wac.colorSpace = THREE.SRGBColorSpace; wac.anisotropy = 8;
+  const half = 612744.8896254691, box = (lv) => [lv.x0_m - lv.step_m / 2, lv.x0_m + (lv.cols - 0.5) * lv.step_m, lv.y0_m - (lv.rows - 0.5) * lv.step_m, lv.y0_m + lv.step_m / 2];
+  const lv = J.levels; const tileHalf = world?.context ? (world.context.cols - 1) / 2 * world.context.mpp - 30 : L.cols * L.mpp / 2 - 10;
+  lv.forEach((v, k) => { // hole = the next finer level's box (the finest one: the 5 m tile and its 20 m ring)
+    const inner = k + 1 < lv.length ? box(lv[k + 1]) : [cx - tileHalf, cx + tileHalf, cy - tileHalf, cy + tileHalf];
+    const h = new Int16Array(b64(v.height_i16).buffer), n = v.rows * v.cols, xy = new Float32Array(n * 2), uv = new Float32Array(n * 2);
+    for (let r2 = 0; r2 < v.rows; r2++) for (let c = 0; c < v.cols; c++) { const i = r2 * v.cols + c, X = v.x0_m + c * v.step_m, Y = v.y0_m - r2 * v.step_m; xy[2 * i] = X; xy[2 * i + 1] = Y; uv[2 * i] = 0.5 + X / (2 * half); uv[2 * i + 1] = 0.5 + Y / (2 * half); }
+    const idx = []; for (let r2 = 0; r2 < v.rows - 1; r2++) for (let c = 0; c < v.cols - 1; c++) { const a = r2 * v.cols + c; idx.push(a, a + v.cols, a + 1, a + 1, a + v.cols, a + v.cols + 1); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('psxy', new THREE.Float32BufferAttribute(xy, 2)); g.setIndex(idx);
+    const mat = new THREE.MeshStandardMaterial({ map: wac, roughness: 1, metalness: 0, color: v.name === 'local' ? 0xd8d8d8 : 0xffffff });
+    mat.onBeforeCompile = (sh) => { sh.uniforms.hole = { value: new THREE.Vector4(...inner) };
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 psxy; varying vec2 vXY;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvXY = psxy;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vXY; uniform vec4 hole;').replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (vXY.x > hole.x && vXY.x < hole.y && vXY.y > hole.z && vXY.y < hole.w) discard;'); };
+    const mesh = new THREE.Mesh(g, mat); const L2 = { v, h, mesh, n }; scene.add(mesh); globe.levels.push(L2); placeLevel(L2);
+    if (v.name === 'cap') globe.capBox.value.set(...box(v).map((q, i2) => q + (i2 % 2 ? -2 * v.step_m : 2 * v.step_m)));
+  });
+  const note = lv.map((v) => v.provenance).join(' | '); globe.provenance = note;
+}
+function placeLevel(L2) { // vertices on the sphere: radius R + h0 + (h - h0) * exaggeration, then into the scene
+  const { v, h, mesh, n } = L2, pos = mesh.geometry.attributes.position, xy = mesh.geometry.attributes.psxy.array, M = globe.M, C = globe.center, e = M.elements, tmp = new THREE.Vector3();
+  for (let i = 0; i < n; i++) { let hh = h[i] * v.height_scale_m; if (!isFinite(hh) || hh < -9000) hh = 0; const [la, lo] = latlonPS(xy[2 * i], xy[2 * i + 1]), r = R_MOON + h0 + (hh - h0) * exag;
+    tmp.set(r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)).applyMatrix4(M).add(C); pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+  pos.needsUpdate = true; mesh.geometry.computeVertexNormals(); mesh.geometry.computeBoundingSphere();
+}
+const moonToScene = (vP) => vP.clone().applyMatrix4(globe.M).add(globe.center);
+function globeLive(m) { // lander position and ground track on the globe while in orbit / braking
+  if (!globe.mesh || !m.orbit) return; const p = moonToScene(pP(m.orbit.lat_deg, m.orbit.lon_deg, R_MOON + m.orbit.alt_km * 1000)), d = camera.position.distanceTo(p);
+  if (globe.track.length && m.t_s < globe.lastT) globe.track = []; globe.lastT = m.t_s;
+  if (!m.lander) { globe.track.push(p); if (globe.track.length > 3000) globe.track.splice(0, 2); }
+  globe.dot.visible = !m.lander; globe.dot.position.copy(p); globe.dot.scale.setScalar(Math.max(d * 0.006, 2));
+  if (globe.trackLine) scene.remove(globe.trackLine); if (globe.track.length > 1) { globe.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(globe.track), new THREE.LineBasicMaterial({ color: 0x8db9ff, transparent: true, opacity: 0.85 })); scene.add(globe.trackLine); }
+  if (m.sun_dir_P) globe.sunP = new THREE.Vector3(...m.sun_dir_P);
+}
+function aimSun() { // the scene's light: the true SPICE Sun, or (readable) the Sun's azimuth raised 35 deg above the site's horizon
+  if (!L) return; let dir;
+  if (globe.trueSun && globe.sunP) dir = globe.sunP.clone().applyMatrix4(new THREE.Matrix4().extractRotation(globe.M)).normalize();
+  else { const az = (L.sun_az_grid ? L.sun_az_grid[tIdx] : 135) * Math.PI / 180; dir = new THREE.Vector3(Math.sin(az) * Math.cos(0.61), Math.sin(0.61), -Math.cos(az) * Math.cos(0.61)); }
+  sun.position.copy(dir).multiplyScalar(5e7); sun.target.position.set(0, 0, 0);
+  $('sunmode').textContent = globe.trueSun ? 'True Sun (SPICE)' : 'Readable light'; $('sunmode').classList.toggle('on', globe.trueSun);
+}
+function fly(to) { // animate the camera between the landing site and the whole Moon
+  globe.mode = to; controls.minDistance = to === 'moon' ? R_MOON * 1.08 : 40; for (const b of ['tomoon', 'topole', 'tosite']) $(b).classList.toggle('on', b === { moon: 'tomoon', pole: 'topole', site: 'tosite' }[to]);
+  const from = { p: camera.position.clone(), t: controls.target.clone() }, goal = to === 'pole' ? { p: new THREE.Vector3(-0.35, 0.62, 0.7).normalize().multiplyScalar(160e3), t: new THREE.Vector3(0, -3000, 0) } : to === 'moon' ? { p: globe.center.clone().add(new THREE.Vector3(-0.9, 1.6, 2.1).normalize().multiplyScalar(R_MOON * 3.4)), t: globe.center.clone() } : { p: new THREE.Vector3(-1500, 1400, 1900), t: new THREE.Vector3() };
+  const t0 = performance.now(), dur = 2600; (function step() { const u = Math.min((performance.now() - t0) / dur, 1), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+    const lg = (a, b) => Math.exp(lerp(Math.log(a), Math.log(b), e)), da = from.p.distanceTo(from.t), db = goal.p.distanceTo(goal.t), dir = from.p.clone().sub(from.t).normalize().lerp(goal.p.clone().sub(goal.t).normalize(), e).normalize();
+    controls.target.copy(from.t).lerp(goal.t, e); camera.position.copy(controls.target).addScaledVector(dir, lg(da, db)); if (u < 1) requestAnimationFrame(step); })();
+}
+
 function setHeights() {
   if (!terrainMesh) return; const p = terrainMesh.geometry.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, (L.height[i] - h0) * exag); p.needsUpdate = true; terrainMesh.geometry.computeVertexNormals();
   if (ctxMesh) { const q = ctxMesh.geometry.attributes.position, Hc = ctxMesh.geometry.userData.H; for (let i = 0; i < q.count; i++) q.setY(i, (Hc[i] - h0) * exag - 1.5); q.needsUpdate = true; ctxMesh.geometry.computeVertexNormals(); }
-  if (live.wac) live.wac.position.y = (L.hmin - h0) * exag - 40; placeTarget();
+  placeGlobe(); placeTarget();
 }
 function heightAt(x, y) { const { rows, cols, mpp } = L, c = clamp(x / mpp + (cols - 1) / 2, 0, cols - 1.001), r = clamp((rows - 1) / 2 - y / mpp, 0, rows - 1.001), c0 = Math.floor(c), r0 = Math.floor(r), fc = c - c0, fr = r - r0, Hh = L.height;
   return lerp(lerp(Hh[r0 * cols + c0], Hh[r0 * cols + c0 + 1], fc), lerp(Hh[(r0 + 1) * cols + c0], Hh[(r0 + 1) * cols + c0 + 1], fc), fr); }
@@ -115,11 +212,12 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 // ---------------------------------------------------------------------------------------------------- time of day (light layers)
 function setTime(i, fromUser) { if (!L) return; tIdx = clamp(i, 0, L.times.length - 1); if (fromUser) liveTime = false; $('tslider').value = String(tIdx); $('ttime').textContent = L.times[tIdx].replace('T', ' ').replace('Z', ' UTC');
   $('tsun').textContent = `${L.sun_el[tIdx].toFixed(2)}°`; $('tearth').textContent = `${L.earth_el[tIdx].toFixed(2)}°`; $('tlive').classList.toggle('on', liveTime);
-  const az = (L.sun_az_grid ? L.sun_az_grid[tIdx] : 135) * Math.PI / 180; sun.position.set(Math.sin(az) * 4000, 2600, -Math.cos(az) * 4000); // light from the true Sun azimuth, raised for readability
+  aimSun();
   if (layer === 'sun' || layer === 'earth') paint(); lights(); }
 $('tslider').oninput = (e) => setTime(Number(e.target.value), true); $('tlive').onclick = () => { liveTime = true; if (lastFrame?.utc) syncTime(lastFrame.utc); };
 let playT = null; $('tplay').onclick = () => { if (playT) { clearInterval(playT); playT = null; $('tplay').textContent = '▶'; return; } liveTime = false; $('tplay').textContent = '❚❚'; playT = setInterval(() => setTime((tIdx + 1) % L.times.length, true), 400); };
 function syncTime(utc) { const t = Date.parse(utc), t0 = Date.parse(L.times[0]), step = (Date.parse(L.times[1]) - t0) || 1; const i = clamp(Math.round((t - t0) / step), 0, L.times.length - 1); if (i !== tIdx) setTime(i, false); }
+$('tomoon').onclick = () => fly('moon'); $('topole').onclick = () => fly('pole'); $('tosite').onclick = () => fly('site'); $('sunmode').onclick = () => { globe.trueSun = !globe.trueSun; aimSun(); };
 $('exag').oninput = (e) => { exag = Number(e.target.value); $('exv').textContent = `${exag}×`; setHeights(); };
 
 // ---------------------------------------------------------------------------------------------------- status lights (computed, never decorative)
@@ -181,7 +279,7 @@ function onFrame(m) {
     if (!live.lander) { live.lander = new THREE.Mesh(new THREE.ConeGeometry(8, 22, 16), new THREE.MeshBasicMaterial({ color: 0xffffff })); live.lander.rotation.x = Math.PI; live.group.add(live.lander); }
     live.lander.position.copy(p).add(new THREE.Vector3(0, 11, 0)); if (live.trackLine) live.group.remove(live.trackLine);
     live.trackLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(live.track), new THREE.LineBasicMaterial({ color: 0xffa566 })); live.group.add(live.trackLine); }
-  placeTarget(); trajectory(); gauges(); vehicle(); lights();
+  globeLive(m); if (globe.trueSun) aimSun(); placeTarget(); trajectory(); gauges(); vehicle(); lights();
 }
 
 // ---------------------------------------------------------------------------------------------------- boot
@@ -195,10 +293,13 @@ async function boot() {
   for (let t = 0; t < T; t++) { L.sun.set(bits(sb.subarray(t * rowBytes, (t + 1) * rowBytes), n), t * n); L.earth.set(bits(eb.subarray(t * rowBytes, (t + 1) * rowBytes), n), t * n); }
   let mn = Infinity, mx = -Infinity; for (const v of L.height) { if (v < mn) mn = v; if (v > mx) mx = v; } L.hmin = mn; L.hmax = mx;
   const s = lastFrame?.site || { x_m: 0, y_m: 0 }; h0 = heightAt(s.x_m, s.y_m); $('tslider').max = String(T - 1);
-  const photo = new Image(); photo.onload = () => { tex.photo = photo; paint(); }; photo.src = '../ui/assets/site01/photo_1m.jpg';
+  const photo = new Image(); photo.onload = () => { tex.photo = photo; tex.photoFilter = photoFilter(photo); paint(); }; photo.src = '../ui/assets/site01/photo_1m.jpg';
   buildTerrain(); paint(); setTime(0, false); camera.position.set(-1500, 1400, 1900); controls.target.set(0, 0, 0); controls.update(); $('wait').style.display = 'none';
   ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'frame' && m.orbit) onFrame(m); };
   if (lastFrame) onFrame(lastFrame); else { lights(); vehicle(); trajectory(); }
+  const v0 = new URLSearchParams(location.search).get('view'); if (v0 === 'moon') { globe.mode = 'moon'; controls.target.copy(globe.center); camera.position.copy(globe.center).add(new THREE.Vector3(-0.9, 1.6, 2.1).normalize().multiplyScalar(R_MOON * 3.4)); controls.minDistance = R_MOON * 1.08; }
+  else if (v0 !== 'site') { globe.mode = 'pole'; controls.target.set(0, -3000, 0); camera.position.copy(new THREE.Vector3(-0.35, 0.62, 0.7).normalize().multiplyScalar(160e3)); } // opens on the south-pole region
+  if (new URLSearchParams(location.search).get('sun') === 'true') { globe.trueSun = true; aimSun(); }
   // scale bar: metres per 120 screen px at the target distance
   setInterval(() => { const d = camera.position.distanceTo(controls.target), mPerPx = 2 * d * Math.tan(camera.fov * Math.PI / 360) / H, nice = [50, 100, 200, 500, 1000, 2000, 5000, 10000].find((v) => v / mPerPx > 70) || 10000;
     $('sbar').style.width = `${(nice / mPerPx).toFixed(0)}px`; $('stext').textContent = nice >= 1000 ? `${nice / 1000} km` : `${nice} m`; }, 300);
