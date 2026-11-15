@@ -298,6 +298,15 @@
       <div class="cv-grid-wrap" id="td-curves"></div>
       <link rel="stylesheet" href="css/curves.css">
       <script type="module">import { mountCurves } from './js/curves.js'; mountCurves(document.getElementById('td-curves'), { compact: true });</script>
+      <!-- BEGIN:E-replay (recorded Site 11 descents; js/replay.js + css/replay.css) -->
+      <link rel="stylesheet" href="css/replay.css">
+      <div class="rp-wrap" id="replay" aria-labelledby="rp-h">
+        <h3 id="rp-h">Replay a real landing</h3>
+        <p class="rp-cap">Recorded descents on Site 11 (validation map), pilot vs classic on the identical mission. Simulated.</p>
+        <div class="rp" id="td-replay"></div>
+      </div>
+      <script type="module">import { mountReplay } from './js/replay.js'; mountReplay(document.getElementById('td-replay'));</script>
+      <!-- END:E-replay -->
       <!-- Optional cinematic clip (assets/video/landing.mp4); hidden unless the file exists. Decorative. -->
       <figure class="media-slot" data-slot="landing" hidden>
         <video muted loop playsinline preload="none" aria-label="Cinematic clip of a lander touching down on the Moon (decorative)"></video>

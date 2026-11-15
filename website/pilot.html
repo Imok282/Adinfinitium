@@ -100,6 +100,18 @@
     <p class="pp-note pp-charts-note">Paired simulated missions, same missions for both controllers. On the Site 23 final exam the pilot tied classic guidance (97.95 % each), and on missions with an engine failure it lands less often (95.9 % vs 98.4 %). <a href="research/benchmarks.html#limits">Limits</a> · <a href="research/benchmarks.html#pilot">full benchmark table and sources</a>.</p>
   </section>
 
+  <!-- BEGIN:B-replay (recorded Site 11 descents; js/replay.js + css/replay.css) -->
+  <link rel="stylesheet" href="css/replay.css">
+  <section class="pp-replay" id="replay" aria-labelledby="rp-h">
+    <div class="rp-wrap">
+      <h2 id="rp-h">Replay a real landing</h2>
+      <p class="rp-cap">Recorded descents on Site 11 (validation map), pilot vs classic on the identical mission. Simulated.</p>
+      <div class="rp" id="pp-replay"></div>
+    </div>
+  </section>
+  <script type="module">import { mountReplay } from './js/replay.js'; mountReplay(document.getElementById('pp-replay'));</script>
+  <!-- END:B-replay -->
+
   <!-- BEGIN:B-neat (how the policy is trained; js/neat.js card mode) -->
   <section id="neat" class="pp-neat" aria-labelledby="neat-h">
     <div class="neat-head">
