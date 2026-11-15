@@ -8,6 +8,49 @@ Adinfinitium began as our NASA Space Apps 2026 project, *Lunar Landing Site Navi
 Models were frozen before testing, held-out sites were evaluated once, and failures are reported next to successes.
 All results are **simulation** results on held-out lunar sites. This is research code, **not for flight or safety-critical use**.
 
+<p align="center">
+  <a href="https://adinfinitium.vercel.app"><b>Website</b></a> ·
+  <a href="https://adinfinitium.vercel.app/landing.html"><b>Watch a landing</b></a> ·
+  <a href="https://adinfinitium.vercel.app/research/benchmarks.html"><b>Benchmarks</b></a> ·
+  <a href="https://huggingface.co/Imok282"><b>Models on Hugging Face</b></a>
+</p>
+
+## For judges: the 60-second version
+
+**Challenge:** NASA Space Apps 2026, *Lunar Landing Site Navigator*. At the lunar south pole, *where* and *when* you land decides
+whether a mission survives: slope and hazards, sunlight that barely clears the horizon, and line of sight to Earth.
+
+**What we built**
+- **Navigator** chooses the landing cell and date from real NASA LRO LOLA 5 m terrain and NASA/JPL SPICE Sun/Earth geometry,
+  then tests each candidate in simulated missions.
+- **Pilot** flies the descent: a learned 14.8 M-parameter pilot that only *corrects* classic ZEM/ZEV guidance (the physics backup
+  always flies), plus a hazard U-Net, a horizon/light model and a rover brain that drives to shadowed ice edges and back.
+- **Dream-RSI**: gated offline self-improvement. A model may replace itself only if it loses no mission that the current model
+  or the physics backup lands.
+
+**Lander results** (paired fixed-seed simulation; touchdown limits vz ≤ 2 m/s, vh ≤ 0.5 m/s, slope ≤ 12°)
+
+| Test | n per condition | Classic guidance | Learned pilot | Exact p |
+|---|---|---|---|---|
+| 3 unseen maps, normal | 2,304 | 97.66 % | **98.39 %** | 0.019 (Holm 0.074) |
+| Site 23 final exam (flown once) | 1,024 | 97.95 % | 97.95 % | 1.00 |
+| Our planned landing cell (rehearsal) | 512 | 99.02 % | **99.61 %** | 0.45 |
+| 20 procedurally generated Moon maps | 640 | 97.50 % | **98.12 %** | 0.34 |
+
+At least as safe as classic guidance in every test, ahead in most, with **≈ 9 % less fuel** in every test. Weak spot: after an
+engine failure it lands less often than classic (95.9 % vs 98.4 %). Full tables, harsh conditions and every caveat:
+[`docs/records/SUBMISSION_SUMMARY.md`](docs/records/SUBMISSION_SUMMARY.md) and the
+[benchmarks page](https://adinfinitium.vercel.app/research/benchmarks.html).
+
+**Dream-RSI record:** planner 1 of 5 generations accepted (validation Brier −12 %); rover brain repaired planted faults
+(blocked route fixed at 4/4 sites); lander 0 of 7 accepted: the zero-regression gate held.
+
+**Data and AI use.** Terrain: NASA LRO LOLA (PGDA); imagery: NASA/GSFC/Arizona State University (LROC); ephemeris: NASA/JPL
+SPICE (DE440). No NASA endorsement implied. The team built the software together with AI coding agents; cinematic video and
+imagery on the website are AI-generated (Google Gemini).
+
+**Team:** Ojas · Nimansh · Tanush · Arnav
+
 ## Models
 
 All weights and model cards are on Hugging Face: **https://huggingface.co/Imok282** (weights: Apache-2.0).
