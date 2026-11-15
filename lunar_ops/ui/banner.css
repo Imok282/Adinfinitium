@@ -41,7 +41,7 @@
 /* Fit any window: nothing wraps; sizes step down with the banner's own width (screens drawn on a fixed 1920 px stage keep the full size) */
 .adb .clk, .adb .mark, .adb .nav, .adb .lights { flex: none; } .adb .clk .v.txt { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
 @container (max-width: 1800px) { .adb .adb-in { gap: 18px; padding: 0 16px; } .adb .mark { min-width: 0; } .adb .clk .v { font-size: 19px; } .adb .lt { width: 74px; } }
-@container (max-width: 1560px) { .adb .word small { display: none; } .adb .clk .v { font-size: 17px; } .adb .lt { width: 62px; height: 40px; font-size: 9px; letter-spacing: .06em; } .adb .lt b { font-size: 11px; } .adb .clk .v.txt { max-width: 190px; } }
+@container (max-width: 1560px) { .adb .word small { display: none; } .adb .clk .v { font-size: 17px; } .adb .lt { width: 54px; height: 40px; font-size: 9px; letter-spacing: .06em; } .adb .lt b { font-size: 11px; } .adb .clk .v.txt { max-width: 190px; } }
 @container (max-width: 1360px) { .adb .clk .v .d { display: none; } .adb .adb-in { gap: 12px; } .adb .lights { gap: 4px; } .adb .lt { width: 54px; } .adb .word b { font-size: 16px; letter-spacing: .1em; } .adb .sep { display: none; } }
 @container (max-width: 1180px) { .adb .clk .k { font-size: 9px; } .adb .clk .v { font-size: 15px; } .adb .lt { width: 46px; font-size: 8px; } .adb .lt b { font-size: 9.5px; } .adb .mark svg, .adb .mark img { width: 34px; height: 34px; } .adb .nav { padding: 0 10px; } }
 @container (max-width: 1180px) { .adb .word { display: none; } }

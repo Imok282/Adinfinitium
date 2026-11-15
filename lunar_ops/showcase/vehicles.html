@@ -69,5 +69,6 @@ for (const [id, o] of [['capL', lander], ['capR', rover]]) { const p = o.positio
 requestAnimationFrame(() => { r.render(scene, cam); document.title = 'ready'; });
 addEventListener('resize', () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); r.setSize(innerWidth, innerHeight, false); r.render(scene, cam); });
 </script>
+<script src="/fullscreen.js"></script>
 </body>
 </html>

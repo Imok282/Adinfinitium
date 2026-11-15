@@ -28,6 +28,8 @@ button:hover { background: rgba(35,83,71,.8); color: var(--bl); } button.on { ba
 .pane { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000000; }
 .pane .tag { position: absolute; left: 14px; top: 12px; z-index: 2; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; background: rgba(0,0,0,.72); border: 1px solid var(--line); pointer-events: none; }
 iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pfs { position: absolute; right: 12px; bottom: 12px; z-index: 3; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 10px; background: rgba(0,0,0,.72); border: 1px solid var(--line); color: var(--text); cursor: pointer; }
+.pfs:hover { border-color: #8EB69B; background: #0B2B26; } .pfs svg { width: 17px; height: 17px; }
 video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000000; }
 #pick { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--dim); }
 #pick p { max-width: 420px; margin: 0 auto 16px; }
@@ -40,11 +42,12 @@ body.pip #wrap { grid-template-columns: 1fr; } body.pip #viz { position: fixed; 
 <div id="adb" data-screen="Our render + Basilisk Vizard" style="position:fixed;left:0;right:0;top:0;z-index:3"></div>
 <div id="ctl"><button id="layout">Picture in picture</button><button id="pickBtn">Choose Vizard window</button></div>
 <div id="wrap">
-  <div class="pane" id="ours"><span class="tag">Our render · three.js</span><iframe id="frame" src="./?live=1&clean=1" title="Our 3D view"></iframe></div>
-  <div class="pane" id="viz"><span class="tag">Basilisk · Vizard (live)</span><video id="vid" autoplay muted playsinline></video>
+  <div class="pane" id="ours"><span class="tag">Our render · 3D</span><button class="pfs" data-fs="ours" title="Full screen: this pane only" aria-label="Full screen: our render"></button><iframe id="frame" src="./?live=1&clean=1" title="Our 3D view"></iframe></div>
+  <div class="pane" id="viz"><span class="tag">Basilisk · Vizard (live)</span><button class="pfs" data-fs="viz" title="Full screen: this pane only" aria-label="Full screen: Vizard"></button><video id="vid" autoplay muted playsinline></video>
     <div id="pick"><div><p>Vizard runs as its own app. Choose its window once and it is shown here, live, next to our render.</p><button id="pick2">Choose Vizard window</button></div></div></div>
 </div>
 <script src="/banner.js"></script>
+<script src="/fullscreen.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -55,6 +58,8 @@ body.pip #wrap { grid-template-columns: 1fr; } body.pip #viz { position: fixed; 
       s.getVideoTracks()[0].addEventListener('ended', () => { $('vid').srcObject = null; $('pick').style.display = ''; });
     } catch (e) { /* the person closed the picker */ }
   }
+  const EXP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.querySelectorAll('.pfs').forEach((b) => { b.innerHTML = EXP; b.onclick = () => window.ADFS && window.ADFS.toggle($(b.dataset.fs)); }); // one pane full screen (the page button does both)
   $('pickBtn').onclick = pick; $('pick2').onclick = pick;
   $('layout').onclick = () => { document.body.classList.toggle('pip'); $('layout').classList.toggle('on', document.body.classList.contains('pip')); };
 })();
