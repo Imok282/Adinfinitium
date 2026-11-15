@@ -27,6 +27,7 @@ def test_traced_forward_matches_model():
     assert tr["tokens"] == 66 and tr["layers"] == 8 and len(tr["rollout"]) == 66
     assert abs(sum(tr["rollout"]) - 1.0) < 1e-3
     assert tr["chain"] and all(0 <= e[0] < 8 and 0 <= e[1] < 66 and 0 <= e[2] < 66 for e in tr["chain"])
+    assert len(tr["top"]) == 8 and all(len(layer) == 66 and all(len(r) == 8 for r in layer) for layer in tr["top"])
 
 
 def test_untrained_pilot_flies_like_classic():

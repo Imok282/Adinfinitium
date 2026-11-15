@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026, Adinfinitium team
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Adinfinitium · Pilot brain</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@font-face { font-family: "Instrument Sans"; src: url("vendor/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 400 700; }
+@font-face { font-family: "JetBrains Mono"; src: url("vendor/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; }
+:root { --line: rgba(141,185,255,.13); --text: #e8eef9; --dim: #8a99b6; --dim2: #5d6b87; --blue: #2f7dff; --bl: #8db9ff; --or: #ffa566; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #02040a; color: var(--text); font: 15px/1.4 "Instrument Sans", -apple-system, sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+.n { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-weight: 500; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; background: radial-gradient(1300px 760px at 50% 45%, #07101f 0%, #02040a 72%); }
+.abs { position: absolute; }
+.panel { position: absolute; background: linear-gradient(180deg, rgba(10,17,32,.85), rgba(6,11,22,.85)); border: 1px solid var(--line); border-radius: 22px; }
+.h { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--bl); } .h b { color: var(--dim2); font-weight: 500; margin-right: 10px; }
+.sub { color: var(--dim); font-size: 14px; }
+header { position: absolute; left: 40px; right: 40px; top: 28px; height: 70px; display: flex; align-items: center; justify-content: space-between; }
+header .t { font-size: 30px; font-weight: 600; letter-spacing: -.01em; } header .t span { display: block; font-size: 14.5px; font-weight: 400; color: var(--dim); margin-top: 2px; }
+.stats { display: flex; gap: 38px; align-items: flex-end; } .stat { text-align: right; } .stat .k { font-size: 12px; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; } .stat .v { font-size: 24px; } .stat .v small { font-size: 13px; color: var(--dim); margin-left: 4px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px var(--blue); margin-right: 8px; vertical-align: 2px; } .dot.o { background: var(--or); box-shadow: 0 0 10px var(--or); }
+footer { position: absolute; left: 40px; right: 40px; bottom: 22px; display: flex; justify-content: space-between; font-size: 13px; color: var(--dim2); }
+.row { display: flex; align-items: center; height: 21px; font-size: 12.5px; } .row .nm { width: 128px; color: var(--dim); } .row .vl { width: 74px; text-align: right; font-size: 12px; }
+.row .bar { flex: 1; height: 5px; margin-left: 10px; border-radius: 5px; background: rgba(141,185,255,.08); position: relative; } .row .bar i { position: absolute; top: 0; height: 5px; border-radius: 5px; background: var(--blue); transition: left .25s, width .25s; } .row .bar i.neg { background: var(--or); }
+.row .bar::after { content: ""; position: absolute; left: 50%; top: -3px; width: 1px; height: 11px; background: rgba(141,185,255,.25); }
+.log div { display: flex; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; } .log div:first-child { border-top: 0; } .log .n { color: var(--dim); font-size: 12px; min-width: 50px; }
+.big { font-size: 60px; font-weight: 500; line-height: 1; letter-spacing: -.02em; }
+.legend { display: flex; gap: 20px; font-size: 12.5px; color: var(--dim); } .legend i { display: inline-block; width: 20px; height: 3px; border-radius: 3px; margin-right: 7px; vertical-align: 3px; }
+.cap { position: absolute; text-align: center; font-size: 12px; color: var(--dim); transform: translateX(-50%); white-space: nowrap; } .cap .n { display: block; color: var(--text); font-size: 11.5px; }
+canvas.px { image-rendering: pixelated; border-radius: 12px; }
+#wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 18px; pointer-events: none; transition: opacity .6s; }
+.mini { font-size: 11.5px; color: var(--dim); text-align: center; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <header>
+    <div class="t">Pilot brain<span>What the AI sees, thinks and does, live from Basilisk every control step</span></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Mission time</div><div class="v n" id="s-t">–</div></div>
+      <div class="stat"><div class="k">Altitude</div><div class="v n"><span id="s-alt">–</span><small>m</small></div></div>
+      <div class="stat"><div class="k">Down speed</div><div class="v n"><span id="s-vd">–</span><small>m/s</small></div></div>
+      <div class="stat"><div class="k">Engines</div><div class="v n" id="s-eng">–</div></div>
+      <div class="stat"><div class="k">Flying</div><div class="v" style="font-size:20px;padding-bottom:3px" id="s-src">–</div></div>
+    </div>
+  </header>
+
+  <div class="panel" style="left:40px;top:122px;width:396px;height:900px">
+    <div class="h abs" style="left:26px;top:24px"><b class="n">1</b>What it sees</div>
+    <canvas id="cam" class="px abs" width="250" height="250" style="left:26px;top:62px;width:250px;height:250px"></canvas>
+    <div class="abs" style="left:290px;top:62px;width:84px">
+      <canvas id="ch0" class="px" width="84" height="84" style="width:84px;height:84px"></canvas><div class="mini">slope</div>
+      <canvas id="ch1" class="px" width="84" height="84" style="width:84px;height:84px;margin-top:6px"></canvas><div class="mini">hazard</div>
+    </div>
+    <div class="abs" style="left:26px;top:318px;font-size:12px;color:var(--dim)">Ground camera · <span style="color:var(--or)">orange</span> hazard · <span style="color:var(--bl)">blue</span> where the AI looks</div>
+    <div id="sens" class="abs" style="left:26px;top:350px;width:344px"></div>
+  </div>
+
+  <div class="panel" style="left:456px;top:122px;width:1060px;height:900px">
+    <div class="h abs" style="left:28px;top:24px"><b class="n">2</b>What it thinks</div>
+    <div class="sub abs" style="left:28px;top:50px" id="netsub">Transformer pilot</div>
+    <canvas id="net" class="abs" style="left:0;top:80px;width:1060px;height:760px"></canvas>
+    <div class="legend abs" style="left:28px;bottom:20px"><span><i style="background:#8db9ff"></i>strongest chain to the thrust output</span><span><i style="background:rgba(141,185,255,.35)"></i>each token's top attention links</span><span>dot size = activity</span></div>
+  </div>
+
+  <div class="panel" style="left:1536px;top:122px;width:344px;height:900px">
+    <div class="h abs" style="left:26px;top:24px"><b class="n">3</b>What it does</div>
+    <div class="abs" style="left:26px;top:60px"><div class="big n"><span id="thr">–</span><span style="font-size:26px;color:var(--dim)"> %</span></div><div class="sub" style="margin-top:8px">throttle · classic alone: <span class="n" style="color:var(--text)" id="thrc">–</span></div></div>
+    <div class="abs" style="left:26px;top:150px;width:292px;font-size:12.5px;color:var(--dim)">AI correction added to the classic command<div class="n" style="color:var(--text);font-size:14px;margin-top:4px" id="res">–</div></div>
+    <div class="h abs" style="left:26px;top:214px;color:var(--dim)">AI vs classic</div>
+    <div class="legend abs" style="left:26px;top:238px"><span><i style="background:#8db9ff"></i>AI</span><span><i style="background:#8a99b6;opacity:.7"></i>Classic</span></div>
+    <svg id="chart" class="abs" style="left:0;top:262px" width="344" height="210"></svg>
+    <div class="abs n" style="left:26px;top:476px;width:300px;font-size:11.5px;color:var(--dim)" id="lat">–</div>
+    <div class="h abs" style="left:26px;top:526px;color:var(--dim)">Decisions</div>
+    <div class="log abs" style="left:26px;top:552px;width:292px" id="log"></div>
+  </div>
+
+  <footer><span id="prov">Waiting for a live run</span><span>Simulated mission (MODELLED) · terrain NASA LRO LOLA (observed)</span></footer>
+  <div id="wait">Waiting for a live run: start <span class="n">&nbsp;python -m scripts.live_mission&nbsp;</span></div>
+</div>
+<script src="ai.js"></script>
+</body>
+</html>

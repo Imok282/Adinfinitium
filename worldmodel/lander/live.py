@@ -164,13 +164,18 @@ def summarize_trace(attn: list[torch.Tensor], act: list[torch.Tensor], chain_top
                 edges.append([li, q, ki, round(wi, 4), head])
                 nxt[ki] = max(nxt.get(ki, 0.0), wi)
         frontier = [t for t, _ in sorted(nxt.items(), key=lambda kv: -kv[1])[:max_per_layer]]
+    # every token's strongest links per layer (the dim background of the AI view: real attention, not decoration)
+    top = []
+    for m in mean:
+        w, idx = m.topk(4, dim=-1)
+        top.append([[int(k) for k in row] + [round(float(x), 3) for x in wr] for row, wr in zip(idx.tolist(), w.tolist())])
     activity = [a.abs().mean(-1) for a in act]              # [N] per layer
     top_neurons = []
     for a in act:
         v, i = a[0].abs().topk(32)                          # output token's strongest MLP neurons
         top_neurons.append([[int(j), round(float(a[0, j]), 4)] for j in i.tolist()])
     return {"tokens": n_tok, "layers": n_layers, "heads": attn[0].shape[0], "mlp_width": act[0].shape[-1],
-            "rollout": [round(float(v), 5) for v in rollout], "chain": edges,
+            "rollout": [round(float(v), 5) for v in rollout], "chain": edges, "top": top,
             "activity": [[round(float(v), 4) for v in a] for a in activity], "top_neurons": top_neurons}
 
 
