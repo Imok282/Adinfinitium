@@ -250,7 +250,8 @@ function buildSurface() {
     const ctx = new THREE.Mesh(cg, new THREE.MeshStandardMaterial({ map: ctxPhoto, color: new THREE.Color(1.6, 1.6, 1.65), roughness: 1 })); ctx.receiveShadow = true; surf.add(ctx); }
   const s = RV.sun; const az = s.az * DEG, el = Math.max(s.el, 0.5) * DEG; // sun azimuth and elevation from the recorded run
   surfSun = addSun(surf, new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))); surfSun.light.intensity = 3.0;
-  surf.add(new THREE.HemisphereLight(0xffffff, 0x0B2B26, 1.7)); // earthshine and scattered fill, so shadowed ground stays readable addEarth(surf, new THREE.Vector3(0.0, 0.12, 1)); surf.fog = new THREE.FogExp2(0x051F20, 0.00005);
+  surf.add(new THREE.HemisphereLight(0xffffff, 0x0B2B26, 1.7)); /* earthshine and scattered fill, so shadowed ground stays readable */ surf.fog = new THREE.FogExp2(0x051F20, 0.00005);
+  // no Earth in the surface sky: at this site it is about 5 degrees below the horizon at landing (SPICE), the comms NO-GO
   for (const t of W.targets || []) { // ice-evidence targets: a soft ring and a thin beam
     const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(3.2, 4.2, 64), new THREE.MeshBasicMaterial({ color: 0xDAF1DE, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; g.add(ring);
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xDAF1DE, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 20; g.add(beam);
@@ -416,7 +417,7 @@ function liveConnect() {
       if (LIVE.orb.length && m.t_s < LIVE.orb[LIVE.orb.length - 1].t_s) LIVE.orb = [];
       LIVE.orb.push({ t_s: m.t_s, f: m, at: performance.now() / 1000 }); if (LIVE.orb.length > 40) LIVE.orb.shift(); LIVE.kind = 'orbit'; LIVE.seen = performance.now() / 1000; LIVE.buf = []; LIVE.landed = null; return; }
     if (m.lander && m.lander.q_enu) { LIVE.kind = 'surface'; if (LIVE.buf.length && m.t_s < LIVE.buf[LIVE.buf.length - 1].t_s) LIVE.buf = []; LIVE.buf.push({ t_s: m.t_s, l: m.lander, at: performance.now() / 1000 }); if (LIVE.buf.length > 60) LIVE.buf.shift(); LIVE.seen = performance.now() / 1000; LIVE.landed = null; }
-    if (m.phase === 'TOUCHDOWN') { LIVE.landed = LIVE.buf[LIVE.buf.length - 1] || null; LIVE.seen = performance.now() / 1000; }
+    if (m.phase === 'TOUCHDOWN' || m.phase === 'LANDED' || m.phase === 'ENDED') { if (!LIVE.landed) LIVE.landed = LIVE.buf[LIVE.buf.length - 1] || null; LIVE.seen = performance.now() / 1000; } // engines off, lander settles on its legs
     LIVE.phase = m.phase || LIVE.phase; };
   ws.onclose = () => setTimeout(liveConnect, 1500);
 }
@@ -459,18 +460,43 @@ function updateLiveOrbit(dt, wall) {
   $('note').innerHTML = `<span class="num">LIVE</span> · ${ph} · <span class="num">${alt.toFixed(alt < 20 ? 2 : 1)} km</span> · <span class="num">${Math.round(b.orbit.speed_m_s).toLocaleString('en-US')} m/s</span> · <span class="num">${Math.round(b.orbit.ground_range_km).toLocaleString('en-US')} km</span> to site${tgo != null ? ` · <span class="num">${Math.round(tgo)} s</span> to gate` : ''} · warp <span class="num">${b.sim?.warp ?? 1}×</span>`;
   document.body.classList.add('live'); void tin;
 }
+// Lander pose in the surface scene. In flight it is Basilisk's: origin at ground + clearance + 1.45 m, attitude from the run.
+// In the last metres and on the ground the lander settles onto its four footpads: it tilts to the plane through the ground
+// under the pads (heading kept) and sits so that every pad is on or just above the terrain, never inside it.
+const FOOTPADS_BODY = [[1.55, -1.55, -1.45], [1.55, 1.55, -1.45], [-1.55, 1.55, -1.45], [-1.55, -1.55, -1.45]]; // [m] basilisk_mods/lander_geometry.py
+const SETTLE_ALT_M = 3.0; // [m] clearance below which the lander blends from its flight attitude to its standing attitude
+function settlePose(x, y, yFlight, qEnu, alt, landed) {
+  const toSceneRot = (qq) => new THREE.Matrix4().multiplyMatrices(C_SCENE_ENU, new THREE.Matrix4().makeRotationFromQuaternion(qq));
+  const sceneQ = (qq) => new THREE.Quaternion().setFromRotationMatrix(toSceneRot(qq).multiply(M_BODY_GLTF));
+  const padsAt = (qq) => FOOTPADS_BODY.map((b) => new THREE.Vector3(...b).applyMatrix4(toSceneRot(qq))); // pad offsets from the origin, scene frame
+  const s = landed ? 1 : clamp(1 - alt / SETTLE_ALT_M, 0, 1);
+  let qUse = qEnu;
+  if (s > 0) { // ground plane under the pads: normal from the two diagonals
+    const off = padsAt(qEnu), G = off.map((o) => new THREE.Vector3(x + o.x, groundY(x + o.x, y - o.z), -(y - o.z)));
+    const n = new THREE.Vector3().crossVectors(G[2].clone().sub(G[0]), G[1].clone().sub(G[3])).normalize(); if (n.y < 0) n.negate();
+    const nEnu = new THREE.Vector3(n.x, -n.z, n.y), upBody = new THREE.Vector3(0, 0, 1).applyQuaternion(qEnu); // scene -> (east, north, up)
+    const qStand = new THREE.Quaternion().setFromUnitVectors(upBody, nEnu).multiply(qEnu); qUse = qEnu.clone().slerp(qStand, smooth(s)); }
+  const off = padsAt(qUse), need = Math.max(...off.map((o) => groundY(x + o.x, y - o.z) - o.y)); // origin height at which the highest-ground pad touches
+  const yOrigin = landed ? need : Math.max(yFlight, need); // in flight never below the pads' ground; landed exactly on it
+  const clear = off.map((o) => yOrigin + o.y - groundY(x + o.x, y - o.z)); // [m] height of each footpad above the terrain under it
+  return { p: toScene(x, y, yOrigin), q: sceneQ(qUse), clear };
+}
 function updateLive(dt, wall) {
   cam.wantUp.set(0, 1, 0); const f = liveSample(); if (!f) return; const q = f.q || new THREE.Quaternion(f.q_enu[1], f.q_enu[2], f.q_enu[3], f.q_enu[0]);
-  const g = groundY(f.x_m, f.y_m), alt = LIVE.landed ? 0 : Math.max(f.alt_m, 0), P = toScene(f.x_m, f.y_m, g + alt + LANDER_FEET);
+  const g = groundY(f.x_m, f.y_m), alt = LIVE.landed ? 0 : Math.max(f.alt_m, 0), pose = settlePose(f.x_m, f.y_m, g + alt + LANDER_FEET, q, alt, !!LIVE.landed), P = pose.p;
   landerSurf.visible = true; roverG.visible = true; descentLine.visible = false; trail.visible = false; ghostG.visible = false; models.ramp.rotation.z = 0; landerSurf.position.copy(P);
-  const R = new THREE.Matrix4().multiplyMatrices(C_SCENE_ENU, new THREE.Matrix4().makeRotationFromQuaternion(q)).multiply(M_BODY_GLTF); landerSurf.quaternion.setFromRotationMatrix(R);
+  landerSurf.quaternion.copy(pose.q); LIVE.padClear = pose.clear.map((v) => +v.toFixed(2));
   landerSurf.updateMatrixWorld(true); placeRoverInBay(0); models.roverLabel.on = false;
   fx.descent.forEach((e, i) => e.set(LIVE.landed ? 0 : (f.engine_throttle?.[i] ?? 0), wall + i, dt)); // engine index = Basilisk index (0 centre, 1..4 outer)
-  const near = LIVE.landed ? 0 : clamp(1 - alt / 40, 0, 1), per = (f.engine_throttle || []).reduce((s, v) => s + v, 0) / 5;
-  if (near > 0 && per > 0.05) for (let k = 0; k < 14 * near; k++) { const a = Math.random() * Math.PI * 2, r0 = 1.5 + 2 * Math.random(), sp = 9 + 16 * Math.random(); fx.dust.emit(toScene(f.x_m + Math.cos(a) * r0, f.y_m + Math.sin(a) * r0, g + 0.1), new THREE.Vector3(Math.cos(a) * sp, 0.1 + Math.random() * 0.4, -Math.sin(a) * sp), 0.4, 1.1); }
+  const near = LIVE.landed ? 0 : clamp(1 - alt / 15, 0, 1), per = (f.engine_throttle || []).reduce((s, v) => s + v, 0) / 5; // plume dust only in the last 15 m
+  if (near > 0 && per > 0.05) for (let k = 0; k < 6 * near; k++) { const a = Math.random() * Math.PI * 2, r0 = 1.5 + 2 * Math.random(), sp = 9 + 16 * Math.random(); fx.dust.emit(toScene(f.x_m + Math.cos(a) * r0, f.y_m + Math.sin(a) * r0, g + 0.1), new THREE.Vector3(Math.cos(a) * sp, 0.1 + Math.random() * 0.4, -Math.sin(a) * sp), 0.4, 1.1); }
   fx.dust.step(dt, 0.5);
-  const zf = S.zoom, k = clamp(1 - alt / 2000, 0, 1), d = lerp(260, 16, smooth(k)) * zf, h = lerp(110, 2.2, smooth(k)) * zf, ang = 0.9 - k * 0.7;
-  aim(P.clone().add(new THREE.Vector3(Math.sin(ang) * d, h, Math.cos(ang) * d)), P.clone().add(new THREE.Vector3(0, -0.8, 0)), 0.04, dt);
+  // chase camera: follows the lander exactly (only the viewing angle is smoothed, so it never falls behind at high time warp),
+  // stays above it looking down at the gap between the footpads and the ground, and never goes below 4 m over the terrain
+  const zf = S.zoom, k = clamp(1 - alt / 1500, 0, 1), sk = smooth(k), d = lerp(240, 24, sk) * zf, h = lerp(120, 8, sk) * zf, ang = 0.9 - k * 0.7;
+  const want = new THREE.Vector3(Math.sin(ang) * d, h, Math.cos(ang) * d); if (!LIVE.camOff) LIVE.camOff = want.clone(); else LIVE.camOff.lerp(want, 1 - Math.pow(0.95, dt * 60));
+  const cp = P.clone().add(LIVE.camOff); cp.y = Math.max(cp.y, groundY(cp.x, -cp.z) + 4);
+  aim(cp, P.clone().add(new THREE.Vector3(0, -Math.min(alt + LANDER_FEET, 10) * 0.5, 0)), 1, dt);
   surfSun.place(P, 600, 45); controls.target.copy(P);
   const s = Math.max(0, Math.floor(LIVE.buf[LIVE.buf.length - 1].t_s)); $('clock').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   // caption only at the start of the run and at touchdown; otherwise one quiet line in the corner
@@ -496,7 +522,7 @@ function tick(now) {
     const orbital = LIVE.kind === 'orbit'; fadeTo(orbital ? orbit : surf); stepFade(dt);
     if (active === orbit && LIVE.orb.length) updateLiveOrbit(dt, wall); else if (active === surf && LIVE.buf.length) updateLive(dt, wall);
     applyCamera(); if (S.cam === 'free') controls.update(); drawLabels(active);
-    if (Q.get('debug')) document.title = JSON.stringify({ live: LIVE.buf.length, surf: active === surf, fade: +fade.a.toFixed(2), P: landerSurf.position.toArray().map((v) => +v.toFixed(1)), cam: camera.position.toArray().map((v) => +v.toFixed(1)) });
+    if (Q.get('debug')) document.title = JSON.stringify({ live: LIVE.buf.length, surf: active === surf, fade: +fade.a.toFixed(2), P: landerSurf.position.toArray().map((v) => +v.toFixed(1)), pads: LIVE.padClear,  cam: camera.position.toArray().map((v) => +v.toFixed(1)) });
   } else if (S.ready) {
     if (S.playing) { S.T += dt; if (S.T >= S.total) S.T = 0; }
     const ci = chapterAt(S.T), c = CH[ci], u = clamp((S.T - c.T0) / c.dur, 0, 1), sim = lerp(c.a, c.b, c.warp ? warp(u, c.warp) : u);
