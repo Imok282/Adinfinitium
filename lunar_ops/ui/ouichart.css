@@ -1,0 +1,14 @@
+/* Copyright (c) 2026, Adinfinitium team. ISC-style permission notice as in index.html. */
+/* OpenUI charts on the black screens: transparent card, white primary ink, muted secondary ink. Series colours come from
+   the patched OpenUI palette (vendor/openui/PATCHES.md): blue, orange, violet, yellow, magenta. */
+.ouic { --openui-text-neutral-primary: #FFFFFF; --openui-text-neutral-secondary: rgba(255,255,255,.62); --openui-foreground: transparent; --openui-background: transparent;
+  --openui-font-body: "Instrument Sans", sans-serif; --openui-font-heading: "Instrument Sans", sans-serif; --openui-font-label: "Instrument Sans", sans-serif;
+  --openui-font-numbers: "JetBrains Mono", monospace; overflow: hidden; }
+.ouic [class*="openui-card"] { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.ouic svg text { font-family: "Instrument Sans", sans-serif; } .ouic svg rect { rx: 4px; }
+
+/* side-by-side small multiples: each chart takes an equal share of the row */
+.ouic div[style*="flex-direction: row"] > * { flex: 1 1 0; min-width: 0; }
+
+/* pie / radial charts size themselves square from the width; cap them to the panel's height (--oui-round, set per panel) */
+.openui-pie-chart-svg-wrapper svg, .openui-radial-chart-svg-wrapper svg { max-height: var(--oui-round, 160px); max-width: 100%; width: auto; height: auto; }

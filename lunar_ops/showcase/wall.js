@@ -22,6 +22,11 @@ const PAL = { p0: '#000000', p1: '#0B2B26', p2: '#163832', p3: '#235347', acc: '
 const RAMP = [[5, 31, 32], [11, 43, 38], [22, 56, 50], [35, 83, 71], [142, 182, 155], [218, 241, 222]];
 const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 function ramp(t, from = 0) { t = clamp(t, 0, 1); const R = RAMP.slice(from), x = t * (R.length - 1), i = Math.min(Math.floor(x), R.length - 2), f = x - i; return R[i].map((v, k) => lerp(v, R[i + 1][k], f)); }
+// Data colours (statistical data and graphs; never green): validated dark-mode set on #000, fixed order.
+const DATA = ['#3987e5', '#d95926', '#9085e9', '#c98500', '#d55181'];
+const BLUE = [[13, 54, 107], [16, 66, 129], [28, 92, 171], [42, 120, 214], [57, 135, 229], [109, 167, 236], [158, 197, 244], [205, 226, 251]]; // magnitude: dark -> light
+function blueRamp(t) { t = clamp(t, 0, 1); const x = t * (BLUE.length - 1), i = Math.min(Math.floor(x), BLUE.length - 2), f = x - i; return BLUE[i].map((v, k) => lerp(v, BLUE[i + 1][k], f)); }
+const blueCss = 'linear-gradient(90deg,' + BLUE.map((c) => `rgb(${c})`).join(',') + ')';
 const rampCss = (from = 0) => 'linear-gradient(90deg,' + RAMP.slice(from).map((c) => `rgb(${c})`).join(',') + ')';
 const ps = (latDeg, lonDeg) => { const k = 2 * R_MOON * Math.tan(Math.PI / 4 + latDeg * Math.PI / 360), lo = lonDeg * Math.PI / 180; return [k * Math.sin(lo), k * Math.cos(lo)]; };
 const latlon = (x, y) => [(2 * Math.atan(Math.hypot(x, y) / (2 * R_MOON)) - Math.PI / 2) * 180 / Math.PI, Math.atan2(x, y) * 180 / Math.PI];
@@ -41,14 +46,14 @@ const live = { group: new THREE.Group(), track: [], trackLine: null, lander: nul
 
 const LAYERS = {
   imagery: { name: 'Imagery', title: 'LROC NAC photo mosaic', a: '', z: '', bar: `linear-gradient(90deg,${PAL.p0},${PAL.hi})`, prov: 'OBSERVED · NASA LRO LROC NAC, 1 m/px (averaged lighting)' },
-  elevation: { name: 'Elevation', title: 'Height (LOLA)', bar: rampCss(1), prov: 'OBSERVED · NASA LRO LOLA 5 m' },
-  slope: { name: 'Slope', title: 'Slope · limit 12°', a: '0°', z: '30°', bar: rampCss(1), prov: 'derived from LOLA 5 m' },
-  hazard: { name: 'Hazard (AI)', title: 'Hazard probability', a: 'safe 0', z: '1 unsafe', bar: `linear-gradient(90deg,${PAL.p1},${PAL.acc},${PAL.hi})`, prov: '' },
-  safe: { name: 'Safe cells', title: 'Where a lander may aim', a: '', z: '', bar: `linear-gradient(90deg,${PAL.acc},${PAL.acc})`, prov: 'no hazard within 15 m and slope < 6° within 10 m' },
-  sun: { name: 'Sunlight', title: 'Sun above the local horizon', a: 'shadow', z: 'sunlit', bar: `linear-gradient(90deg,${PAL.p0},${PAL.hi})`, prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
-  earth: { name: 'Earth link', title: 'Earth above the local horizon', a: 'no link', z: 'direct link', bar: `linear-gradient(90deg,${PAL.p0},${PAL.acc})`, prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
-  psr: { name: 'Dark craters', title: 'Permanently shadowed regions', a: '', z: '', bar: `linear-gradient(90deg,${PAL.p3},${PAL.p3})`, prov: 'MODELLED · horizon test over the lunar year' },
-  ice: { name: 'Ice evidence', title: 'Ice EVIDENCE score (not confirmed ice)', a: '0', z: '1', bar: rampCss(3), prov: 'MODELLED · PSR + cold-trap + neutron evidence' },
+  elevation: { name: 'Elevation', title: 'Height (LOLA)', bar: blueCss, prov: 'OBSERVED · NASA LRO LOLA 5 m' },
+  slope: { name: 'Slope', title: 'Slope · limit 12°', a: '0°', z: '30°', bar: blueCss, prov: 'derived from LOLA 5 m' },
+  hazard: { name: 'Hazard (AI)', title: 'Hazard probability', a: 'safe 0', z: '1 unsafe', bar: 'linear-gradient(90deg,rgba(217,89,38,0),#d95926)', prov: '' },
+  safe: { name: 'Safe cells', title: 'Where a lander may aim', a: '', z: '', bar: 'linear-gradient(90deg,#3987e5,#3987e5)', prov: 'no hazard within 15 m and slope < 6° within 10 m' },
+  sun: { name: 'Sunlight', title: 'Sun above the local horizon', a: 'shadow', z: 'sunlit', bar: 'linear-gradient(90deg,#000000,#c98500)', prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
+  earth: { name: 'Earth link', title: 'Earth above the local horizon', a: 'no link', z: 'direct link', bar: 'linear-gradient(90deg,#000000,#3987e5)', prov: 'MODELLED · SPICE DE440 + LOLA horizon' },
+  psr: { name: 'Dark craters', title: 'Permanently shadowed regions', a: '', z: '', bar: 'linear-gradient(90deg,#9085e9,#9085e9)', prov: 'MODELLED · horizon test over the lunar year' },
+  ice: { name: 'Ice evidence', title: 'Ice EVIDENCE score (not confirmed ice)', a: '0', z: '1', bar: blueCss, prov: 'MODELLED · PSR + cold-trap + neutron evidence' },
 };
 const lw = $('layers'); for (const [k, v] of Object.entries(LAYERS)) { const b = document.createElement('button'); b.className = 'lb' + (k === layer ? ' on' : ''); b.textContent = v.name; b.onclick = () => { layer = k; for (const x of lw.children) x.classList.toggle('on', x === b); paint(); }; lw.appendChild(b); }
 
@@ -58,14 +63,14 @@ function paint() { // compose photo + the active layer into the terrain texture
   const { rows, cols } = L, im = new ImageData(cols, rows), d = im.data, lay = layer;
   const hmin = L.hmin, hmax = L.hmax, sunT = L.sun ? L.sun.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null, earthT = L.earth ? L.earth.subarray(tIdx * rows * cols, (tIdx + 1) * rows * cols) : null;
   for (let i = 0; i < rows * cols; i++) { let c = null, a = 0;
-    if (lay === 'elevation') { c = ramp((L.height[i] - hmin) / (hmax - hmin), 1); a = 0.85; }
-    else if (lay === 'slope') { c = ramp(L.slope[i] / 4 / 30, 1); a = 0.82; }
-    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = p > 0.5 ? RAMP[5] : RAMP[4]; a = p * 0.6; }
-    else if (lay === 'safe') { if (L.safe[i]) { c = RAMP[4]; a = 0.65; } }
-    else if (lay === 'sun') { c = sunT[i] ? RAMP[5] : RAMP[0]; a = sunT[i] ? 0.32 : 0.75; }
-    else if (lay === 'earth') { c = earthT[i] ? RAMP[4] : RAMP[0]; a = earthT[i] ? 0.6 : 0.65; }
-    else if (lay === 'psr') { if (L.psr[i]) { c = RAMP[3]; a = 0.85; } }
-    else if (lay === 'ice') { const sc = L.ice[i] / 255; if (sc > 0.12) { c = ramp(sc, 3); a = 0.35 + 0.55 * sc; } }
+    if (lay === 'elevation') { c = blueRamp((L.height[i] - hmin) / (hmax - hmin)); a = 0.85; }
+    else if (lay === 'slope') { c = blueRamp(L.slope[i] / 4 / 30); a = 0.82; }
+    else if (lay === 'hazard') { const p = L.hazard[i] / 255; c = [217, 89, 38]; a = p * 0.62; }
+    else if (lay === 'safe') { if (L.safe[i]) { c = [57, 135, 229]; a = 0.6; } }
+    else if (lay === 'sun') { c = sunT[i] ? [201, 133, 0] : [0, 0, 0]; a = sunT[i] ? 0.4 : 0.72; }
+    else if (lay === 'earth') { c = earthT[i] ? [57, 135, 229] : [0, 0, 0]; a = earthT[i] ? 0.6 : 0.65; }
+    else if (lay === 'psr') { if (L.psr[i]) { c = [144, 133, 233]; a = 0.75; } }
+    else if (lay === 'ice') { const sc = L.ice[i] / 255; if (sc > 0.12) { c = blueRamp(sc); a = 0.35 + 0.55 * sc; } }
     if (c) { d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = a * 255; } }
   const tmp = document.createElement('canvas'); tmp.width = cols; tmp.height = rows; tmp.getContext('2d').putImageData(im, 0, 0); g.imageSmoothingEnabled = lay !== 'safe' && lay !== 'psr'; g.drawImage(tmp, 0, 0, N, N);
   ctex.needsUpdate = true; legend();
@@ -248,14 +253,16 @@ function lights() {
 
 // ---------------------------------------------------------------------------------------------------- right column
 const NS = 'http://www.w3.org/2000/svg';
-function trajectory() {
-  const svg = $('trajsvg'), X0 = 60, X1 = 590, Y0 = 220, Y1 = 46, xm = (km) => X0 + (1 - Math.log10(1 + km) / Math.log10(6000)) * (X1 - X0), ym = (a) => Y0 - Math.sqrt(clamp(a, 0, 110) / 110) * (Y0 - Y1);
-  let s = ''; for (const a of [0, 2, 15, 50, 100]) s += `<line x1="${X0}" x2="${X1}" y1="${ym(a)}" y2="${ym(a)}" stroke="${PAL.p3}"/><text x="${X0 - 8}" y="${ym(a) + 4}" text-anchor="end" font-size="10.5" fill="rgba(255,255,255,.55)" font-family="JetBrains Mono">${a} km</text>`;
-  for (const k of [5000, 1000, 100, 10, 1, 0]) s += `<text x="${xm(k)}" y="${Y0 + 18}" text-anchor="middle" font-size="10.5" fill="rgba(255,255,255,.55)" font-family="JetBrains Mono">${k ? fmt(k) : 'site'}</text>`;
-  const col = { ORBIT: PAL.p3, DEORBIT: PAL.acc, DESCENT: PAL.hi, LANDED: PAL.hi }; let prev = null;
-  for (const p of live.hist) { if (prev) s += `<line x1="${xm(prev.r).toFixed(1)}" y1="${ym(prev.a).toFixed(1)}" x2="${xm(p.r).toFixed(1)}" y2="${ym(p.a).toFixed(1)}" stroke="${col[p.ph] || PAL.acc}" stroke-width="2.2" stroke-linecap="round"/>`; prev = p; }
-  if (prev) s += `<circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="5" fill="${PAL.hi}"/><circle cx="${xm(prev.r)}" cy="${ym(prev.a)}" r="8" fill="none" stroke="${PAL.hi}" stroke-width="1.5"><animate attributeName="r" values="6;18" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="1.6s" repeatCount="indefinite"/></circle>`;
-  s += `<text x="${X1}" y="${Y1 - 14}" text-anchor="end" font-size="11" fill="rgba(255,255,255,.62)">orbit · deorbit · descent · landed</text>`; svg.innerHTML = s;
+function trajectory() { // OpenUI charts, refreshed at most every 1.5 s (OpenUI animates each change)
+  const now = performance.now(); if (now - (trajectory.t || 0) < 1500 || !window.OUI || !live.hist.length) return; trajectory.t = now;
+  const H = live.hist, n = Math.min(24, H.length), pick = Array.from({ length: n }, (_, k) => H[Math.round(k * (H.length - 1) / Math.max(n - 1, 1))]);
+  const hm = (t) => `${String(Math.floor(t / 3600))}:${String(Math.floor(t % 3600 / 60)).padStart(2, '0')}`;
+  const hh = Math.max(80, ($('oc-alt').clientHeight || 170) - 64); // room for the x-axis title and legend
+  OUI.render($('oc-alt'), `root = Card([c])\nc = AreaChart(${OUI.strs(pick.map((p) => hm(p.t)))}, [a], "natural", "mission time (h:min)", "km", ${hh})\na = Series("Altitude km", ${OUI.arr(pick.map((p) => p.a))})`);
+  const groups = { Orbit: ['DOCKED', 'SEPARATED'], Deorbit: ['DEORBIT'], Coast: ['COAST'], Braking: ['BRAKING'], Descent: ['TERMINAL', 'LANDED', 'ENDED'] }, used = Object.fromEntries(Object.keys(groups).map((k) => [k, 0]));
+  for (let k = 1; k < H.length; k++) { const d = (H[k - 1].fuel ?? 0) - (H[k].fuel ?? 0); if (d > 0) { const g = Object.keys(groups).find((G) => groups[G].includes(H[k].phase)); if (g) used[g] += d; } }
+  const cats = Object.keys(used).filter((k) => used[k] > 0.05);
+  OUI.render($('oc-prop'), cats.length ? `root = Card([c])\nc = PieChart(${OUI.strs(cats)}, ${OUI.arr(cats.map((k) => used[k]))}, "donut")` : 'root = Card([t])\nt = TextContent("No propellant used yet in this view.", "small")');
 }
 const ENG = [[0, 0], [0.8, 0], [0, 0.8], [-0.8, 0], [0, -0.8]], RCS = [[0.411, -0.974], [0.974, -0.411], [0.974, 0.411], [0.411, 0.974], [-0.411, 0.974], [-0.974, 0.411], [-0.974, -0.411], [-0.411, -0.974]], PADS = [[1.55, -1.55], [1.55, 1.55], [-1.55, 1.55], [-1.55, -1.55]];
 function vehicle() {
@@ -264,9 +271,9 @@ function vehicle() {
   let s = ''; for (const [x, y] of PADS) { const [a, b] = P(x, y); s += `<line x1="${cx}" y1="${cy}" x2="${a}" y2="${b}" stroke="${PAL.p3}" stroke-width="3"/><circle cx="${a}" cy="${b}" r="13" fill="${PAL.p0}" stroke="${PAL.acc}" stroke-width="2"/>`; }
   const oct = Array.from({ length: 8 }, (_, k) => { const t = (k + .5) * Math.PI / 4, [a, b] = P(1.05 * Math.cos(t), 1.05 * Math.sin(t)); return `${a},${b}`; }).join(' ');
   s += `<polygon points="${oct}" fill="${PAL.p0}" stroke="${PAL.acc}" stroke-width="2"/>`;
-  ENG.forEach(([x, y], i) => { const [a, b] = P(x, y), t = th[i] || 0, dead = f && f.vehicle && i > 0 && t === 0 && (f.vehicle.engines_ok ?? 5) < 5 && [1, 3].includes(i); s += `<circle cx="${a}" cy="${b}" r="12" fill="${PAL.hi}" fill-opacity="${(0.08 + 0.92 * t).toFixed(2)}" stroke="${dead ? PAL.hi : PAL.acc}" stroke-width="2" ${dead ? 'stroke-dasharray="3 3"' : ''}/><text x="${a}" y="${b + 4}" text-anchor="middle" font-size="10" fill="${PAL.p0}" font-family="JetBrains Mono">${i}</text>`; });
-  RCS.forEach(([x, y], i) => { const [a, b] = P(x * 1.12, y * 1.12), on = rc[i]; s += `<rect x="${a - 5}" y="${b - 5}" width="10" height="10" rx="3" fill="${on ? PAL.hi : PAL.p1}" stroke="${on ? PAL.hi : PAL.p3}"/>`; });
-  const fr = clamp(fuel / f0, 0, 1); s += `<rect x="420" y="40" width="34" height="180" rx="8" fill="${PAL.p0}" stroke="${PAL.p3}"/><rect x="424" y="${44 + 172 * (1 - fr)}" width="26" height="${172 * fr}" rx="5" fill="${fr > .05 ? PAL.acc : PAL.hi}"/>`;
+  ENG.forEach(([x, y], i) => { const [a, b] = P(x, y), t = th[i] || 0, dead = f && f.vehicle && i > 0 && t === 0 && (f.vehicle.engines_ok ?? 5) < 5 && [1, 3].includes(i); s += `<circle cx="${a}" cy="${b}" r="12" fill="${DATA[1]}" fill-opacity="${(0.08 + 0.92 * t).toFixed(2)}" stroke="${dead ? PAL.hi : DATA[1]}" stroke-width="2" ${dead ? 'stroke-dasharray="3 3"' : ''}/><text x="${a}" y="${b + 4}" text-anchor="middle" font-size="10" fill="${PAL.p0}" font-family="JetBrains Mono">${i}</text>`; });
+  RCS.forEach(([x, y], i) => { const [a, b] = P(x * 1.12, y * 1.12), on = rc[i]; s += `<rect x="${a - 5}" y="${b - 5}" width="10" height="10" rx="3" fill="${on ? DATA[3] : PAL.p1}" stroke="${on ? DATA[3] : PAL.p3}"/>`; });
+  const fr = clamp(fuel / f0, 0, 1); s += `<rect x="420" y="40" width="34" height="180" rx="8" fill="${PAL.p0}" stroke="${PAL.p3}"/><rect x="424" y="${44 + 172 * (1 - fr)}" width="26" height="${172 * fr}" rx="5" fill="${fr > .05 ? DATA[0] : DATA[1]}"/>`;
   s += `<text x="437" y="236" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.62)">tank</text>`;
   const lines = [['Engines', `${f?.vehicle?.engines_ok ?? '—'} of 5`], ['Throttle', th.length ? `${Math.round(Math.max(...th) * 100)} % max` : '—'], ['Attitude thrusters', rc.length ? `${rc.filter(Boolean).length} firing` : '—'], ['Pointing error', `${fmt(f?.attitude?.pointing_error_deg, 1)}°`], ['Propellant', `${fmt(fuel, 1)} kg`]];
   s += lines.map(([k, v], i) => `<text x="482" y="${68 + i * 36}" font-size="13" fill="rgba(255,255,255,.62)">${k}</text><text x="482" y="${86 + i * 36}" font-size="17" fill="#FFFFFF" ${/\d/.test(v) ? 'font-family="JetBrains Mono"' : ''}>${v}</text>`).join('');
@@ -281,7 +288,7 @@ requestAnimationFrame(rollStep);
 function dial(cx, cy, r, frac, label, unit, id) { // 240 deg dial: track, value arc, ticks and an eased needle
   const a0 = 150, sweep = 240, ang = (f) => (a0 + sweep * clamp(f, 0, 1)) * Math.PI / 180, pt = (f, rr) => [cx + rr * Math.cos(ang(f)), cy + rr * Math.sin(ang(f))];
   const arc = (f, rr) => { const [x0, y0] = pt(0, rr), [x1, y1] = pt(f, rr); return `M${x0},${y0} A${rr},${rr} 0 ${sweep * f > 180 ? 1 : 0} 1 ${x1},${y1}`; };
-  let s = `<path d="${arc(1, r)}" fill="none" stroke="${PAL.p2}" stroke-width="9" stroke-linecap="round"/><path d="${arc(Math.max(clamp(frac, 0, 1), 0.001), r)}" fill="none" stroke="${PAL.acc}" stroke-width="9" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgba(142,182,155,.55))"/>`;
+  let s = `<path d="${arc(1, r)}" fill="none" stroke="${PAL.p2}" stroke-width="9" stroke-linecap="round"/><path d="${arc(Math.max(clamp(frac, 0, 1), 0.001), r)}" fill="none" stroke="${DATA[0]}" stroke-width="9" stroke-linecap="round" style="filter:drop-shadow(0 0 5px rgba(57,135,229,.55))"/>`;
   for (let k = 0; k <= 10; k++) { const [x0, y0] = pt(k / 10, r - 14), [x1, y1] = pt(k / 10, r - (k % 5 ? 19 : 23)); s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${PAL.p3}" stroke-width="${k % 5 ? 1.2 : 2}"/>`; }
   const deg = a0 + sweep * clamp(frac, 0, 1);
   s += `<g class="dial-needle" style="transform-origin:${cx}px ${cy}px;transform:rotate(${deg}deg)"><line x1="${cx}" y1="${cy}" x2="${cx + r - 20}" y2="${cy}" stroke="${PAL.hi}" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="5" fill="${PAL.hi}"/>`;
@@ -308,7 +315,7 @@ function onFrame(m) {
   void h; void mi; void se; // clocks are in the banner
   $('site').textContent = m.site ? `${m.site.region} · target ${fmt(m.site.x_m)} m E, ${fmt(m.site.y_m)} m N` : '';
   if (live.hist.length && m.t_s < live.hist[live.hist.length - 1].t) { live.hist = []; live.track = []; live.events = []; }
-  live.hist.push({ t: m.t_s, r: m.orbit.ground_range_km, a: m.lander ? m.lander.alt_m / 1000 : m.orbit.alt_km, ph: m.mission_phase }); if (live.hist.length > 4000) live.hist.splice(0, 2);
+  live.hist.push({ t: m.t_s, r: m.orbit.ground_range_km, a: m.lander ? m.lander.alt_m / 1000 : m.orbit.alt_km, ph: m.mission_phase, phase: m.phase, fuel: m.vehicle.fuel_kg }); if (live.hist.length > 4000) live.hist.splice(0, 2);
   for (const e of m.events || []) { e._fresh = true; live.events.unshift(e); if (live.events.length > 12) live.events.pop(); }
   if ((m.events || []).length) { $('evlist').innerHTML = live.events.map((e) => `<div class="${e._fresh ? 'fresh' : ''}"><span class="n">T+${fmt(e.t_s, 1)}</span><span>${String(e.msg).replace(/</g, '&lt;')}</span></div>`).join(''); for (const e of live.events) e._fresh = false; }
   if (L && liveTime && m.utc) syncTime(m.utc);

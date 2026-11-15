@@ -322,7 +322,7 @@ P.dream = {
       const R = rows.filter((r) => typeof r[a] === 'number' && typeof r[b] === 'number'); if (R.length < 2) return '';
       const vs = R.flatMap((r) => [r[a], r[b]]), lo = Math.min(...vs), hi = Math.max(...vs), W = 300, H = 46, X = (i) => 6 + i / (R.length - 1) * (W - 12), Y = (v) => { let t = hi > lo ? (v - lo) / (hi - lo) : 0.5; if (lowerBetter) t = 1 - t; return H - 6 - t * (H - 12); }; // up = better
       const line = R.map((r, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(r[a]).toFixed(1)}`).join('');
-      return `<svg width="${W}" height="${H}" style="display:block;margin:4px 0 2px"><path d="${line}" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.6"/>` + R.map((r, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(r[b]).toFixed(1)}" r="3.2" fill="${r.accepted ? '#DAF1DE' : '#DAF1DE'}"/>`).join('') + '</svg>';
+      return `<svg width="${W}" height="${H}" style="display:block;margin:4px 0 2px"><path d="${line}" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1.6"/>` + R.map((r, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(r[b]).toFixed(1)}" r="3.2" fill="${r.accepted ? MC.DATA[0] : MC.DATA[1]}"/>`).join('') + '</svg>';
     };
     const block = (kind, title, what, a, b, fmt, lowerBetter, practised) => {
       const K = D[kind] || {}, rows = K.rows || [], st = K.state;
@@ -355,7 +355,7 @@ P.gantt = {
   draw(g, w, h) {
     const c = MC.cols, n = MC.n(); if (n < 2) return MC.empty(g, w, h, 'Waiting for data…');
     const LM = 78, pw = w - LM - 8, t0 = c.t[0], t1 = c.t[n - 1], X = (t) => LM + (t - t0) / ((t1 - t0) || 1) * pw;
-    const rows = [['Phase', (i) => ['#235347', '#235347', '#8EB69B', '#8EB69B', '#DAF1DE'][c.ph[i]]], ['Sunlight', (i) => (c.lit[i] === 1 ? C.blueL : c.lit[i] === 0 ? C.blueDD : null)], ['Earth link', (i) => (c.earth[i] === 1 ? C.blue : c.earth[i] === 0 ? C.blueDD : null)], ['Dark crater', (i) => (c.psr[i] === 1 ? C.blue : c.psr[i] === 0 ? C.blueDD : null)], ['Activity', (i) => [C.blue, C.blueD, '#235347', C.blueL][c.mode[i]] || null]];
+    const rows = [['Phase', (i) => MC.DATA[c.ph[i]]], ['Sunlight', (i) => (c.lit[i] === 1 ? C.blueL : c.lit[i] === 0 ? C.blueDD : null)], ['Earth link', (i) => (c.earth[i] === 1 ? C.blue : c.earth[i] === 0 ? C.blueDD : null)], ['Dark crater', (i) => (c.psr[i] === 1 ? C.blue : c.psr[i] === 0 ? C.blueDD : null)], ['Activity', (i) => [C.blue, C.blueD, '#235347', C.blueL][c.mode[i]] || null]];
     const rh = (h - 22) / (rows.length + 1);
     rows.forEach(([lab, col], r) => { const y = 4 + r * rh; MC.txt(g, lab, 6, y + rh * 0.62, C.dim, 'left', 10); for (let i = 0; i < n; i++) { const cc = col(i); if (cc) SEG(g, X(c.t[i]), X(i + 1 < n ? c.t[i + 1] : c.t[i]) + 0.5, y + 2, rh - 5, cc); } });
     const ey = 4 + rows.length * rh; MC.txt(g, 'Events', 6, ey + rh * 0.62, C.dim, 'left', 10); for (const e of MC.events) { const bad = /fail|abort|dead|rejected/i.test(e.kind + e.msg); g.fillStyle = bad ? C.orange : C.blueL; g.fillRect(X(e.t_s) - 0.5, ey + 3, 1.5, rh - 6); }

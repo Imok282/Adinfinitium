@@ -4,7 +4,10 @@
 'use strict';
 const MC = (window.MC = window.MC || {});
 
-MC.C = { bg: '#000000', blue: '#8EB69B', blueL: '#DAF1DE', blueD: '#235347', blueDD: '#163832', orange: '#DAF1DE', orangeD: '#235347', dim: 'rgba(255,255,255,.62)', text: '#FFFFFF', grid: '#163832', white: '#FFFFFF' };
+// Data colours (validated, no green; dataviz validator, dark, surface #000): series 1 blue, 2 orange, 3 violet, 4 yellow, 5 magenta.
+// blue / blueL / blueD / blueDD are steps of the blue magnitude ramp; UI chrome (frames, grid, lights) stays in the greens.
+MC.DATA = ['#3987e5', '#d95926', '#9085e9', '#c98500', '#d55181'];
+MC.C = { bg: '#000000', blue: '#3987e5', blueL: '#86b6ef', blueD: '#1c5cab', blueDD: '#0d366b', orange: '#d95926', orangeD: '#5c2a14', violet: '#9085e9', yellow: '#c98500', magenta: '#d55181', dim: 'rgba(255,255,255,.62)', text: '#FFFFFF', grid: '#163832', white: '#FFFFFF' };
 const C = MC.C, MONO = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace', SANS = '"Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
 // No sharp corners: every rectangle drawn on any chart canvas gets rounded ends (tiny rectangles become round-ended lines).
 (function () {
@@ -34,7 +37,7 @@ MC.txt = function (g, t, x, y, col = C.dim, align = 'left', size = 10) {
   let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x; parts.forEach(([s, n], i) => { g.font = fontOf(size, n); g.fillText(s, cx, y); cx += ws[i]; });
 };
 MC.empty = (g, w, h, msg) => MC.txt(g, msg, w / 2, h / 2, C.dim, 'center', 12);
-const HEAT = [[5, 31, 32], [35, 83, 71], [142, 182, 155], [218, 241, 222]]; // palette ramp
+const HEAT = [[13, 54, 107], [28, 92, 171], [57, 135, 229], [205, 226, 251]]; // blue magnitude ramp, dark -> light (dataviz sequential blue)
 MC.heatRGB = function (v) { v = MC.clamp(v, 0, 1) * 3; const i = Math.min(2, Math.floor(v)), f = v - i, a = HEAT[i], b = HEAT[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; };
 MC.heat = (v) => { const [r, g, b] = MC.heatRGB(v); return `rgb(${r | 0},${g | 0},${b | 0})`; };
 MC.fmtT = (t) => { t = Math.max(0, t); return `${Math.floor(t / 86400)}d ${String(Math.floor(t % 86400 / 3600)).padStart(2, '0')}:${String(Math.floor(t % 3600 / 60)).padStart(2, '0')}`; };

@@ -6,7 +6,7 @@
   purpose with or without fee is hereby granted, provided that the above
   copyright notice and this permission notice appear in all copies.
 -->
-<html lang="en">
+<html lang="en" data-openui-theme="dark">
 <head>
 <meta charset="utf-8">
 <title>Adinfinitium · Pilot brain</title>
@@ -40,6 +40,8 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
 .mini { font-size: 11.5px; color: var(--dim); text-align: center; margin-top: 4px; }
 </style>
 <link rel="stylesheet" href="banner.css">
+<link rel="stylesheet" href="vendor/openui/openui-styles.css">
+<link rel="stylesheet" href="ouichart.css">
 </head>
 <body>
 <div id="stage">
@@ -70,7 +72,7 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
     <div class="h abs" style="left:28px;top:24px"><b class="n">2</b>What it thinks</div>
     <div class="sub abs" style="left:28px;top:50px" id="netsub">Transformer pilot</div>
     <canvas id="net" class="abs" style="left:0;top:80px;width:1060px;height:760px"></canvas>
-    <div class="legend abs" style="left:28px;bottom:20px"><span><i style="background:#DAF1DE"></i>strongest chain to the thrust output</span><span><i style="background:rgba(142,182,155,.35)"></i>each token's top attention links</span><span>dot size = activity</span></div>
+    <div class="legend abs" style="right:28px;top:26px"><span><i style="background:#86b6ef"></i>strongest chain to the thrust output</span><span><i style="background:rgba(57,135,229,.45)"></i>each token's top attention links</span><span>dot size = activity</span></div>
   </div>
 
   <div class="panel" style="left:1536px;top:160px;width:344px;height:862px">
@@ -78,16 +80,19 @@ canvas.px { image-rendering: pixelated; border-radius: 12px; }
     <div class="abs" style="left:26px;top:60px"><div class="big n"><span id="thr">–</span><span style="font-size:26px;color:var(--dim)"> %</span></div><div class="sub" style="margin-top:8px">throttle · classic alone: <span class="n" style="color:var(--text)" id="thrc">–</span></div></div>
     <div class="abs" style="left:26px;top:150px;width:292px;font-size:12.5px;color:var(--dim)">AI correction added to the classic command<div class="n" style="color:var(--text);font-size:14px;margin-top:4px" id="res">–</div></div>
     <div class="h abs" style="left:26px;top:214px;color:var(--dim)">AI vs classic</div>
-    <div class="legend abs" style="left:26px;top:238px"><span><i style="background:#DAF1DE"></i>AI</span><span><i style="background:rgba(255,255,255,.62);opacity:.7"></i>Classic</span></div>
-    <svg id="chart" class="abs" style="left:0;top:262px" width="344" height="210"></svg>
+    <div id="chart" class="abs" style="left:8px;top:236px;width:328px;height:226px"></div>
     <div class="abs n" style="left:26px;top:476px;width:300px;font-size:11.5px;color:var(--dim)" id="lat">–</div>
     <div class="h abs" style="left:26px;top:526px;color:var(--dim)">Decisions</div>
-    <div class="log abs" style="left:26px;top:552px;width:292px" id="log"></div>
+    <div class="log abs" style="left:26px;top:552px;width:292px;max-height:112px;overflow:hidden" id="log"></div>
+    <div class="h abs" style="left:26px;top:676px;color:var(--dim)">Where attention goes</div>
+    <div id="attn" class="abs" style="left:8px;top:698px;width:328px;height:156px"></div>
   </div>
 
   <footer><span id="prov">Waiting for a live run</span><span>Simulated mission (MODELLED) · terrain NASA LRO LOLA (observed)</span></footer>
   <div id="wait">Waiting for a live run: start <span class="n">&nbsp;python -m scripts.live_mission&nbsp;</span></div>
 </div>
+<script src="vendor/openui/openui-bundle.min.js"></script>
+<script src="ouichart.js"></script>
 <script src="banner.js"></script>
 <script src="ai.js"></script>
 </body>
